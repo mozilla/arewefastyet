@@ -1,0 +1,127 @@
+body {
+ background-color:#FFF;
+ font:.6875em Verdana, Arial, Helvetica, sans-serif;
+ color:#000;
+}
+a {
+ color:#000;
+ text-decoration:underline;
+}
+a:hover {
+ text-decoration:none;
+}
+h1 {
+ font-size:2.265em;
+ font-weight:700;
+}
+#graph-container {
+ margin: 0 auto;
+ width:1140px;
+}
+#sunspider-graph, #v8-graph, #sunspider-label, #v8-label {
+ width:555px;
+ float:left;
+}
+#sunspider-graph, #v8-graph {
+ height:350px;
+}
+#v8-graph, #v8-label {
+ Left:50px;
+}
+#sunspider-label, #v8-label {
+ position:relative;
+ text-align:center;
+ padding-bottom:5px;
+}
+#tooltip {
+ -moz-border-radius:.35em;
+ -webkit-border-radius:.35em;
+ background-color:#000;
+ color:#FFF;
+ display:none;
+ opacity:0.8;
+ padding:.25em;
+ position:absolute;
+}
+#tooltip a:link, #tooltip a:active, #tooltip a:visited {
+ color:#FFF;
+ text-decoration: underline;
+}
+#tooltip a:hover {
+ color:#FFF;
+ text-decoration: none;
+}
+.engine-legend {
+ padding-top:2em;
+ clear:both;
+}
+.engine-legend {
+ text-align:center;
+}
+
+#legend1 {
+ margin-bottom:-1em;
+}
+
+#legend2, #links, h1, #footer {
+ text-align:center;
+ margin-bottom:1em;
+}
+.engine-legend li, #links li, #footer li {
+ display:inline;
+}
+.engine-legend li {
+ border-left:1.2em solid #FFF;
+ padding-left:.5em;
+ margin-right:2em;
+}
+.engine-legend #tracing {
+ border-color:#FFA451;
+}
+.engine-legend #jaeger {
+ border-color:#3E99D7;
+}
+.engine-legend #moz-mooj {
+ border-color:#6f0a93;
+}
+.engine-legend #google-v8 {
+ border-color:#4DA74D;
+}
+.engine-legend #apple-nitro {
+ border-color:#CF4B4B;
+}
+.engine-legend #interpreter {
+ border-color:#737373;
+}
+.engine-legend #apple-jsci {
+ border-color:#EF8B8B;
+}
+.engine-legend #moz-mooi {
+ border-color:#027364;
+}
+.engine-legend #moz-moom {
+ border-color:#000000;
+}
+#links li, #footer li {
+ border-right:1px solid #000;
+ padding:0 1.265em 0 1em;
+}
+#links li:last-child, #footer li:last-child {
+ border:none;
+}
+#lastUpdate {
+ float:right;
+ margin-bottom:1em;
+ color: gray;
+ font-size: x-small;
+}
+#faq {
+ margin:2em auto;
+ width:80%;
+}
+#faq li {
+ font-weight:700
+}
+#faq li p:last-child {
+ font-weight:normal;
+}
