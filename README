@@ -1,3 +1,41 @@
-Driver runs the benchmarks, entrypoint is dostuff.py.
+The latest AWFY is five components:
+ (1) MySQL database that stores statistics.
+ (2) Hidden PHP script on the webserver, where stats get sent.
+ (3) Python driver that runs on each benchmark computer, and submits stats.
+ (4) Python aggregator that builds JSON data from the DB.
+ (5) Static HTML as the frontpage, that queries JSON via XHR.
 
+NOTE: (2), (3), and (5) must be on the same webserver, otherwise timestamps
+might not be computed correctly.
+
+######### SET UP ##########
+Setting up (1):
+  Run database/schema.sql
+
+Setting up (2):
+  Drop website/UPDATE.PHP and website/internals.php somewhere, and
+  rename UPDATE.PHP to something secret.
+
+Setting up (3):
+  I set it up like:
+   mkdir awfy
+   cd awfy
+   svn checkout http://v8.googlecode.com/svn/branches/bleeding_edge/ v8
+   svn checkout https://svn.webkit.org/repository/webkit/trunk WebKit
+   hg clone http://hg.mozilla.org/integration/mozilla-inbound
+   mkdir driver
+   cp <awfy-src>/driver/* driver/
+   
+  Add a database entry for the machine configuration.
+  Edit driver/awfy.config to match your webserver and machine database entry.
+  Add a cronjob to run dostuff.py periodically. AWFY.com runs every 30min.
+
+Setting up (4):
+  Put awfy-server.config in /etc/, edit it to point at your database and 
+  website/data folder. Then put frontpage.py in a cronjob. It will dump files
+  where appropriate. AWFY.com does this every 15min.
+
+Setting up (5):
+  Nothing special needed. Note that our flot is slightly modified, so it
+  might not work to just replace it.
 

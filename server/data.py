@@ -1,5 +1,6 @@
 # vim: set ts=4 sw=4 tw=99 et:
 import awfy
+import time
 
 class Benchmark(object):
     def __init__(self, suite_id, name, description, direction):
@@ -19,25 +20,27 @@ class Vendor(object):
     def export(self):
         return { "id": self.id,
                  "name": self.name,
-                 "vendor": self.vendor,
+                 "vendor": self.vendor_id,
                  "url": self.url,
                  "browser": self.browser
                }
 
 class Mode(object):
-    def __init__(self, id, vendor, mode, name, color):
+    def __init__(self, id, vendor, mode, name, color, level):
         self.id = id
-        self.vendor = vendor
+        self.vendor_id = vendor
         self.mode = mode
         self.name = name
         self.color = color
+        self.level = level
 
     def export(self):
         return { "id": self.id,
-                 "vendorid": self.vendor.id,
+                 "vendor_id": self.vendor_id,
                  "mode": self.mode,
                  "name": self.name,
-                 "color": self.color
+                 "color": self.color,
+                 "level": self.level
                }
 
 class Runs(object):
@@ -58,10 +61,23 @@ class Runs(object):
             self.map_[row[0]] = len(self.runs)
             self.runs.append(t)
 
-        self.earliest = self.runs[-1][0]
+        self.earliest = int(self.runs[-1][1]) - time.timezone
+
+    def slot(self, run_id):
+        return self.map_[run_id]
+
+    def length(self):
+        return len(self.runs)
 
     def contains(self, run_id):
         return run_id in self.map_
+
+    def export(self):
+        list = []
+        for run in self.runs:
+            t = run[1] - time.timezone
+            list.append(t)
+        return list
 
 class Context(object):
     def __init__(self):
@@ -79,10 +95,9 @@ class Context(object):
         # Get a list of modes, and a reverse mapping from DB ids.
         self.modes = []
         self.modeMap_ = {}
-        c.execute("SELECT id, vendor_id, mode, name, color FROM awfy_mode")
+        c.execute("SELECT id, vendor_id, mode, name, color, level FROM awfy_mode WHERE level <= 10")
         for row in c.fetchall():
-            v = self.vendorMap_[row[1]]
-            m = Mode(row[0], v, row[2], row[3], row[4])
+            m = Mode(row[0], row[1], row[2], row[3], row[4], row[5])
             self.modeMap_[m.id] = m
             self.modes.append(m)
 
@@ -93,6 +108,28 @@ class Context(object):
             b = Benchmark(row[0], row[1], row[2], row[3])
             self.benchmarks.append(b)
 
+    def mode(self, mode_id):
+        return self.modeMap_[mode_id]
+
+    def exportModes(self):
+        o = { }
+        for mode in self.modes:
+            o[mode.id] = { "vendor_id": mode.vendor_id,
+                           "mode": mode.mode,
+                           "name": mode.name,
+                           "color": mode.color
+                         }
+        return o
+
+    def exportVendors(self):
+        o = { }
+        for vendor in self.vendors:
+            o[vendor.id] = { "name": vendor.name,
+                             "url": vendor.url,
+                             "browser": vendor.browser
+                           }
+        return o
+
 
 def graph(cx, runs, suite_id):
     c = awfy.db.cursor()
@@ -100,6 +137,8 @@ def graph(cx, runs, suite_id):
                FROM awfy_score s                                        \
                JOIN awfy_mode m ON m.id = s.mode_id                     \
                WHERE s.suite_id = %s                                    \
+               AND s.score > 0                                          \
+               AND m.level <= 10                                        \
                AND s.run_id > %s", [suite_id, runs.earliest])
     points = []
     for row in c.fetchall():
