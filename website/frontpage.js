@@ -237,7 +237,7 @@ Display.prototype.createToolTip = function (item, extended) {
     // Find the datapoint.
     var point = line.data[x];
 
-    if (extended && vendor) {
+    if (extended) {
         if (point.last) {
             text += so + 'revs: ' + sc +
                     '<a href="' + vendor.url + point.first + '">' + point.first + '</a>' +
@@ -248,6 +248,16 @@ Display.prototype.createToolTip = function (item, extended) {
             text += so + 'rev: ' + sc +
                     '<a href="' + vendor.url + point.first + '">' + point.first + '</a>' +
                     '<br>';
+        }
+    } else {
+        if (point.last) {
+            text += so + 'revs: ' + sc +
+                    point.first +
+                    ' to ' +
+                    point.last +
+                    '<br>';
+        } else {
+            text += so + 'rev: ' + sc + point.first + '<br>';
         }
     }
 
@@ -302,7 +312,7 @@ Display.prototype.createToolTip = function (item, extended) {
         }
         if (!set) {
             text += so + 'tested: ' + sc;
-            if (x < this.historical)
+            if (this.graph.aggregate && x < this.historical)
                 text += 'around ';
             text += Display.Months[d.getMonth()] + ' ' + d.getDate();
             if (now.getFullYear() != d.getFullYear())
