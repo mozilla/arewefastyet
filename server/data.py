@@ -17,12 +17,18 @@ class Vendor(object):
         self.url = url
         self.browser = browser
 
+class Machine(object):
+    def __init__(self, id, os, cpu, description):
+        self.id = id
+        self.os = os
+        self.cpu = cpu
+        self.description = description
+
     def export(self):
         return { "id": self.id,
-                 "name": self.name,
-                 "vendor": self.vendor_id,
-                 "url": self.url,
-                 "browser": self.browser
+                 "os": self.os,
+                 "cpu": self.cpu,
+                 "description": self.description
                }
 
 class Mode(object):
@@ -33,15 +39,6 @@ class Mode(object):
         self.name = name
         self.color = color
         self.level = level
-
-    def export(self):
-        return { "id": self.id,
-                 "vendor_id": self.vendor_id,
-                 "mode": self.mode,
-                 "name": self.name,
-                 "color": self.color,
-                 "level": self.level
-               }
 
 class Runs(object):
     def __init__(self, machine_id):
@@ -108,6 +105,13 @@ class Context(object):
             b = Benchmark(row[0], row[1], row[2], row[3])
             self.benchmarks.append(b)
 
+        # Get a list of machines.
+        self.machines = []
+        c.execute("SELECT id, os, cpu, description FROM awfy_machine WHERE active = 1")
+        for row in c.fetchall():
+            m = Machine(row[0], row[1], row[2], row[3])
+            self.machines.append(m)
+
     def mode(self, mode_id):
         return self.modeMap_[mode_id]
 
@@ -128,6 +132,12 @@ class Context(object):
                              "url": vendor.url,
                              "browser": vendor.browser
                            }
+        return o
+
+    def exportMachines(self):
+        o = { }
+        for machine in self.machines:
+            o[machine.id] = machine.export()
         return o
 
 

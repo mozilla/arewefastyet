@@ -255,7 +255,8 @@ def export_aggregate_suites(cx, machine, suites):
 def export_master(cx):
     j = { "version": awfy.version,
           "modes": cx.exportModes(),
-          "vendors": cx.exportVendors()
+          "vendors": cx.exportVendors(),
+          "machines": cx.exportMachines()
         }
 
     text = "var AWFYMaster = " + json.dumps(j) + ";\n"
