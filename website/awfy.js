@@ -5,6 +5,7 @@ var AWFY = { };
 AWFY.refreshTime = 1000 * 60 * 5;
 AWFY.machineId = 0;
 AWFY.refresh = true;
+AWFY.hasLegend = false;
 AWFY.panes = [];
 AWFY.queryParams = { };
 AWFY.drawLegend = function () {
@@ -68,6 +69,12 @@ AWFY.compute = function (xhr) {
         var graph = data.graphs[id];
         var display = new Display(this, elt, data, graph);
         display.draw();
+    }
+
+    // Draw the legend if needed.
+    if (!this.hasLegend) {
+        Display.drawLegend();
+        this.hasLegend = true;
     }
 
     if (this.refresh)

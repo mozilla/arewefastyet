@@ -86,7 +86,8 @@ ToolTip.prototype.attachLine = function (color) {
     // Now overlay a line from the point to the tooltip, ya.
     var ns = "http://www.w3.org/2000/svg";
 
-    var svg = $(document.createElementNS(ns, 'svg'));
+    var svgElt = document.createElementNS(ns, 'svg');
+    var svg = $(svgElt);
     svg.css({ position: 'absolute',
               left: 0,
               top: 0,
@@ -102,7 +103,8 @@ ToolTip.prototype.attachLine = function (color) {
     line.setAttribute('stroke-width', 2);
     $(line).appendTo(svg);
 
-    svg.height($('window').height());
+    svgElt.setAttribute('width', '100%');
+    svgElt.setAttribute('height', '100%');
     svg.appendTo('body');
     this.svg = svg;
     this.line = line;

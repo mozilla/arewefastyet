@@ -366,3 +366,16 @@ Display.prototype.onHover = function (event, pos, item) {
     this.hovering.drawBasic();
 }
 
+Display.drawLegend = function ()
+{
+    var legend = $("#legend");
+
+    for (var modename in AWFYMaster.modes) {
+        var mode = AWFYMaster.modes[modename];
+        var vendor = AWFYMaster.vendors[mode.vendor_id];
+        var item = $('<li style="border-color:' + mode.color + '"></li>');
+        item.text(vendor.browser + ' (' + mode.name + ')');
+        item.appendTo(legend);
+    }
+}
+

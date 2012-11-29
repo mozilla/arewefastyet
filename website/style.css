@@ -31,6 +31,7 @@ h1 {
 .tooltip {
  -moz-border-radius:.35em;
  -webkit-border-radius:.35em;
+ border-radius: .35em;
  background-color:#000;
  color:#FFF;
  display:none;
@@ -63,3 +64,20 @@ h1 {
  display: inline-block;
 }
 
+#legend {
+ text-align: left;
+ padding-top: 360px;
+ margin-left: -20px;
+ display: inline;
+ position: absolute;
+ left: 0;
+ list-style-type: none;
+}
+
+#legend li {
+ border-left: 1.2em solid #FFF;
+ margin-right: 2em;
+ padding-left: .3em;
+ margin-bottom: .2em;
+ font-size: 1.2em;
+}
