@@ -37,7 +37,7 @@ ToolTip.prototype.draw = function () {
     var tipWidth = 165;
     var tipHeight = 75;
     var xOffset = 5;
-    var yOffset = 5;
+    var yOffset = 15;
 
     var ie = document.all && !window.opera;
     var iebody = (document.compatMode == 'CSS1Compat')
