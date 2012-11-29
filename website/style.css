@@ -52,16 +52,23 @@ h1 {
  padding: 15px;
  opacity: 1.0;
  text-align: left;
+ padding-top: 8px;
 }
 
 .closeButton {
  color:#CCC;
- position: absolute;
- top: 5px;
- right: 5px;
  font-family: monospace;
  cursor: pointer;
- display: inline-block;
+ float: right;
+}
+
+.tiptext {
+ background: #222;
+ -moz-border-radius:.35em;
+ -webkit-border-radius:.35em;
+ border-radius: .35em;
+ padding: 10px;
+ clear: both;
 }
 
 #legend {
@@ -81,3 +88,4 @@ h1 {
  margin-bottom: .2em;
  font-size: 1.2em;
 }
+

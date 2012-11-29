@@ -11,20 +11,44 @@ ToolTip.prototype.drawFloating = function () {
     var text = '<div class="tooltip closeable"></div>';
     this.elt = $(text);
 
-    var ruler = $('<div class="tooltipRuler"></div>');
-    ruler.appendTo(this.elt);
-
     var button = $('<a class="closeButton" href="#"></a>');
     button.text('[x]');
     button.appendTo(this.elt);
     button.css('text-decoration', 'none');
-    button.click(this.remove.bind(this));
+    button.click((function () {
+        this.remove();
+        return false;
+    }).bind(this));
 
-    var span = $('<span>' + this.contents + '</span>');
+    var span = $('<div class="tiptext">' + this.contents + '</div>');
     span.appendTo(this.elt);
 
     this.draw(true);
-    this.elt.draggable({ drag: this.onDrag.bind(this) });
+    this.elt.mousedown(
+        (function (event) {
+            if ($(event.target).hasClass('tiptext') ||
+                $(event.target).parents('.tiptext').length)
+            {
+                return;
+            }
+            var x = event.clientX - parseInt(this.elt.css('left'));
+            var y = event.clientY - parseInt(this.elt.css('top'));
+            $('html').mousemove(
+                (function (event) {
+                    this.elt.css({ left: (event.clientX - x) + 'px',
+                                   top: (event.clientY - y) + 'px'})
+                    this.onDrag(event);
+                }).bind(this));
+            event.preventDefault();
+        }).bind(this));
+    $('html').mouseup(function () {
+        $('html').unbind('mousemove');
+        });
+
+    // Re-orient the box so it looks like it's directly underneath the point.
+    var width = this.elt.width();
+    var x = this.x - width / 2;
+    this.elt.css({ left: x });
 }
 
 ToolTip.prototype.drawBasic = function () {
@@ -36,7 +60,7 @@ ToolTip.prototype.drawBasic = function () {
 ToolTip.prototype.draw = function (expanded) {
     var tipWidth = 165;
     var tipHeight = 75;
-    var xOffset = expanded ? -80 : -10;
+    var xOffset = -10;
     var yOffset = 15;
 
     var ie = document.all && !window.opera;
@@ -74,7 +98,7 @@ ToolTip.prototype.midpoint = function () {
     return { x: offset.left + width / 2, y: offset.top };
 }
 
-ToolTip.prototype.onDrag = function (event, ui) {
+ToolTip.prototype.onDrag = function (event) {
     if (!this.line)
         return;
     this.line.setAttribute('x2', this.midpoint().x);
