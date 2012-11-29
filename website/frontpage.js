@@ -57,7 +57,18 @@ Display.prototype.aggregateTicks = function () {
     var list = [];
 
     // This is all a bunch of hardcoded hacks for now.
-    var preticks = (ticks == 5) ? 6 : ticks;
+    var preticks, preticklist;
+
+    if (ticks == 5) {
+        preticks = 6;
+        preticklist = [2, 4];
+    } else if (ticks == 10) {
+        preticks = 9;
+        preticklist = [3, 6];
+    } else {
+        preticks = ticks;
+    }
+
     var last_year = undefined;
     var current_year = (new Date()).getFullYear();
     for (var i = 0; i < this.historical; i += preticks) {
@@ -76,11 +87,12 @@ Display.prototype.aggregateTicks = function () {
         // Add the tick mark, then try to add some more empty ones to
         // make the graph appear denser.
         list.push([i, text]);
-        if (preticks == 6) {
-            if (i + 2 < this.historical) {
-                list.push([i + 2, ""]);
-                if (i + 4 < this.historical)
-                    list.push([i + 4, ""]);
+        if (preticklist) {
+            for (var j = 0; j < preticklist.length; j++) {
+                var v = i + preticklist[j];
+                if (v >= this.historical)
+                    break;
+                list.push([v, ""]);
             }
         }
     }
