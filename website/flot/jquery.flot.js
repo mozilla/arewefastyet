@@ -2483,7 +2483,7 @@
             if (series.points.symbol == "circle")
                 octx.arc(x, y, radius, 0, 2 * Math.PI, false);
             else
-                series.points.symbol(octx, x, y, radius, false);
+                series.points.symbol(octx, x, y, radius, false, plot);
             octx.closePath();
             octx.stroke();
         }

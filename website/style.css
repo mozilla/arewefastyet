@@ -1,0 +1,65 @@
+body {
+ background-color:#FFF;
+ font:.6875em Verdana, sans-serif;
+ color:#000;
+}
+a {
+ color:#000;
+ text-decoration:underline;
+}
+a:hover {
+ text-decoration:none;
+}
+h1 {
+ font-size:2.265em;
+ font-weight:700;
+}
+
+.graph {
+ width: 555px;
+ height: 340px;
+}
+.graph-row {
+ text-align: center;
+}
+.graph-container {
+ width: 600px;
+ height: 340px;
+ display: inline-block;
+}
+
+.tooltip {
+ -moz-border-radius:.35em;
+ -webkit-border-radius:.35em;
+ background-color:#000;
+ color:#FFF;
+ display:none;
+ opacity:0.8;
+ padding:.25em;
+ position:absolute;
+}
+.tooltip a:link, .tooltip a:active, .tooltip a:visited {
+ color:#FFF;
+ text-decoration: underline;
+}
+.tooltip a:hover {
+ color:#FFF;
+ text-decoration: none;
+}
+
+.closeable {
+ padding: 15px;
+ opacity: 1.0;
+ text-align: left;
+}
+
+.closeButton {
+ color:#CCC;
+ position: absolute;
+ top: 5px;
+ right: 5px;
+ font-family: monospace;
+ cursor: pointer;
+ display: inline-block;
+}
+

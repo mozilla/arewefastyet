@@ -5,6 +5,7 @@ var AWFY = { };
 AWFY.refreshTime = 1000 * 60 * 5;
 AWFY.machineId = 0;
 AWFY.refresh = true;
+AWFY.panes = [];
 AWFY.queryParams = { };
 AWFY.drawLegend = function () {
 }
@@ -53,7 +54,8 @@ AWFY.compute = function (xhr) {
                       aggregate: blobgraph.aggregate,
                       timelist: blobgraph.timelist,
                       timemap: blobgraph.timemap,
-                      earliest: blobgraph.earliest
+                      earliest: blobgraph.earliest,
+                      info: blobgraph.lines
                     };
         graphs[name] = graph;
     }
@@ -61,7 +63,13 @@ AWFY.compute = function (xhr) {
     var data = { graphs: graphs };
 
     // Everything built successfully, so now we can send this to be drawn.
-    this.draw(this, data);
+    for (var i = 0; i < this.panes.length; i++) {
+        var id = this.panes[i];
+        var elt = $('#' + id + '-graph');
+        var graph = data.graphs[id];
+        var display = new Display(this, elt, data, graph);
+        display.draw();
+    }
 
     if (this.refresh)
         window.setTimeout(this.query.bind(this), this.refreshTime);
@@ -85,17 +93,25 @@ AWFY.query = function(name, callback) {
             return;
         }
 
-        try {
-            callback(xhr);
-        } catch (e) {
-            AWFY.onQueryFail();
-        }
+        callback(xhr);
     };
     xhr.open('GET', url, true);
     xhr.send();
 }
 
-AWFY.startup = function() {
+AWFY.onGraphHover = function (event, pos, item) {
+    var elt = $(event.target);
+    var display = elt.data('awfy-display');
+    display.onHover(event, pos, item);
+}
+
+AWFY.onGraphClick = function (event, pos, item) {
+    var elt = $(event.target);
+    var display = elt.data('awfy-display');
+    display.onClick(event, pos, item);
+}
+
+AWFY.startup = function () {
     var query = window.location.search.substring(1);
     var items = query.split('&');
     for (var i = 0; i < items.length; i++) {
@@ -107,6 +123,12 @@ AWFY.startup = function() {
         this.machineId = parseInt(this.queryParams['machine']);
     else
         this.machineId = 11;
+
+    for (var i = 0; i < this.panes.length; i++) {
+        var id = this.panes[i];
+        $('#' + id + '-graph').bind("plothover", this.onGraphHover.bind(this));
+        $('#' + id + '-graph').bind("plotclick", this.onGraphClick.bind(this));
+    }
 
     this.query('aggregate-' + this.machineId + '.json', this.compute.bind(this));
 }

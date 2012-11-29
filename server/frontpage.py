@@ -12,6 +12,61 @@ Machines = [8, 9, 10, 11, 12]
 # Increment is currently 1 day.
 TimeIncrement = 60 * 60 * 24
 
+def condense(lines, timelist, timemap, historical):
+    recent = len(timelist) - historical
+
+    for line in lines:
+        line['newdata'] = []
+
+    newtimelist = []
+    newtimemap = {}
+
+    # We want to take the N historical points and condense them into 
+    # R slices, where R is the number of recent points.
+    increment = historical // recent
+    pos = 0
+    while pos < historical:
+        limit = min(pos + increment, historical)
+        for line in lines:
+            data = line['data']
+            newdata = line['newdata']
+
+            average = 0.0
+            count = 0
+            firstCset = None
+            lastCset = None
+            for point in data[pos:limit]:
+                if not point or not point['first']:
+                    continue
+                if not firstCset:
+                    firstCset = point['first']
+                lastCset = point['last']
+                average = ((average * count) + point['score']) / (count + 1)
+                count += 1
+            point = { 'first': firstCset,
+                      'last': lastCset,
+                      'score': average
+                    }
+            newdata.append(point)
+        newtimemap[timelist[pos]] = len(newtimelist)
+        newtimelist.append(timelist[pos])
+
+        pos += increment
+
+    # Fix up the old lines.
+    for line in lines:
+        data = line['data']
+        newdata = line['newdata']
+        newdata.extend(data[historical:])
+        line['data'] = newdata
+        del line['newdata']
+
+    for t in timelist[historical:]:
+        newtimemap[t] = len(newtimelist)
+        newtimelist.append(t)
+
+    return lines, newtimelist, newtimemap
+
 # The aggregate view attempts to coalesce all runs from a 24-hour period into
 # one data point, by taking an average of all non-zero scores in that run. In
 # order to ensure that each line has the same x-axis points, we take the
@@ -78,61 +133,6 @@ def aggregate(runs, rows):
         points.append(point)
 
     return points
-
-def condense(lines, timelist, timemap, historical):
-    recent = len(timelist) - historical
-
-    for line in lines:
-        line['newdata'] = []
-
-    newtimelist = []
-    newtimemap = {}
-
-    # We want to take the N historical points and condense them into 
-    # R slices, where R is the number of recent points.
-    increment = historical // recent
-    pos = 0
-    while pos < historical:
-        limit = min(pos + increment, historical)
-        for line in lines:
-            data = line['data']
-            newdata = line['newdata']
-
-            average = 0.0
-            count = 0
-            firstCset = None
-            lastCset = None
-            for point in data[pos:limit]:
-                if not point or not point['first']:
-                    continue
-                if not firstCset:
-                    firstCset = point['first']
-                lastCset = point['last']
-                average = ((average * count) + point['score']) / (count + 1)
-                count += 1
-            point = { 'first': firstCset,
-                      'last': lastCset,
-                      'score': average
-                    }
-            newdata.append(point)
-        newtimemap[timelist[pos]] = len(newtimelist)
-        newtimelist.append(timelist[pos])
-
-        pos += increment
-
-    # Fix up the old lines.
-    for line in lines:
-        data = line['data']
-        newdata = line['newdata']
-        newdata.extend(data[historical:])
-        line['data'] = newdata
-        del line['newdata']
-
-    for t in timelist[historical:]:
-        newtimemap[t] = len(newtimelist)
-        newtimelist.append(t)
-
-    return lines, newtimelist, newtimemap
 
 def aggregate_suite(cx, runs, machine, suite):
     lines = [ ]
