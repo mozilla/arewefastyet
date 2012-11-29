@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Feb 03, 2011 at 12:53 AM
+-- Generation Time: Nov 29, 2012 at 11:13 PM
 -- Server version: 5.1.41
 -- PHP Version: 5.3.5
 
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `awfy_breakdown` (
   KEY `run_id` (`run_id`),
   KEY `suite_id` (`suite_id`),
   KEY `mode_id` (`mode_id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=329903 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -45,57 +45,34 @@ CREATE TABLE IF NOT EXISTS `awfy_build` (
   `cset` varchar(256) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `index2` (`run_id`,`mode_id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=12680 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `awfy_score`
+-- Table structure for table `awfy_config`
 --
 
-CREATE TABLE IF NOT EXISTS `awfy_score` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `run_id` int(11) DEFAULT NULL,
-  `suite_id` int(11) DEFAULT NULL,
-  `mode_id` int(11) DEFAULT NULL,
-  `score` double DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `run_id` (`run_id`),
-  KEY `mode_id` (`mode_id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=24486 ;
+CREATE TABLE IF NOT EXISTS `awfy_config` (
+  `key` varchar(64) NOT NULL,
+  `value` varchar(255) NOT NULL,
+  PRIMARY KEY (`key`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `fast_run`
+-- Table structure for table `awfy_machine`
 --
 
-CREATE TABLE IF NOT EXISTS `fast_run` (
+CREATE TABLE IF NOT EXISTS `awfy_machine` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `cpu` varchar(20) NOT NULL,
-  `os` varchar(20) NOT NULL,
-  `machine` int(10) unsigned NOT NULL,
-  `stamp` int(10) unsigned NOT NULL,
-  `cset` varchar(160) NOT NULL,
-  `status` int(11) NOT NULL,
-  `error` mediumtext NOT NULL,
+  `os` varchar(30) NOT NULL,
+  `cpu` varchar(30) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `active` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3502 ;
-
--- phpMyAdmin SQL Dump
--- version 3.3.9
--- http://www.phpmyadmin.net
---
--- Host: localhost
--- Generation Time: Feb 03, 2011 at 12:53 AM
--- Server version: 5.1.41
--- PHP Version: 5.3.5
-
-SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
-
---
--- Database: `dvander`
---
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -113,23 +90,24 @@ CREATE TABLE IF NOT EXISTS `awfy_mode` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `mode` (`mode`),
   UNIQUE KEY `index3` (`vendor_id`,`mode`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=12 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
 
 --
--- Dumping data for table `awfy_mode`
+-- Table structure for table `awfy_score`
 --
 
-INSERT INTO `awfy_mode` (`id`, `vendor_id`, `mode`, `name`, `color`, `level`) VALUES
-(1, 2, 'moom', 'JM', '#000000', 10),
-(2, 2, 'mooj', 'TM+JM', '#6f0a93', 1),
-(3, 1, 'v8', 'v8', '#4DA74D', 1),
-(4, 3, 'jsc', 'jsc', '#cf4b4b', 1),
-(5, 3, 'jsci', 'no JIT', '#ef8b8b', 10),
-(6, 2, 'j', 'TM', '#ffa451', 10),
-(7, 2, 'm', 'JM', '#000000', 10),
-(8, 2, 'i', 'no JIT', '#bbbbbb', 10),
-(9, 2, 'mj', 'TM+JM', '#6f0a93', 10),
-(11, 2, 'tm', '', '', 10);
+CREATE TABLE IF NOT EXISTS `awfy_score` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `run_id` int(11) DEFAULT NULL,
+  `suite_id` int(11) DEFAULT NULL,
+  `mode_id` int(11) DEFAULT NULL,
+  `score` double DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `run_id` (`run_id`),
+  KEY `mode_id` (`mode_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -144,17 +122,7 @@ CREATE TABLE IF NOT EXISTS `awfy_suite` (
   `better_direction` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5 ;
-
---
--- Dumping data for table `awfy_suite`
---
-
-INSERT INTO `awfy_suite` (`id`, `name`, `description`, `better_direction`) VALUES
-(1, 'ss', 'SunSpider', -1),
-(2, 'v8', 'V8 (SS harness)', -1),
-(3, 'v8real', 'V8 Benchmark', 1),
-(4, 'kraken', 'Kraken', -1);
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -169,14 +137,55 @@ CREATE TABLE IF NOT EXISTS `awfy_vendor` (
   `csetURL` varchar(255) NOT NULL,
   `browser` varchar(30) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
 
 --
--- Dumping data for table `awfy_vendor`
+-- Table structure for table `fast_run`
 --
 
-INSERT INTO `awfy_vendor` (`id`, `name`, `vendor`, `csetURL`, `browser`) VALUES
+CREATE TABLE IF NOT EXISTS `fast_run` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `machine` int(10) unsigned NOT NULL,
+  `stamp` int(10) unsigned NOT NULL,
+  `cset` varchar(160) NOT NULL,
+  `status` int(11) NOT NULL,
+  `error` mediumtext NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+
+INSERT INTO awfy_config (`key`, `value`) VALUES
+('version', '3');
+
+INSERT INTO awfy_mode (id, vendor_id, `mode`, `name`, color, level) VALUES
+(1, 2, 'moom', 'JM', '#000000', 20),
+(2, 2, 'mooj', 'TM+JM', '#6f0a93', 20),
+(3, 1, 'v8', 'v8', '#4DA74D', 1),
+(4, 3, 'jsc', 'jsc', '#0099FF', 1),
+(5, 3, 'jsci', 'no JIT', '#ef8b8b', 20),
+(6, 2, 'j', 'TM', '#ffa451', 20),
+(7, 2, 'm', 'JM', '#000000', 20),
+(8, 2, 'i', 'no JIT', '#bbbbbb', 20),
+(9, 2, 'mj', 'TM+JM', '#6f0a93', 20),
+(11, 2, 'tm', '', '', 20),
+(12, 4, 'ti', 'JM+TI', '#D64203', 1),
+(13, 5, 'im', 'Ion', '#666666', 20),
+(14, 5, 'jmim', 'JM+TI+Ion', '#9900CC', 1);
+
+INSERT INTO awfy_suite (id, `name`, description, better_direction) VALUES
+(1, 'ss', 'SunSpider', -1),
+(2, 'v8', 'V8 (SS harness)', -1),
+(3, 'v8real', 'V8 Benchmark', 1),
+(4, 'kraken', 'Kraken', -1),
+(5, 'misc', 'Assorted tests', -1);
+
+INSERT INTO awfy_vendor (id, `name`, vendor, csetURL, browser) VALUES
 (1, 'V8', 'Google', 'http://code.google.com/p/v8/source/detail?r=', 'Chrome'),
-(2, 'SpiderMonkey', 'Mozilla', 'http://hg.mozilla.org/tracemonkey/rev/', 'Firefox'),
-(3, 'Nitro', 'Apple', 'http://trac.webkit.org/changeset/', 'Safari');
+(2, 'SpiderMonkey', 'Mozilla', 'http://hg.mozilla.org/integration/mozilla-inbound/rev/', 'Firefox'),
+(3, 'Nitro', 'Apple', 'http://trac.webkit.org/changeset/', 'Safari'),
+(4, 'SpiderMonkey', 'Mozilla', 'http://hg.mozilla.org/integration/mozilla-inbound/rev/', 'Firefox'),
+(5, 'SpiderMonkey', 'Mozilla', 'http://hg.mozilla.org/integration/mozilla-inbound/rev/', 'Firefox');
 

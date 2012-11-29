@@ -5,13 +5,11 @@ require_once("internals.php");
 init_database();
 
 if (isset($_GET['run']) && $_GET['run'] == 'yes') {
-    $CPU = mysql_real_escape_string(GET_string('CPU'));
-    $OS = mysql_real_escape_string(GET_string('OS'));
     $MACHINE = GET_int('MACHINE');
     $CSET = mysql_real_escape_string(GET_string('CSET'));
-    mysql_query("INSERT INTO fast_run (cpu, os, machine, stamp, cset)
+    mysql_query("INSERT INTO fast_run (machine, stamp, cset)
                  VALUES
-                 ('$CPU', '$OS', $MACHINE, UNIX_TIMESTAMP(), '$CSET')")
+                 ($MACHINE, UNIX_TIMESTAMP(), '$CSET')")
         or die("ERROR: " . mysql_error());
     print("id=" . mysql_insert_id());
 } else if (isset($_GET['run']) && $_GET['run'] == 'finish') {

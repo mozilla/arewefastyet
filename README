@@ -25,10 +25,15 @@ Setting up (3):
    hg clone http://hg.mozilla.org/integration/mozilla-inbound
    mkdir driver
    cp <awfy-src>/driver/* driver/
+   cd driver
+   hg clone http://hg.mozilla.org/projects/kraken
+   svn checkout http://v8.googlecode.com/svn/trunk/benchmarks v8-v7
+   svn checkout https://svn.webkit.org/repository/webkit/trunk/PerformanceTests/SunSpider
    
-  Add a database entry for the machine configuration.
-  Edit driver/awfy.config to match your webserver and machine database entry.
-  Add a cronjob to run dostuff.py periodically. AWFY.com runs every 30min.
+  (a) Add a database entry for the machine configuration.
+  (b) Edit driver/awfy.config to match the build architecture you want, and machine
+      database entry.
+  (c) Add a cronjob to run dostuff.py periodically. AWFY.com runs every 30min.
 
 Setting up (4):
   Put awfy-server.config in /etc/, edit it to point at your database and 

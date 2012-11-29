@@ -5,15 +5,11 @@ import urllib2
 class Submitter:
     def __init__(self, conf):
         self.url = conf.get('main', 'updateURL')
-        self.cpu = conf.get('main', 'cpu')
-        self.os = conf.get('main', 'os')
         self.machine = conf.get('main', 'machine')
 
     def Start(self):
         url = self.url
         url += '?run=yes'
-        url += '&CPU=' + self.cpu
-        url += '&OS=' + self.os
         url += '&MACHINE=' + str(self.machine)
         url = urllib2.urlopen(url)
         contents = url.read()
