@@ -23,20 +23,20 @@ ToolTip.prototype.drawFloating = function () {
     var span = $('<span>' + this.contents + '</span>');
     span.appendTo(this.elt);
 
-    this.draw();
+    this.draw(true);
     this.elt.draggable({ drag: this.onDrag.bind(this) });
 }
 
 ToolTip.prototype.drawBasic = function () {
     var text = '<div class="tooltip">' + this.contents + '</div>';
     this.elt = $(text);
-    this.draw();
+    this.draw(false);
 }
 
-ToolTip.prototype.draw = function () {
+ToolTip.prototype.draw = function (expanded) {
     var tipWidth = 165;
     var tipHeight = 75;
-    var xOffset = 5;
+    var xOffset = expanded ? -80 : -10;
     var yOffset = 15;
 
     var ie = document.all && !window.opera;
