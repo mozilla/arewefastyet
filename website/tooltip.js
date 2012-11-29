@@ -79,7 +79,7 @@ ToolTip.prototype.onDrag = function (event, ui) {
         return;
     this.line.setAttribute('x2', this.midpoint().x);
     this.line.setAttribute('y2', this.midpoint().y);
-    this.svg.height($('body').height());
+    this.svg.height($('window').height());
 }
 
 ToolTip.prototype.attachLine = function (color) {
@@ -102,7 +102,7 @@ ToolTip.prototype.attachLine = function (color) {
     line.setAttribute('stroke-width', 2);
     $(line).appendTo(svg);
 
-    svg.height($('body').height());
+    svg.height($('window').height());
     svg.appendTo('body');
     this.svg = svg;
     this.line = line;

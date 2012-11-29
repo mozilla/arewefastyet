@@ -108,8 +108,25 @@ Display.prototype.draw = function () {
     options.borderColor = "#BEBEBE";
     options.legend = { show: false };
     options.xaxis = { };
-    options.yaxis = { min: 0 };
+    options.yaxis = { };
     options.grid = { hoverable: true, clickable: true };
+
+    // Aggregate view starts from 0. We space things out when zooming in.
+    if (this.graph.aggregate)
+        options.yaxis.min = 0;
+
+    if (this.graph.direction == 1) {
+		options.yaxis.transform = function (v) {
+            return -v;
+        };
+		options.yaxis.inverseTransform = function (v) {
+            return -v;
+        };
+    } else {
+        options.yaxis.tickFormatter = function (v, axis) {
+            return v + 'ms';
+        };
+    }
 
     if (this.historical) {
         // If the graph has both historical and recent points, indicated by
@@ -145,19 +162,6 @@ Display.prototype.draw = function () {
 
     this.plot = $.plot(this.elt, this.graph.lines, options);
 }
-
-// Display.prototype.checkHoverDelta(pos) {
-//     if (!this.lastPos)
-//         return false;
-//     if (pos.pageX - this.lastPos.pageX >= 0 &&
-//         pos.pageX - this.lastPos.pageX <= 5 &&
-//         pos.pageY - this.lastPos.pageY >= 0 &&
-//         pos.pageY - this.lastPos.pageY <= 5)
-//     {
-//         return true;
-//     }
-//     return false;
-// }
 
 Display.prototype.createToolTip = function (item, extended) {
     var so = extended ? '<strong>' : '';

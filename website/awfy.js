@@ -53,7 +53,6 @@ AWFY.compute = function (xhr) {
                       direction: blobgraph.direction,
                       aggregate: blobgraph.aggregate,
                       timelist: blobgraph.timelist,
-                      timemap: blobgraph.timemap,
                       earliest: blobgraph.earliest,
                       info: blobgraph.lines
                     };
