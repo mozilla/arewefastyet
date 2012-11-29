@@ -340,6 +340,8 @@ Display.prototype.onClick = function (event, pos, item) {
     var tooltip = this.createToolTip(item, true);
     tooltip.drawFloating();
 
+    this.lastToolTip = tooltip;
+
     // The color of the line will be the series color.
     var line = this.graph.info[item.seriesIndex];
     if (!line)
@@ -368,6 +370,11 @@ Display.prototype.onHover = function (event, pos, item) {
         this.hovering.remove();
         this.hovering = null;
     }
+
+    // If we have a pinned tooltip that has not been moved yet, don't draw a
+    // second tooltip on top of it.
+    if (this.lastToolTip && !this.lastToolTip.dragged && !this.lastToolTip.closed)
+        return;
 
     if (!item)
         return;

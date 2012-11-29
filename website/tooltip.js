@@ -90,6 +90,7 @@ ToolTip.prototype.remove = function () {
     if (this.svg)
         this.svg.remove();
     this.elt.remove();
+    this.closed = true;
 }
 
 ToolTip.prototype.midpoint = function () {
@@ -104,6 +105,7 @@ ToolTip.prototype.onDrag = function (event) {
     this.line.setAttribute('x2', this.midpoint().x);
     this.line.setAttribute('y2', this.midpoint().y);
     this.svg.height($('window').height());
+    this.dragged = true;
 }
 
 ToolTip.prototype.attachLine = function (color) {
