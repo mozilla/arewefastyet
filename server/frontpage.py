@@ -86,10 +86,14 @@ def aggregate(runs, rows):
         count = 0
         firstCset = None
         lastCset = None
+        stop = False
         for i in range(pos, len(rows)):
             row = rows[i]
             t = int(row[0]) - time.timezone
             if t > earliest + TimeIncrement:
+                break
+            if t >= runs.earliest:
+                stop = True
                 break
 
             # If we get a 0 score, we discount it.
@@ -104,6 +108,9 @@ def aggregate(runs, rows):
             average = ((average * count) + score) / (count + 1)
             count += 1
 
+        if not count and stop:
+            break
+
         # Note that first/lastCset may be None, if no points were available.
         point = { 'time': earliest,
                   'first': firstCset,
@@ -111,6 +118,9 @@ def aggregate(runs, rows):
                   'score': average
                 }
         points.append(point)
+
+        if stop:
+            break
 
         earliest += TimeIncrement
         pos = i + 1
@@ -158,7 +168,7 @@ def aggregate_suite(cx, runs, machine, suite):
         points = aggregate(runs, rows)
         for point in points:
             if not point['time'] in timemap:
-                timemap[point['time']] = [points, point]
+                timemap[point['time']] = [[points, point]]
             else:
                 timemap[point['time']].append([points, point])
         line = { 'modeid': mode.id,
@@ -167,6 +177,7 @@ def aggregate_suite(cx, runs, machine, suite):
         lines.append(line)
 
     # Remove any time slice that has no corresponding datapoints.
+    empties = []
     for key in timemap:
         empty = True
         points = timemap[key]
@@ -178,7 +189,9 @@ def aggregate_suite(cx, runs, machine, suite):
         if empty:
             for L in points:
                 L[0].remove(L[1])
-            del timemap[key]
+            empties.append(key)
+    for key in empties:
+        del timemap[key]
 
     # Build a sorted list of all time values, then provide a mapping from
     # time values back to indexes into this list.
@@ -224,7 +237,6 @@ def export_aggregate_suites(cx, machine, suites):
         graph['lines'] = lines
         graph['direction'] = suite.direction
         graph['timelist'] = timelist
-        graph['timemap'] = timemap
         graph['aggregate'] = True
         graph['earliest'] = runs.earliest
         graphs[suite.name] = graph
