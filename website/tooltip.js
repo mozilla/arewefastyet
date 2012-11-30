@@ -1,4 +1,6 @@
 // vim: set ts=4 sw=4 tw=99 et:
+"use strict";
+
 function ToolTip(x, y, item, contents)
 {
     this.x = x;
@@ -86,9 +88,15 @@ ToolTip.prototype.draw = function (expanded) {
     this.elt.appendTo('body').fadeIn(200);
 }
 
-ToolTip.prototype.remove = function () {
-    if (this.svg)
+ToolTip.prototype.detach = function () {
+    if (this.svg) {
         this.svg.remove();
+        this.svg = null;
+    }
+}
+
+ToolTip.prototype.remove = function () {
+    this.detach();
     this.elt.remove();
     this.closed = true;
 }

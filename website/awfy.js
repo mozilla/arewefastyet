@@ -7,8 +7,40 @@ AWFY.machineId = 0;
 AWFY.refresh = true;
 AWFY.hasLegend = false;
 AWFY.panes = [];
-AWFY.queryParams = { };
+AWFY.queryParams = {};
+AWFY.aggregate = null;
 AWFY.drawLegend = function () {
+}
+
+AWFY.request = function (files, callback) {
+    var url = window.location.protocol + '//' +
+              window.location.host +
+              window.location.pathname;
+    if (url[url.length - 1] != '/')
+        url += '/';
+    url += 'data/';
+
+    var count = 0;
+    var received = new Array(files.length);
+    function done(jqXHR, textStatus) {
+        count++;
+        if (count == files.length)
+            callback(received);
+    }
+
+    for (var i = 0; i < files.length; i++) {
+        var success = (function (index) {
+            return function (data, textStatus, jqXHR) {
+                received[index] = data;
+            };
+        })(i);
+        var req = { async: true,
+                    complete: done,
+                    success: success,
+                    cache: false
+                  };
+        $.ajax(url + files[i] + '.json', req);
+    }
 }
 
 AWFY.onQueryFail = function () {
@@ -16,10 +48,10 @@ AWFY.onQueryFail = function () {
         window.setTimeout(this.query.bind(this), this.refreshTime);
 }
 
-AWFY.compute = function (xhr) {
+AWFY.computeAggregate = function (xhr) {
     var blob = JSON.parse(xhr.responseText);
 
-    // :TODO: handle version changes better.
+    // Should we handle version changes better?
     if (blob.version != AWFYMaster.version) {
         window.location.reload();
         return;
@@ -60,14 +92,15 @@ AWFY.compute = function (xhr) {
         graphs[name] = graph;
     }
 
-    var data = { graphs: graphs };
+    // Save this for if/when we need to zoom out.
+    this.aggregate = graphs;
 
     // Everything built successfully, so now we can send this to be drawn.
     for (var i = 0; i < this.panes.length; i++) {
         var id = this.panes[i];
         var elt = $('#' + id + '-graph');
-        var graph = data.graphs[id];
-        var display = new Display(this, elt, data, graph);
+        var graph = graphs[id];
+        var display = new Display(this, id, elt, graph);
         display.draw();
     }
 
@@ -81,7 +114,201 @@ AWFY.compute = function (xhr) {
         window.setTimeout(this.query.bind(this), this.refreshTime);
 }
 
-AWFY.query = function(name, callback) {
+AWFY.mergeJSON = function (blobs) {
+    var lines = { };
+    var timelist = [];
+
+    // We're guaranteed the blobs are in sorted order, which makes this simpler.
+    for (var i = 0; i < blobs.length; i++) {
+        var blob = blobs[i];
+
+        // Should we handle version changes better?
+        if (blob.version != AWFYMaster.version) {
+            window.location.reload();
+            return;
+        }
+
+        for (var j = 0; j < blob.graph.lines.length; j++) {
+            var blobline = blob.graph.lines[j];
+
+            var line = lines[blobline.modeid];
+            if (!line) {
+                line = { points: [], info: [] };
+                lines[blobline.modeid] = line;
+            }
+
+            var points = line.points;
+            var info = line.info;
+
+            for (var k = 0; k < blobline.data.length; k++) {
+                var point = blobline.data[k];
+                var score = point && point.score
+                            ? point.score
+                            : null;
+                points.push([timelist.length + k, score]);
+                info.push(point);
+            }
+        }
+
+        for (var j = 0; j < blob.graph.timelist.length; j++)
+            timelist.push(blob.graph.timelist[j]);
+    }
+
+    var actual = [];
+    var info = [];
+    for (var modename in lines) {
+        var line = { data: lines[modename].points,
+                     color: AWFYMaster.modes[modename].color
+                   };
+        actual.push(line);
+        info.push({ 'modeid': parseInt(modename),
+                    'data': lines[modename].info });
+    }
+
+    var graph = { lines: actual,
+                  aggregate: false,
+                  timelist: timelist,
+                  info: info
+                };
+    return graph;
+}
+
+AWFY.condense = function (graph, max) {
+    if (graph.timelist.length <= max)
+        return graph;
+
+    var slice = graph.timelist.length / max;
+
+    var timelist = [];
+    var lines = [];
+    var info = [];
+
+    // Setup the new structures.
+    for (var i = 0; i < graph.lines.length; i++) {
+        var newline = { 'color': graph.lines[i].color,
+                        'data': []
+                      };
+        var newinfo = { 'modeid': graph.info[i].modeid,
+                        'data': []
+                      };
+        lines.push(newline);
+        info.push(newinfo);
+    }
+
+    var pos = 0;
+    for (var i = 0; i < max; i++) {
+        var start = Math.round(pos);
+
+        for (var lineno = 0; lineno < lines.length; lineno++) {
+            var oldinfo = graph.info[lineno];
+            var newline = lines[lineno];
+            var newinfo = info[lineno];
+
+            var average = 0;
+            var count = 0;
+            var first = null;
+            var last = null;
+            for (var j = start; j < pos + slice && j < oldinfo.data.length; j++) {
+                var point = oldinfo.data[j];
+                if (!point || !point.score)
+                    continue;
+                if (!first)
+                    first = point.first;
+                if (point.last)
+                    last = point.last;
+                average = ((average * count) + point.score) / (count + 1);
+                count += 1;
+            }
+
+            var score = average ? average : null;
+            newline.data.push([timelist.length, score]);
+
+            newinfo.data.push({ 'first': first,
+                                'last': last,
+                                'score': average
+                              });
+        }
+
+        timelist.push(graph.timelist[start]);
+        pos += slice;
+    }
+
+    return { info: info,
+             lines: lines,
+             timelist: timelist,
+             direction: graph.direction };
+}
+
+AWFY.trim = function (graph, start, end) {
+    var timelist = [];
+    var lines = [];
+    var infos = [];
+
+    // Setup the new structures.
+    for (var i = 0; i < graph.lines.length; i++) {
+        var newline = { 'color': graph.lines[i].color,
+                        'data': []
+                      };
+        var newinfo = { 'modeid': graph.info[i].modeid,
+                        'data': []
+                      };
+        lines.push(newline);
+        infos.push(newinfo);
+    }
+
+    // Whether |end| is inclusive is not really clear, actually.
+    for (var i = start; i < end; i++)
+        timelist.push(graph.timelist[i]);
+
+    for (var i = 0; i < graph.lines.length; i++) {
+        var oldline = graph.lines[i];
+        var oldinfo = graph.info[i];
+        var line = lines[i];
+        var info = infos[i];
+        for (var j = start; j < end; j++) {
+            var point = oldline.data[j];
+            line.data.push([j - start, point[1]]);
+            info.data.push(oldinfo.data[j]);
+        }
+    }
+
+    return { lines: lines,
+             info: infos,
+             timelist: timelist,
+             direction: graph.direction
+           };
+}
+
+AWFY.computeZoom = function (display, received, start, end) {
+    // Get JSON blobs for each received text.
+    var blobs = [];
+    for (var i = 0; i < received.length; i++) {
+        if (!received[i])
+            continue;
+        if (typeof received[i] == "string")
+            blobs.push(JSON.parse(received[i]));
+        else
+            blobs.push(received[i]);
+    }
+
+    if (!blobs.length) {
+        display.cancelZoom();
+        return;
+    }
+
+    var graph = this.mergeJSON(blobs);
+    display.completeZoom(graph, start, end);
+}
+
+AWFY.findX = function (graph, time) {
+    for (var i = 0; i < graph.timelist.length; i++) {
+        if (graph.timelist[i] >= time)
+            break;
+    }
+    return i;
+}
+
+AWFY.query = function (name, callback) {
     var url = window.location.protocol + '//' +
               window.location.host +
               window.location.pathname;
@@ -111,10 +338,34 @@ AWFY.onGraphHover = function (event, pos, item) {
     display.onHover(event, pos, item);
 }
 
-AWFY.onGraphClick = function (event, pos, item) {
-    var elt = $(event.target);
-    var display = elt.data('awfy-display');
-    display.onClick(event, pos, item);
+AWFY.requestZoom = function (display, kind, start_t, end_t) {
+    // Figure out the list of dates we'll need to query.
+    var files = [];
+
+    var start = new Date(start_t * 1000);
+    var end = new Date(end_t * 1000);
+    for (var year = start.getUTCFullYear(); year <= end.getUTCFullYear(); year++) {
+        var firstMonth = (year == start.getUTCFullYear())
+                         ? start.getUTCMonth() + 1
+                         : 1;
+        var lastMonth = (year == end.getUTCFullYear())
+                        ? end.getUTCMonth() + 1
+                        : 12;
+        for (var month = firstMonth; month <= lastMonth; month++) {
+            var name = kind + '-' +
+                       display.id + '-' +
+                       year + '-' +
+                       month + '-' +
+                       this.machineId;
+            files.push(name);
+        }
+    }
+
+    var zoom = function (received) {
+        this.computeZoom(display, received, start_t, end_t);
+    }
+
+    this.request(files, zoom.bind(this));
 }
 
 AWFY.startup = function () {
@@ -133,9 +384,8 @@ AWFY.startup = function () {
     for (var i = 0; i < this.panes.length; i++) {
         var id = this.panes[i];
         $('#' + id + '-graph').bind("plothover", this.onGraphHover.bind(this));
-        $('#' + id + '-graph').bind("plotclick", this.onGraphClick.bind(this));
     }
 
-    this.query('aggregate-' + this.machineId + '.json', this.compute.bind(this));
+    this.query('aggregate-' + this.machineId + '.json', this.computeAggregate.bind(this));
 }
 

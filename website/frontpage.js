@@ -1,12 +1,18 @@
 // vim: set ts=4 sw=4 tw=99 et:
+"use strict";
 
-function Display(awfy, elt, data, graph)
+function Display(awfy, id, elt, graph)
 {
     this.awfy = awfy;
-    this.data = data;
+    this.id = id;
     this.graph = graph;
     this.elt = elt;
     this.elt.data('awfy-display', this);
+    this.zoomInfo = { prev: null,
+                      level: 'aggregate'
+                    };
+    this.selectDelay = null;
+    this.attachedTips = [];
 
     // The last hovering tooltip we displayed, that has not been clicked.
     this.hovering = null;
@@ -21,8 +27,16 @@ function Display(awfy, elt, data, graph)
         if (i && i != graph.timelist.length)
             this.historical = i;
     }
+
+    this.elt.bind('plotclick', this.onClick.bind(this));
+    this.elt.bind('plotselected', this.plotSelected.bind(this));
+    this.elt.bind('dblclick', (function () {
+        if (this.zoomInfo.level != 'aggregate')
+            this.unzoom();
+    }).bind(this));
 }
 
+Display.MaxPoints = 50;
 Display.Months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // Copy flot's tick algorithm.
@@ -122,6 +136,7 @@ Display.prototype.draw = function () {
     options.xaxis = { };
     options.yaxis = { };
     options.grid = { hoverable: true, clickable: true };
+    options.selection = { mode: 'x' }
 
     // Aggregate view starts from 0. We space things out when zooming in.
     if (this.graph.aggregate)
@@ -140,7 +155,7 @@ Display.prototype.draw = function () {
         };
     }
 
-    if (this.historical) {
+    if (this.graph.aggregate && this.historical) {
         // If the graph has both historical and recent points, indicated by
         // the "historical" midpoint, then we change some graph formatting
         // to reflect that part of the graph has a greater time density.
@@ -162,17 +177,144 @@ Display.prototype.draw = function () {
     }
 
     if (!options.xaxis.ticks) {
-        options.xaxis.tickFormatter = function (v, axis) {
+        options.xaxis.tickFormatter = (function (v, axis) {
             v = Math.round(v);
             if (v < 0 || v >= this.graph.timelist.length)
                 return '';
             var t = this.graph.timelist[v];
             var d = new Date(t * 1000);
             return Display.Months[d.getMonth()] + " " + d.getDate();
-        }
+        }).bind(this);
     }
 
     this.plot = $.plot(this.elt, this.graph.lines, options);
+}
+
+Display.prototype.plotSelected = function (event, ranges) {
+    this.selectDelay = new Date();
+
+    var from_x = Math.round(ranges.xaxis.from);
+    var to_x = Math.round(ranges.xaxis.to);
+    var start = this.graph.timelist[from_x];
+    var end = this.graph.timelist[to_x];
+
+    var prev = this.zoomInfo.prev;
+    if (prev && this.zoomInfo.level == 'month') {
+        // Estimate the number of datapoints we had in the old range.
+        var oldstart = AWFY.findX(prev, this.graph.timelist[0]);
+        var oldend = AWFY.findX(prev, this.graph.timelist[this.graph.timelist.length - 1]);
+
+        // Estimate the number of datapoints we'd have in the new range.
+        var newstart = AWFY.findX(prev, start);
+        var newend = AWFY.findX(prev, end);
+
+        // Some heuristics to figure out whether we should fetch more data.
+        var zoom = (newend - newstart) / (oldend - oldstart);
+        if ((zoom >= 0.8 && (newend - newstart >= Display.MaxPoints * 1.5)) ||
+            (newend - newstart >= Display.MaxPoints * 5))
+        {
+            // Okay! Trim the cached graph, then display.
+            var graph = AWFY.trim(prev, newstart, newend);
+            this.localZoom(graph);
+            return;
+        }
+    }
+
+    // If we already have the highest level of data, jump right in.
+    if (prev && this.zoomInfo.level == 'raw') {
+        var oldstart = AWFY.findX(prev, this.graph.timelist[0]);
+        var oldend = AWFY.findX(prev, this.graph.timelist[this.graph.timelist.length - 1]);
+
+        this.plot.clearSelection();
+
+        // If we can't really zoom in any more, don't bother.
+        if (oldend - oldstart < Display.MaxPoints / 2)
+            return;
+
+        // Require at least a few datapoints.
+        var newstart = AWFY.findX(prev, start);
+        var newend = AWFY.findX(prev, end);
+        if (oldend - oldstart <= 3)
+            return;
+
+        var graph = AWFY.trim(prev, newstart, newend);
+        this.localZoom(graph);
+        return;
+    }
+
+    // Disable further selections since we wait for the XHR to go through.
+    this.plot.disableSelection();
+
+    // Clear the cached graph, since we'll get a new one.
+    this.zoomInfo.prev = null;
+
+    if (this.zoomInfo.level == 'aggregate') {
+        this.awfy.requestZoom(this, 'condensed', start, end);
+        this.zoomInfo.level = 'month';
+    } else {
+        this.awfy.requestZoom(this, 'raw', start, end);
+        this.zoomInfo.level = 'raw';
+    }
+}
+
+Display.prototype.localZoom = function (graph) {
+    graph = AWFY.condense(graph, Display.MaxPoints);
+    this.graph = graph;
+    this.draw();
+    this.plot.enableSelection();
+    this.plot.clearSelection();
+    this.detachTips();
+}
+
+Display.prototype.completeZoom = function (graph, start, end) {
+    // Copy properties from the old graph before resetting.
+    graph.direction = this.graph.direction;
+
+    // Cache the original graph in case it's dense enough to zoom in more
+    // without fetching more points via XHR.
+    if (!this.zoomInfo.prev)
+        this.zoomInfo.prev = graph;
+
+    var first = AWFY.findX(graph, start);
+    var last = AWFY.findX(graph, end);
+    graph = AWFY.trim(graph, first, last);
+
+    // If we got a paltry number of datapoints, skip this and zoom in more.
+    if (this.zoomInfo.level == 'month' && graph.timelist.length < Display.MaxPoints / 2) {
+        this.zoomInfo.prev = null;
+        this.awfy.requestZoom(this, 'raw', start, end);
+        this.zoomInfo.level = 'raw';
+        return;
+    }
+
+    this.localZoom(graph);
+}
+
+Display.prototype.cancelZoom = function () {
+    this.plot.enableSelection();
+    this.plot.clearSelection();
+
+    // Reset the zoom level we think we have.
+    if (!this.zoomInfo.prev) {
+        if (this.zoomInfo.level == 'raw')
+            this.zoomInfo.level = 'month';
+        else if (this.zoomInfo.level == 'month')
+            this.zoomInfo.level = 'aggregate';
+    }
+}
+
+Display.prototype.unzoom = function () {
+    this.graph = AWFY.aggregate[this.id];
+    this.draw();
+    this.plot.enableSelection();
+    this.plot.clearSelection();
+    this.detachTips();
+}
+
+Display.prototype.detachTips = function () {
+    for (var i = 0; i < this.attachedTips.length; i++)
+        this.attachedTips[i].detach();
+    this.attachedTips = [];
 }
 
 Display.prototype.createToolTip = function (item, extended) {
@@ -320,7 +462,7 @@ Display.prototype.createToolTip = function (item, extended) {
             else
                 text += ' ';
         }
-        if (x >= this.historical)
+        if (this.graph.aggregate && x >= this.historical)
             text += pad(d.getHours()) + ':' + pad(d.getMinutes()) + '<br>';
     }
 
@@ -337,6 +479,17 @@ Display.prototype.onClick = function (event, pos, item) {
     if (!item)
         return;
 
+    if (this.selectDelay) {
+        // When unselecting a plot, the cursor might be over a point, which
+        // will give us annoying extra tooltips. To combat this, we force a
+        // small delay.
+        var d = new Date();
+        if (d - this.selectDelay <= 1000) {
+            this.plot.unhighlight();
+            return;
+        }
+    }
+
     var tooltip = this.createToolTip(item, true);
     tooltip.drawFloating();
 
@@ -351,6 +504,7 @@ Display.prototype.onClick = function (event, pos, item) {
         return;
 
     tooltip.attachLine(mode.color);
+    this.attachedTips.push(tooltip);
 }
 
 Display.prototype.areItemsEqual = function (item1, item2) {
