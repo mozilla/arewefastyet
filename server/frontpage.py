@@ -7,19 +7,78 @@ import json
 import time
 import os.path
 
-Machines = [8, 9, 10, 11, 12]
-
 # Increment is currently 1 day.
 TimeIncrement = 60 * 60 * 24
 
-def condense(lines, timelist, timemap, historical):
+# This class does some dirty work in unifying the structure of the graph.
+class Builder:
+    def __init__(self):
+        self.lines = []
+        self.timemap = {}
+
+    def addPoint(self, points, time, first, last, score):
+        point = { 'time': time,
+                  'first': first,
+                  'score': score
+                }
+        if last:
+            point['last'] = last
+        if not time in self.timemap:
+            self.timemap[time] = [[points, point]]
+        else:
+            self.timemap[time].append([points, point])
+        points.append(point)
+
+    # Remove any time slice that has no corresponding datapoints.
+    def prune(self):
+        empties = []
+        for key in self.timemap:
+            empty = True
+            points = self.timemap[key]
+            for L in points:
+                point = L[1]
+                if point['first']:
+                    empty = False
+                    break
+            if empty:
+                for L in points:
+                    L[0].remove(L[1])
+                empties.append(key)
+        for key in empties:
+            del self.timemap[key]
+
+    def finish(self, lines):
+        # Build a sorted list of all time values, then provide a mapping from
+        # time values back to indexes into this list.
+        self.timelist = sorted(self.timemap.keys())
+        for i, t in enumerate(self.timelist):
+            self.timemap[t] = i
+
+        # Now we have a canonical list of time points across all lines. Build
+        # a new point list for each line, such that all lines have the same
+        # list of points.
+        for i, line in enumerate(lines):
+            # Prefill, so each slot in the line has one point.
+            newlist = [None] * len(self.timelist)
+            for point in line['data']:
+                index = self.timemap[point['time']]
+                del point['time']
+                newlist[index] = point
+
+            line['data'] = newlist
+        return
+# end class Builder
+
+
+# Takes an existing dataset and condenses the historical slice of it such that
+# the number of historical points is not more than recent points.
+def condense_aggregate(lines, timelist, historical):
     recent = len(timelist) - historical
 
     for line in lines:
         line['newdata'] = []
 
     newtimelist = []
-    newtimemap = {}
 
     # We want to take the N historical points and condense them into 
     # R slices, where R is the number of recent points.
@@ -48,7 +107,6 @@ def condense(lines, timelist, timemap, historical):
                       'score': average
                     }
             newdata.append(point)
-        newtimemap[timelist[pos]] = len(newtimelist)
         newtimelist.append(timelist[pos])
 
         pos += increment
@@ -62,17 +120,16 @@ def condense(lines, timelist, timemap, historical):
         del line['newdata']
 
     for t in timelist[historical:]:
-        newtimemap[t] = len(newtimelist)
         newtimelist.append(t)
 
-    return lines, newtimelist, newtimemap
+    return lines, newtimelist
 
 # The aggregate view attempts to coalesce all runs from a 24-hour period into
 # one data point, by taking an average of all non-zero scores in that run. In
 # order to ensure that each line has the same x-axis points, we take the
 # earliest date available, round it to a week, and then build a data point for
 # each week.
-def aggregate(runs, rows):
+def aggregate(builder, runs, rows):
     # Convert the time to UTC.
     earliest = int(rows[0][0]) - time.timezone
 
@@ -112,12 +169,7 @@ def aggregate(runs, rows):
             break
 
         # Note that first/lastCset may be None, if no points were available.
-        point = { 'time': earliest,
-                  'first': firstCset,
-                  'last': lastCset,
-                  'score': average
-                }
-        points.append(point)
+        builder.addPoint(points, earliest, firstCset, lastCset, average)
 
         if stop:
             break
@@ -136,104 +188,68 @@ def aggregate(runs, rows):
             cset = row[1]
         else:
             cset = None
-        point = { 'time': int(row[0]) - time.timezone,
-                  'first': cset,
-                  'score': score
-                }
-        points.append(point)
+        builder.addPoint(points,
+                         int(row[0]) - time.timezone,
+                         cset,
+                         None,
+                         score)
 
     return points
 
+def fetch_all_scores(suite_id, machine_id, mode_id):
+    query = "SELECT r.stamp, b.cset, s.score, r.id                                  \
+             FROM awfy_score s                                                      \
+             JOIN awfy_mode m ON m.id = s.mode_id                                   \
+             JOIN fast_run r ON s.run_id = r.id                                     \
+             JOIN awfy_build b ON (s.run_id = b.run_id AND s.mode_id = b.mode_id)   \
+             WHERE s.suite_id = %s                                                  \
+             AND r.status = 1                                                       \
+             AND r.machine = %s                                                     \
+             AND m.id = %s                                                          \
+             ORDER BY r.stamp ASC                                                   \
+             "
+    c = awfy.db.cursor()
+    c.execute(query, [suite_id, machine_id, mode_id])
+    return c.fetchall()
+
 def aggregate_suite(cx, runs, machine, suite):
-    lines = [ ]
-    timemap = { }
+    lines = []
+    builder = Builder()
 
     for mode in cx.modes:
-        query = "SELECT r.stamp, b.cset, s.score, r.id                                  \
-                 FROM awfy_score s                                                      \
-                 JOIN awfy_mode m ON m.id = s.mode_id                                   \
-                 JOIN fast_run r ON s.run_id = r.id                                     \
-                 JOIN awfy_build b ON (s.run_id = b.run_id AND s.mode_id = b.mode_id)   \
-                 WHERE s.suite_id = %s                                                  \
-                 AND r.status = 1                                                       \
-                 AND r.machine = %s                                                     \
-                 AND m.id = %s                                                          \
-                 ORDER BY r.stamp ASC                                                   \
-                 "
-        c = awfy.db.cursor()
-        c.execute(query, [suite.suite_id, machine, mode.id])
-        rows = c.fetchall()
+        rows = fetch_all_scores(suite.suite_id, machine, mode.id)
         if not len(rows):
             continue
-        points = aggregate(runs, rows)
-        for point in points:
-            if not point['time'] in timemap:
-                timemap[point['time']] = [[points, point]]
-            else:
-                timemap[point['time']].append([points, point])
+        points = aggregate(builder, runs, rows)
         line = { 'modeid': mode.id,
                  'data': points
                }
         lines.append(line)
 
-    # Remove any time slice that has no corresponding datapoints.
-    empties = []
-    for key in timemap:
-        empty = True
-        points = timemap[key]
-        for L in points:
-            point = L[1]
-            if point['first']:
-                empty = False
-                break
-        if empty:
-            for L in points:
-                L[0].remove(L[1])
-            empties.append(key)
-    for key in empties:
-        del timemap[key]
-
-    # Build a sorted list of all time values, then provide a mapping from
-    # time values back to indexes into this list.
-    timelist = sorted(timemap.keys())
-    for i, t in enumerate(timelist):
-        timemap[t] = i
-
-    # Now we have a canonical list of time points across all lines. Build
-    # a new point list for each line, such that all lines have the same
-    # list of points.
-    for i, line in enumerate(lines):
-        # Prefill, so each slot in the line has one point.
-        newlist = [None] * len(timelist)
-        for point in line['data']:
-            index = timemap[point['time']]
-            del point['time']
-            newlist[index] = point
-
-        line['data'] = newlist
+    builder.prune()
+    builder.finish(lines)
 
     # Still not done. If we have more historical points than we do latest
     # points, the graph will become biased toward the historical side. To
     # prevent this, we condense further, which is now much easier. First,
     # find the number of historical points.
-    for i, t in enumerate(timelist):
+    for i, t in enumerate(builder.timelist):
         if t >= runs.earliest:
             break
 
     historical = i
-    if historical > len(timelist) - historical:
-        return condense(lines, timelist, timemap, historical)
+    if historical > len(builder.timelist) - historical:
+        return condense_aggregate(lines, builder.timelist, historical)
 
     # Now, we export the timelist and timemap.
-    return lines, timelist, timemap
-
+    return lines, builder.timelist
 
 def export_aggregate_suites(cx, machine, suites):
     graphs = { }
     runs = data.Runs(machine)
     for suite in suites:
         graph = { }
-        lines, timelist, timemap = aggregate_suite(cx, runs, machine, suite)
+        lines, timelist = aggregate_suite(cx, runs, machine, suite)
         graph['lines'] = lines
         graph['direction'] = suite.direction
         graph['timelist'] = timelist
@@ -276,8 +292,8 @@ def main(argv):
             continue
         suites.append(benchmark)
 
-    for machine in Machines:
-        export_aggregate_suites(cx, machine, suites)
+    for machine in cx.machines:
+        export_aggregate_suites(cx, machine.id, suites)
 
     export_master(cx)
 
