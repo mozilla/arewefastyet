@@ -29,9 +29,9 @@ h1 {
 }
 
 .tooltip {
- -moz-border-radius:.35em;
- -webkit-border-radius:.35em;
- border-radius: .35em;
+ -moz-border-radius:.5em;
+ -webkit-border-radius:.5em;
+ border-radius: .5em;
  background-color:#000;
  color:#FFF;
  display:none;
@@ -64,20 +64,36 @@ h1 {
 
 .tiptext {
  background: #222;
- -moz-border-radius:.35em;
- -webkit-border-radius:.35em;
- border-radius: .35em;
+ -moz-border-radius:.5em;
+ -webkit-border-radius:.5em;
+ border-radius: .5em;
  padding: 10px;
  clear: both;
 }
 
-#legend {
- text-align: left;
+#navcontainer {
  padding-top: 360px;
- margin-left: -20px;
  display: inline;
  position: absolute;
+ margin-left: -20px;
  left: 0;
+}
+
+.menu {
+ text-align: left;
+ list-style-type: none;
+}
+
+.menu li a {
+ text-decoration: none;
+}
+
+.menu li a:hover {
+ text-decoration: underline;
+}
+
+#legend {
+ text-align: left;
  list-style-type: none;
 }
 
@@ -87,5 +103,15 @@ h1 {
  padding-left: .3em;
  margin-bottom: .2em;
  font-size: 1.2em;
+}
+
+#about {
+ display: none;
+ margin-left: 200px;
+ width: 700px;
+}
+
+.clicked {
+ font-weight: bold;
 }
 

@@ -9,8 +9,7 @@ AWFY.hasLegend = false;
 AWFY.panes = [];
 AWFY.queryParams = {};
 AWFY.aggregate = null;
-AWFY.drawLegend = function () {
-}
+AWFY.xhr = [];
 
 AWFY.request = function (files, callback) {
     var url = window.location.protocol + '//' +
@@ -22,11 +21,12 @@ AWFY.request = function (files, callback) {
 
     var count = 0;
     var received = new Array(files.length);
-    function done(jqXHR, textStatus) {
+    var done = (function (jqXHR, textStatus) {
         count++;
         if (count == files.length)
             callback(received);
-    }
+        this.xhr.splice(this.xhr.lastIndexOf(jqXHR), 1);
+    }).bind(this);
 
     for (var i = 0; i < files.length; i++) {
         var success = (function (index) {
@@ -39,17 +39,14 @@ AWFY.request = function (files, callback) {
                     success: success,
                     cache: false
                   };
-        $.ajax(url + files[i] + '.json', req);
+        this.xhr.push($.ajax(url + files[i] + '.json', req));
     }
 }
 
-AWFY.onQueryFail = function () {
-    if (this.refresh)
-        window.setTimeout(this.query.bind(this), this.refreshTime);
-}
-
-AWFY.computeAggregate = function (xhr) {
-    var blob = JSON.parse(xhr.responseText);
+AWFY.computeAggregate = function (received) {
+    var blob = typeof received[0] == "string"
+               ? JSON.parse(received[0])
+               : received[0];
 
     // Should we handle version changes better?
     if (blob.version != AWFYMaster.version) {
@@ -109,9 +106,6 @@ AWFY.computeAggregate = function (xhr) {
         Display.drawLegend();
         this.hasLegend = true;
     }
-
-    if (this.refresh)
-        window.setTimeout(this.query.bind(this), this.refreshTime);
 }
 
 AWFY.mergeJSON = function (blobs) {
@@ -308,36 +302,6 @@ AWFY.findX = function (graph, time) {
     return i;
 }
 
-AWFY.query = function (name, callback) {
-    var url = window.location.protocol + '//' +
-              window.location.host +
-              window.location.pathname;
-    if (url[url.length - 1] != '/')
-        url += '/';
-    url += 'data/' + name;
-
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState != 4)
-            return;
-
-        if (xhr.status != 200) {
-            AWFY.onQueryFail();
-            return;
-        }
-
-        callback(xhr);
-    };
-    xhr.open('GET', url, true);
-    xhr.send();
-}
-
-AWFY.onGraphHover = function (event, pos, item) {
-    var elt = $(event.target);
-    var display = elt.data('awfy-display');
-    display.onHover(event, pos, item);
-}
-
 AWFY.requestZoom = function (display, kind, start_t, end_t) {
     // Figure out the list of dates we'll need to query.
     var files = [];
@@ -368,6 +332,35 @@ AWFY.requestZoom = function (display, kind, start_t, end_t) {
     this.request(files, zoom.bind(this));
 }
 
+AWFY.changeMachine = function (machine_id) {
+    this.reset();
+    this.machineId = machine_id;
+    this.request(['aggregate-' + this.machineId],
+               this.computeAggregate.bind(this));
+}
+
+AWFY.reset = function () {
+    // Reset all our state to accept our new graphs.
+    for (var i = 0; i < AWFY.panes.length; i++) {
+        var id = this.panes[i];
+        var elt = $('#' + id + '-graph');
+        var display = elt.data('awfy-display');
+        if (!display)
+            continue;
+        display.shutdown();
+        elt.data('awfy-display', null);
+        elt.empty();
+        $('<h2>Loading...</h2>').appendTo(elt);
+    }
+
+    this.hasLegend = false;
+    this.aggregate = null;
+
+    for (var i = 0; i < this.xhr.length; i++)
+        this.xhr[i].abort();
+    this.xhr = [];
+}
+
 AWFY.startup = function () {
     var query = window.location.search.substring(1);
     var items = query.split('&');
@@ -381,11 +374,55 @@ AWFY.startup = function () {
     else
         this.machineId = 11;
 
-    for (var i = 0; i < this.panes.length; i++) {
-        var id = this.panes[i];
-        $('#' + id + '-graph').bind("plothover", this.onGraphHover.bind(this));
+    this.request(['aggregate-' + this.machineId],
+               this.computeAggregate.bind(this));
+
+    // Add machine information to the menu.
+    var menu = $('#machinelist');
+    for (var id in AWFYMaster.machines) {
+        var machine = AWFYMaster.machines[id];
+        var li = $('<li></li>');
+        var a = $('<a href="#"></a>');
+        a.click((function (id) {
+            return (function (event) {
+                this.changeMachine(parseInt(id));
+                $('.clicked').removeClass('clicked');
+                $(event.target).addClass('clicked');
+                return false;
+            }).bind(this)
+        }).bind(this)(id));
+        if (parseInt(id) == this.machineId)
+            a.addClass('clicked');
+        a.html(machine.description);
+        a.appendTo(li);
+        li.appendTo(menu);
     }
 
-    this.query('aggregate-' + this.machineId + '.json', this.computeAggregate.bind(this));
+    // Hide it by default.
+    $('#machinedrop').click((function (event) {
+        if (!menu.is(':visible') && !$('#about').is(':visible')) {
+            menu.show();
+        } else {
+            menu.hide();
+        }
+        return false;
+    }).bind(this));
+    menu.hide();
+
+    var about = $('#aboutdrop');
+    about.click((function (event) {
+        var help = $('#about');
+        if (!help.is(':visible')) {
+            $('.graph-container').hide();
+            help.show();
+            about.text('Home');
+        } else {
+            help.hide();
+            $('.graph-container').show();
+            about.text('About');
+        }
+        menu.hide();
+        return false;
+    }));
 }
 

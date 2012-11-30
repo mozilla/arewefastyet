@@ -7,27 +7,21 @@ function Display(awfy, id, elt, graph)
     this.id = id;
     this.graph = graph;
     this.elt = elt;
-    this.elt.data('awfy-display', this);
     this.zoomInfo = { prev: null,
                       level: 'aggregate'
                     };
     this.selectDelay = null;
     this.attachedTips = [];
 
+    this.elt.data('awfy-display', this);
+
     // The last hovering tooltip we displayed, that has not been clicked.
     this.hovering = null;
 
-    if (graph.aggregate) {
-        // Find the range of historical points.
-        for (var i = 0; i < graph.timelist.length; i++) {
-            if (graph.timelist[i] >= graph.earliest)
-                break;
-        }
+    if (graph.aggregate)
+        this.setHistoricalMidpoint();
 
-        if (i && i != graph.timelist.length)
-            this.historical = i;
-    }
-
+    this.elt.bind("plothover", this.onHover.bind(this));
     this.elt.bind('plotclick', this.onClick.bind(this));
     this.elt.bind('plotselected', this.plotSelected.bind(this));
     this.elt.bind('dblclick', (function () {
@@ -38,6 +32,25 @@ function Display(awfy, id, elt, graph)
 
 Display.MaxPoints = 50;
 Display.Months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+Display.prototype.shutdown = function () {
+    this.elt.unbind('plothover');
+    this.elt.unbind('plotclick');
+    this.elt.unbind('plotselected');
+    this.elt.unbind('dblclick');
+    this.detachTips();
+}
+
+Display.prototype.setHistoricalMidpoint = function () {
+    // Find the range of historical points.
+    for (var i = 0; i < this.graph.timelist.length; i++) {
+        if (this.graph.timelist[i] >= this.graph.earliest)
+            break;
+    }
+
+    if (i && i != this.graph.timelist.length)
+        this.historical = i;
+}
 
 // Copy flot's tick algorithm.
 Display.prototype.tickSize = function (min, max) {
@@ -305,6 +318,7 @@ Display.prototype.cancelZoom = function () {
 
 Display.prototype.unzoom = function () {
     this.graph = AWFY.aggregate[this.id];
+    this.setHistoricalMidpoint();
     this.draw();
     this.plot.enableSelection();
     this.plot.clearSelection();
@@ -415,12 +429,12 @@ Display.prototype.createToolTip = function (item, extended) {
     // Format a year, if we should.
     if (extended) {
         var current_year = (new Date()).getFullYear();
-        var datefmt = function (t, forceYear) {
+        var datefmt = function (t, forceYear, omitTime) {
             var d = new Date(t * 1000);
             var text = Display.Months[d.getMonth()] + ' ' + d.getDate();
             if (d.getFullYear() != current_year || forceYear)
                 text += ', ' + d.getFullYear();
-            if (d.getHours() || d.getMinutes()) {
+            if (!omitTime && (d.getHours() || d.getMinutes())) {
                 text += ' ';
                 text += pad(d.getHours()) + ':' +
                         pad(d.getMinutes());
@@ -430,11 +444,11 @@ Display.prototype.createToolTip = function (item, extended) {
 
         if (point.last && x < this.graph.timelist.length - 1) {
             text += so + 'tested: ' + sc +
-                    datefmt(this.graph.timelist[x]) + ' to ' +
-                    datefmt(this.graph.timelist[x + 1], true) + '<br>';
+                    datefmt(this.graph.timelist[x], false, true) + ' to ' +
+                    datefmt(this.graph.timelist[x + 1], true, true) + '<br>';
         } else {
             text += so + 'tested: ' + sc +
-                    datefmt(this.graph.timelist[x]) + '<br>';
+                    datefmt(this.graph.timelist[x], false, false) + '<br>';
         }
     } else {
         // Include a short timestamp if we're looking at recent changesets.
@@ -462,7 +476,7 @@ Display.prototype.createToolTip = function (item, extended) {
             else
                 text += ' ';
         }
-        if (this.graph.aggregate && x >= this.historical)
+        if (!this.graph.aggregate || x >= this.historical)
             text += pad(d.getHours()) + ':' + pad(d.getMinutes()) + '<br>';
     }
 
@@ -540,6 +554,8 @@ Display.prototype.onHover = function (event, pos, item) {
 Display.drawLegend = function ()
 {
     var legend = $("#legend");
+
+    legend.empty();
 
     for (var modename in AWFYMaster.modes) {
         var mode = AWFYMaster.modes[modename];
