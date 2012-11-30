@@ -147,7 +147,7 @@ def aggregate(builder, runs, rows):
         for i in range(pos, len(rows)):
             row = rows[i]
             t = int(row[0]) - time.timezone
-            if t > earliest + TimeIncrement:
+            if t >= earliest + TimeIncrement:
                 break
             if t >= runs.earliest:
                 stop = True
@@ -244,6 +244,148 @@ def aggregate_suite(cx, runs, machine, suite):
     # Now, we export the timelist and timemap.
     return lines, builder.timelist
 
+def condense_all_days(builder, rows):
+    # Convert the time to UTC.
+    earliest = int(rows[0][0]) - time.timezone
+
+    # Rewind to the beginning of the day.
+    earliest -= earliest % TimeIncrement
+
+    pos = 0
+    points = []
+    while pos < len(rows):
+        average = 0.0
+        count = 0
+        first = None
+        last = None
+
+        for i in range(pos, len(rows)):
+            row = rows[i]
+            t = int(row[0]) - time.timezone
+            if t >= earliest + TimeIncrement:
+                break
+
+            # Discount 0 scores.
+            score = float(row[2])
+            if not score:
+                continue
+
+            if not first:
+                first = row[1]
+            last = row[1]
+
+            average = ((average * count) + score) / (count + 1)
+            count += 1
+
+        builder.addPoint(points, earliest, first, last, average)
+
+        earliest += TimeIncrement
+        pos = i + 1
+
+    return points
+
+# Take a dataset and split it into an array of smaller datasets, grouped by month.
+def split_by_month(builder, lines):
+    # Figure out which ranges in the timelist correspond to distinct months.
+    ranges = []
+    first_index = 0
+    first = time.gmtime(builder.timelist[first_index])
+    for i, t in enumerate(builder.timelist):
+        s = time.gmtime(t)
+        if s.tm_year != first.tm_year or s.tm_mon != first.tm_mon:
+            ranges.append([first_index, i])
+            first_index = i
+            first = s
+    if first_index != i:
+        ranges.append([first_index, i])
+
+    months = []
+    for r in ranges:
+        start = r[0]
+        end = r[1]
+        timelist = builder.timelist[start:end]
+        newlines = []
+        for line in lines:
+            newline = { }
+            newline['modeid'] = line['modeid']
+            newline['data'] = line['data'][start:end]
+            newlines.append(newline)
+        month = { 'timelist': timelist,
+                  'lines': newlines
+                }
+        months.append(month)
+    return months
+
+def condense_months(cx, machine, suite):
+    lines = []
+    builder = Builder()
+
+    for mode in cx.modes:
+        rows = fetch_all_scores(suite.suite_id, machine, mode.id)
+        if not len(rows):
+            continue
+        points = condense_all_days(builder, rows)
+        line = { 'modeid': mode.id,
+                 'data': points
+               }
+        lines.append(line)
+
+    builder.prune()
+    builder.finish(lines)
+
+    return split_by_month(builder, lines)
+
+def dump_months(cx, machine, suite):
+    lines = []
+    builder = Builder()
+
+    for mode in cx.modes:
+        rows = fetch_all_scores(suite.suite_id, machine, mode.id)
+        if not len(rows):
+            continue
+
+        points = []
+        for row in rows:
+            score = float(row[2])
+            if score:
+                cset = row[1]
+            else:
+                cset = None
+            builder.addPoint(points,
+                             int(row[0]) - time.timezone,
+                             cset,
+                             None,
+                             score)
+        line = { 'modeid': mode.id,
+                 'data': points
+               }
+        lines.append(line)
+
+    builder.prune()
+    builder.finish(lines)
+
+    return split_by_month(builder, lines)
+
+def export_months_with(cx, machine, suites, name, callback):
+    for suite in suites:
+        months = callback(cx, machine, suite)
+        for month in months:
+            j = { 'version': awfy.version,
+                  'graph': month
+                }
+            s = time.gmtime(month['timelist'][0])
+            fname = name + '-' + \
+                    suite.name + '-' + \
+                    str(s.tm_year) + '-' + \
+                    str(s.tm_mon) + '-' + \
+                    str(machine) + \
+                    '.json'
+            path = os.path.join(awfy.path, fname)
+            if os.path.exists(path):
+                os.remove(path)
+            with open(path, 'w') as fp:
+                json.dump(j, fp)
+
 def export_aggregate_suites(cx, machine, suites):
     graphs = { }
     runs = data.Runs(machine)
@@ -294,6 +436,8 @@ def main(argv):
 
     for machine in cx.machines:
         export_aggregate_suites(cx, machine.id, suites)
+        export_months_with(cx, machine.id, suites, 'condensed', condense_months)
+        export_months_with(cx, machine.id, suites, 'raw', dump_months)
 
     export_master(cx)
 

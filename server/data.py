@@ -80,22 +80,18 @@ class Context(object):
     def __init__(self):
         # Get a list of vendors, and map vendor IDs -> vendor info
         self.vendors = []
-        self.vendorMap_ = {}
 
         c = awfy.db.cursor()
         c.execute("SELECT id, name, vendor, csetURL, browser FROM awfy_vendor")
         for row in c.fetchall():
             v = Vendor(row[0], row[1], row[2], row[3], row[4])
-            self.vendorMap_[v.id] = v
             self.vendors.append(v)
 
         # Get a list of modes, and a reverse mapping from DB ids.
         self.modes = []
-        self.modeMap_ = {}
         c.execute("SELECT id, vendor_id, mode, name, color, level FROM awfy_mode WHERE level <= 10")
         for row in c.fetchall():
             m = Mode(row[0], row[1], row[2], row[3], row[4], row[5])
-            self.modeMap_[m.id] = m
             self.modes.append(m)
 
         # Get a list of benchmarks.
@@ -111,9 +107,6 @@ class Context(object):
         for row in c.fetchall():
             m = Machine(row[0], row[1], row[2], row[3])
             self.machines.append(m)
-
-    def mode(self, mode_id):
-        return self.modeMap_[mode_id]
 
     def exportModes(self):
         o = { }
@@ -140,18 +133,4 @@ class Context(object):
             o[machine.id] = machine.export()
         return o
 
-
-def graph(cx, runs, suite_id):
-    c = awfy.db.cursor()
-    c.execute("SELECT s.run_id, s.mode_id, s.score                      \
-               FROM awfy_score s                                        \
-               JOIN awfy_mode m ON m.id = s.mode_id                     \
-               WHERE s.suite_id = %s                                    \
-               AND s.score > 0                                          \
-               AND m.level <= 10                                        \
-               AND s.run_id > %s", [suite_id, runs.earliest])
-    points = []
-    for row in c.fetchall():
-        points.append(row)
-    return points
 
