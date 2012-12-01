@@ -197,7 +197,8 @@ def perform_update(cx, suite, prefix, fetch):
     with Profiler() as p:
         rows = fetch(earliest_run_id)
         diff = p.time()
-    print('found ' + str(len(rows)) + ' new rows in ' + diff)
+    new_rows = len(rows)
+    print('found ' + str(new_rows) + ' new rows in ' + diff)
 
     # Break everything into months.
     year = 0
@@ -232,6 +233,8 @@ def perform_update(cx, suite, prefix, fetch):
     if len(rows):
         metadata['earliest_run_id'] = rows[-1][0]
         save_metadata(prefix, metadata)
+
+    return new_rows
 # Done
 
 def update(cx, machine, suite):
@@ -239,7 +242,12 @@ def update(cx, machine, suite):
         return fetch_suite_scores(machine.id, suite.id, earliest_run_id)
 
     prefix = 'raw-' + suite.name + '-' + str(machine.id)
-    perform_update(cx, suite, prefix, fetch_aggregate)
+    new_rows = perform_update(cx, suite, prefix, fetch_aggregate)
+
+    # This is a little cheeky, but as an optimization we don't bother querying
+    # subtests if we didn't find new rows.
+    if not new_rows:
+        return
 
     for test in suite.tests:
         def fetch_test(earliest_run_id):
