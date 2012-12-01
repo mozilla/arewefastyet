@@ -6,9 +6,22 @@ import data
 import json
 import time
 import os.path
+import datetime
 
 # Increment is currently 1 day.
 TimeIncrement = 60 * 60 * 24
+
+class Profiler:
+    def __init__(self, text):
+        self.text = text
+
+    def __enter__(self):
+        self.start = datetime.datetime.now()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.end = datetime.datetime.now()
+        diff = self.end - self.start
+        print(self.text + ' (took ' + str(diff.seconds) + 's' + str(diff.microseconds / 1000) + 'ms)')
 
 # This class does some dirty work in unifying the structure of the graph.
 class Builder:
@@ -69,6 +82,13 @@ class Builder:
         return
 # end class Builder
 
+def export(name, j):
+    path = os.path.join(awfy.path, name)
+    if os.path.exists(path):
+        os.remove(path)
+    with open(path, 'w') as fp:
+        json.dump(j, fp)
+    print('Exported: ' + name)
 
 # Takes an existing dataset and condenses the historical slice of it such that
 # the number of historical points is not more than recent points.
@@ -196,6 +216,25 @@ def aggregate(builder, runs, rows):
 
     return points
 
+def fetch_test_scores(suite_id, name, machine_id, mode_id):
+    query = "SELECT r.stamp, b.cset, s.score, r.id                                  \
+             FROM awfy_breakdown s                                                  \
+             JOIN awfy_mode m ON m.id = s.mode_id                                   \
+             JOIN fast_run r ON s.run_id = r.id                                     \
+             JOIN awfy_build b ON (s.run_id = b.run_id AND s.mode_id = b.mode_id)   \
+             WHERE s.suite_id = %s                                                  \
+             AND s.test = %s                                                        \
+             AND r.status = 1                                                       \
+             AND r.machine = %s                                                     \
+             AND m.id = %s                                                          \
+             ORDER BY r.stamp ASC                                                   \
+             "
+    with Profiler('Queried scores test=' + name + ', machine=' + str(machine_id) + \
+                  ', mode=' + str(mode_id)):
+        c = awfy.db.cursor()
+        c.execute(query, [suite_id, name, machine_id, mode_id])
+        return c.fetchall()
+
 def fetch_all_scores(suite_id, machine_id, mode_id):
     query = "SELECT r.stamp, b.cset, s.score, r.id                                  \
              FROM awfy_score s                                                      \
@@ -208,16 +247,18 @@ def fetch_all_scores(suite_id, machine_id, mode_id):
              AND m.id = %s                                                          \
              ORDER BY r.stamp ASC                                                   \
              "
-    c = awfy.db.cursor()
-    c.execute(query, [suite_id, machine_id, mode_id])
-    return c.fetchall()
+    with Profiler('Queried scores suite=' + str(suite_id) + ', machine=' + str(machine_id) + \
+                  ', mode=' + str(mode_id)):
+        c = awfy.db.cursor()
+        c.execute(query, [suite_id, machine_id, mode_id])
+        return c.fetchall()
 
-def aggregate_suite(cx, runs, machine, suite):
+def fetch_and_aggregate(cx, runs, machine, fetch):
     lines = []
     builder = Builder()
 
     for mode in cx.modes:
-        rows = fetch_all_scores(suite.suite_id, machine, mode.id)
+        rows = fetch(machine, mode.id)
         if not len(rows):
             continue
         points = aggregate(builder, runs, rows)
@@ -316,16 +357,16 @@ def split_by_month(builder, lines):
         months.append(month)
     return months
 
-def condense_months(cx, machine, suite):
+def condense_months(resultsets):
     lines = []
     builder = Builder()
 
-    for mode in cx.modes:
-        rows = fetch_all_scores(suite.suite_id, machine, mode.id)
+    for results in resultsets:
+        rows = results['rows']
         if not len(rows):
             continue
         points = condense_all_days(builder, rows)
-        line = { 'modeid': mode.id,
+        line = { 'modeid': results['mode'].id,
                  'data': points
                }
         lines.append(line)
@@ -335,12 +376,12 @@ def condense_months(cx, machine, suite):
 
     return split_by_month(builder, lines)
 
-def dump_months(cx, machine, suite):
+def dump_months(resultsets):
     lines = []
     builder = Builder()
 
-    for mode in cx.modes:
-        rows = fetch_all_scores(suite.suite_id, machine, mode.id)
+    for results in resultsets:
+        rows = results['rows']
         if not len(rows):
             continue
 
@@ -356,7 +397,7 @@ def dump_months(cx, machine, suite):
                              cset,
                              None,
                              score)
-        line = { 'modeid': mode.id,
+        line = { 'modeid': results['mode'].id,
                  'data': points
                }
         lines.append(line)
@@ -366,32 +407,73 @@ def dump_months(cx, machine, suite):
 
     return split_by_month(builder, lines)
 
-def export_months_with(cx, machine, suites, name, callback):
+def export_months(cx, machine, suites):
     for suite in suites:
-        months = callback(cx, machine, suite)
+        resultsets = [ ]
+        for mode in cx.modes:
+            rows = fetch_all_scores(suite.suite_id, machine, mode.id)
+            resultsets.append({ 'mode': mode,
+                                'rows': rows
+                              })
+
+        months = dump_months(resultsets)
         for month in months:
             j = { 'version': awfy.version,
                   'graph': month
                 }
             s = time.gmtime(month['timelist'][0])
-            fname = name + '-' + \
-                    suite.name + '-' + \
-                    str(s.tm_year) + '-' + \
-                    str(s.tm_mon) + '-' + \
-                    str(machine) + \
-                    '.json'
-            path = os.path.join(awfy.path, fname)
-            if os.path.exists(path):
-                os.remove(path)
-            with open(path, 'w') as fp:
-                json.dump(j, fp)
+            fname = 'raw-' + suite.name + '-' + str(s.tm_year) + '-' + str(s.tm_mon) + '-' + \
+                    str(machine) + '.json'
+            export(fname, j)
+
+        months = condense_months(resultsets)
+        for month in months:
+            j = { 'version': awfy.version,
+                  'graph': month
+                }
+            s = time.gmtime(month['timelist'][0])
+            fname = 'aggregate-' + suite.name + '-' + str(s.tm_year) + '-' + str(s.tm_mon) + '-' + \
+                    str(machine) + '.json'
+            export(fname, j)
+
+        for test in suite.tests:
+            resultsets = [ ]
+            for mode in cx.modes:
+                rows = fetch_test_scores(suite.suite_id, test, machine, mode.id)
+                resultsets.append({ 'mode': mode,
+                                    'rows': rows
+                                  })
+
+            months = dump_months(resultsets)
+            for month in months:
+                j = { 'version': awfy.version,
+                      'graph': month
+                    }
+                s = time.gmtime(month['timelist'][0])
+                fname = 'bk-raw-' + suite.name + '-' + test + '-' + str(s.tm_year) + '-' + \
+                        str(s.tm_mon) + '-' + str(machine) + '.json'
+                export(fname, j)
+
+            months = condense_months(resultsets)
+            for month in months:
+                j = { 'version': awfy.version,
+                      'graph': month
+                    }
+                s = time.gmtime(month['timelist'][0])
+                fname = 'bk-condensed-' + suite.name + '-' + test + '-' + str(s.tm_year) + '-' + \
+                        str(s.tm_mon) + '-' + str(machine) + '.json'
+                export(fname, j)
+
 
 def export_aggregate_suites(cx, machine, suites):
     graphs = { }
     runs = data.Runs(machine)
     for suite in suites:
+        def fetch(machine_id, mode_id):
+            return fetch_all_scores(suite.suite_id, machine_id, mode_id)
+
         graph = { }
-        lines, timelist = aggregate_suite(cx, runs, machine, suite)
+        lines, timelist = fetch_and_aggregate(cx, runs, machine, fetch)
         graph['lines'] = lines
         graph['direction'] = suite.direction
         graph['timelist'] = timelist
@@ -404,17 +486,35 @@ def export_aggregate_suites(cx, machine, suites):
           "graphs": graphs
         }
 
-    path = os.path.join(awfy.path, 'aggregate-' + str(machine) + '.json')
-    if os.path.exists(path):
-        os.remove(path)
-    with open(path, 'w') as fp:
-        json.dump(j, fp)
+    export('aggregate-' + str(machine) + '.json', j)
+
+    # Now export indiviudal test aggregate graphs.
+    for suite in suites:
+        for test in suite.tests:
+            def fetch(machine_id, mode_id):
+                return fetch_test_scores(suite.suite_id, test, machine_id, mode_id)
+
+            graph = { }
+            lines, timelist = fetch_and_aggregate(cx, runs, machine, fetch)
+            graph['lines'] = lines
+            graph['direction'] = suite.direction
+            graph['timelist'] = timelist
+            graph['aggregate'] = True
+
+            j = { 'version': awfy.version,
+                  'graph': graph
+                }
+
+            name = 'bk-aggregate-' + suite.name + '-' + test + '-' + str(machine) + '.json'
+            export(name, j)
+# End export_aggregate_suites
 
 def export_master(cx):
     j = { "version": awfy.version,
           "modes": cx.exportModes(),
           "vendors": cx.exportVendors(),
-          "machines": cx.exportMachines()
+          "machines": cx.exportMachines(),
+          "suites": cx.exportSuites()
         }
 
     text = "var AWFYMaster = " + json.dumps(j) + ";\n"
@@ -426,6 +526,7 @@ def export_master(cx):
         fp.write(text)
 
 def main(argv):
+    print('Computing master properties...')
     cx = data.Context()
 
     suites = [ ]
@@ -435,9 +536,8 @@ def main(argv):
         suites.append(benchmark)
 
     for machine in cx.machines:
+        export_months(cx, machine.id, suites)
         export_aggregate_suites(cx, machine.id, suites)
-        export_months_with(cx, machine.id, suites, 'condensed', condense_months)
-        export_months_with(cx, machine.id, suites, 'raw', dump_months)
 
     export_master(cx)
 

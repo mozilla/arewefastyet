@@ -9,6 +9,24 @@ class Benchmark(object):
         self.description = description
         self.direction = direction
 
+        # Get a list of individual tests
+        self.tests = []
+        c = awfy.db.cursor()
+        c.execute("SELECT test FROM awfy_breakdown  \
+                   WHERE suite_id = %s              \
+                   GROUP BY test",
+                   [suite_id])
+        for row in c.fetchall():
+            self.tests.append(row[0])
+
+    def export(self):
+        return { "id": self.suite_id,
+                 "name": self.name,
+                 "description": self.description,
+                 "direction": self.direction,
+                 "tests": self.tests
+               }
+
 class Vendor(object):
     def __init__(self, id, name, vendor, url, browser):
         self.id = id
@@ -94,7 +112,7 @@ class Context(object):
             m = Mode(row[0], row[1], row[2], row[3], row[4], row[5])
             self.modes.append(m)
 
-        # Get a list of benchmarks.
+        # Get a list of benchmark suites.
         self.benchmarks = []
         c.execute("SELECT id, name, description, better_direction FROM awfy_suite")
         for row in c.fetchall():
@@ -133,4 +151,9 @@ class Context(object):
             o[machine.id] = machine.export()
         return o
 
+    def exportSuites(self):
+        o = { }
+        for b in self.benchmarks:
+            o[b.suite_id] = b.export()
+        return o
 
