@@ -8,6 +8,13 @@ from profiler import Profiler
 
 SecondsPerDay = 60 * 60 * 24
 
+def export(name, j):
+    path = os.path.join(awfy.path, name)
+    if os.path.exists(path):
+        os.remove(path)
+    with open(path, 'w') as fp:
+        json.dump(j, fp)
+
 def find_all_months(cx, prefix, name):
     pattern = prefix + 'raw-' + name + '-(\d\d\d\d)-(\d+)\.json'
 
@@ -50,7 +57,7 @@ def split_into_days(timelist):
 # Aggregate the datapoints in a graph into the supplied regions.
 def condense_graph(graph, regions):
     # Prefill the new graph.
-    new_graph = { 'direction': graph.direction,
+    new_graph = { 'direction': graph['direction'],
                   'timelist': [],
                   'lines': []
                 }
@@ -63,27 +70,35 @@ def condense_graph(graph, regions):
             first = None
             last = None
             for i in range(start, end):
-                p = line.data[i]
-                if not p or not p['score']:
+                p = line['data'][i]
+                if not p or not p[0]:
                     continue
-                average = ((average * count) + p['score']) / (count + 1)
+                average = ((average * count) + p[0]) / (count + 1)
                 count = count + 1
                 if not first:
-                    first = p['first']
-                last = p['first']
-                point = { 'score': average,
-                          'first': first }
+                    first = p[1]
+                last = p[1]
+            points.append([average, first, last])
                 
 
         newline = { 'modeid': line['modeid'],
-                    'data': []
+                    'data': points
                   }
         new_graph['lines'].append(newline)
 
+    for start, end in regions:
+        new_graph['timelist'].append(start)
 
-def condense_month(cx, suite, graph, prefix, new_name):
+    return new_graph
+
+def condense_month(cx, suite, graph, prefix, name):
     days = split_into_days(graph['timelist'])
     new_graph = condense_graph(graph, days)
+
+    j = { 'version': awfy.version,
+          'graph': new_graph
+        }
+    export(name + '.json', j)
 
 def condense(cx, suite, prefix, name):
     sys.stdout.write('Importing all datapoints for ' + name + '... ')
@@ -94,8 +109,13 @@ def condense(cx, suite, prefix, name):
     print('took ' + diff)
 
     for when, graph in graphs:
-        new_name = prefix + str(when[0]) + '-' + str(when[1])
-        condense_month(cx, suite, graph, prefix, new_name)
+        new_name = prefix + 'condensed-' + name + '-' + str(when[0]) + '-' + str(when[1])
+        sys.stdout.write('Condensing ' + new_name + '... ')
+        sys.stdout.flush()
+        with Profiler() as p:
+            condense_month(cx, suite, graph, prefix, new_name)
+            diff = p.time()
+        print(' took ' + diff)
 
 
 def condense_suite(cx, machine, suite):

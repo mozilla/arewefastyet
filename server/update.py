@@ -289,7 +289,7 @@ def main(argv):
     print('took ' + diff)
 
     update_all(cx)
-    #condenser.condense_all(cx)
+    condenser.condense_all(cx)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
