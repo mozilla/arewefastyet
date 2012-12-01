@@ -48,14 +48,17 @@ class Builder:
 
         # Now we have a canonical list of time points across all lines. Build
         # a new point list for each line, such that all lines have the same
-        # list of points.
+        # list of points. At this time, we also rewrite points to be lists, as
+        # this results in smaller exported JSON.
         for i, line in enumerate(lines):
             # Prefill, so each slot in the line has one point.
             newlist = [None] * len(self.timelist)
             for point in line['data']:
                 index = self.timemap[point['time']]
-                del point['time']
-                newlist[index] = point
+                if 'last' in point:
+                    newlist[index] = [point['score'], point['first'], point['last']]
+                else:
+                    newlist[index] = [point['score'], point['first']]
 
             line['data'] = newlist
         return

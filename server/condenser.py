@@ -64,7 +64,7 @@ def condense_graph(graph, regions):
             last = None
             for i in range(start, end):
                 p = line.data[i]
-                if not p or not p['score']
+                if not p or not p['score']:
                     continue
                 average = ((average * count) + p['score']) / (count + 1)
                 count = count + 1
