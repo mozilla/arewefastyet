@@ -7,6 +7,7 @@ import json
 import time
 import os.path
 import datetime
+import condenser
 from profiler import Profiler
 from builder import Builder
 
@@ -279,5 +280,17 @@ def update_all(cx):
                 continue
             update(cx, machine, benchmark)
 
-update_all(data.Context())
+def main(argv):
+    sys.stdout.write('Computing master properties... ')
+    sys.stdout.flush()
+    with Profiler() as p:
+        cx = data.Context()
+        diff = p.time()
+    print('took ' + diff)
+
+    update_all(cx)
+    #condenser.condense_all(cx)
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
 
