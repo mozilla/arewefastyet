@@ -37,8 +37,18 @@ Setting up (3):
 
 Setting up (4):
   Put awfy-server.config in /etc/, edit it to point at your database and 
-  website/data folder. Then put frontpage.py in a cronjob. It will dump files
+  website/data folder. Then put update.py in a cronjob. It will dump files
   where appropriate. AWFY.com does this every 15min.
+
+  update.py generates various JSON files:
+   (a) "raw" and "metadata" files cache database queries from run to run,
+       so we don't have to make expensive database queries.
+   (b) "aggregate" files are used for the front page.
+   (c) "condensed" files are used for one level of zooming, so users don't
+       have to download the raw data set right away.
+   
+  The metadata and raw JSON files are updated as needed. The aggregate and
+  condensed files are always re-generated from the raw data.
 
 Setting up (5):
   Nothing special needed. Note that our flot is slightly modified, so it

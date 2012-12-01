@@ -4,7 +4,7 @@ import time
 
 class Benchmark(object):
     def __init__(self, suite_id, name, description, direction):
-        self.suite_id = suite_id
+        self.id = suite_id
         self.name =  name
         self.description = description
         self.direction = direction
@@ -20,7 +20,7 @@ class Benchmark(object):
             self.tests.append(row[0])
 
     def export(self):
-        return { "id": self.suite_id,
+        return { "id": self.id,
                  "name": self.name,
                  "description": self.description,
                  "direction": self.direction,
@@ -107,9 +107,11 @@ class Context(object):
 
         # Get a list of modes, and a reverse mapping from DB ids.
         self.modes = []
+        self.modemap = { }
         c.execute("SELECT id, vendor_id, mode, name, color, level FROM awfy_mode WHERE level <= 10")
         for row in c.fetchall():
             m = Mode(row[0], row[1], row[2], row[3], row[4], row[5])
+            self.modemap[int(row[0])] = m
             self.modes.append(m)
 
         # Get a list of benchmark suites.
@@ -154,6 +156,6 @@ class Context(object):
     def exportSuites(self):
         o = { }
         for b in self.benchmarks:
-            o[b.suite_id] = b.export()
+            o[b.id] = b.export()
         return o
 

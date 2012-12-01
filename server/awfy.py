@@ -1,6 +1,12 @@
 # vim: set ts=4 sw=4 tw=99 et:
-import ConfigParser
-import MySQLdb as mdb
+try:
+    import MySQLdb as mdb
+except:
+    import mysqldb as mdb
+try:
+    import ConfigParser
+except:
+    import configparser as ConfigParser
 
 db = None
 version = None
