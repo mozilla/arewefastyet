@@ -65,8 +65,8 @@ AWFY.computeAggregate = function (received) {
             var points = [];
             for (var j = 0; j < blobline.data.length; j++) {
                 var point = blobline.data[j];
-                var score = point && point.score
-                            ? point.score
+                var score = point && point[0]
+                            ? point[0]
                             : null;
                 points.push([j, score]);
             }
@@ -127,7 +127,17 @@ AWFY.mergeJSON = function (blobs) {
 
             var line = lines[blobline.modeid];
             if (!line) {
-                line = { points: [], info: [] };
+                var points = [];
+                var info = [];
+
+                // We have to pre-fill the array with slots for each blob
+                // we may have missed.
+                for (var k = 0; k < timelist.length; k++) {
+                    points.push(null);
+                    info.push(null);
+                }
+
+                line = { points: points, info: info };
                 lines[blobline.modeid] = line;
             }
 
@@ -136,8 +146,8 @@ AWFY.mergeJSON = function (blobs) {
 
             for (var k = 0; k < blobline.data.length; k++) {
                 var point = blobline.data[k];
-                var score = point && point.score
-                            ? point.score
+                var score = point && point[0]
+                            ? point[0]
                             : null;
                 points.push([timelist.length + k, score]);
                 info.push(point);
@@ -146,6 +156,17 @@ AWFY.mergeJSON = function (blobs) {
 
         for (var j = 0; j < blob.graph.timelist.length; j++)
             timelist.push(blob.graph.timelist[j]);
+
+        // If we missed updating any line, pre-fill it with null points.
+        for (var modeid in lines) {
+            var line = lines[modeid];
+            if (line.points.length == timelist.length)
+                continue;
+            for (var j = line.points.length; j < timelist.length; j++) {
+                line.points.push(null);
+                line.info.push(null);
+            }
+        }
     }
 
     var actual = [];
@@ -204,23 +225,24 @@ AWFY.condense = function (graph, max) {
             var last = null;
             for (var j = start; j < pos + slice && j < oldinfo.data.length; j++) {
                 var point = oldinfo.data[j];
-                if (!point || !point.score)
+                if (!point || !point[0])
                     continue;
                 if (!first)
-                    first = point.first;
-                if (point.last)
-                    last = point.last;
-                average = ((average * count) + point.score) / (count + 1);
+                    first = point[1];
+                if (point.length > 1 && point[2])
+                    last = point[2];
+                else
+                    last = first
+                average = ((average * count) + point[0]) / (count + 1);
                 count += 1;
             }
 
             var score = average ? average : null;
             newline.data.push([timelist.length, score]);
-
-            newinfo.data.push({ 'first': first,
-                                'last': last,
-                                'score': average
-                              });
+            if (count)
+                newinfo.data.push([average, first, last])
+            else
+                newinfo.data.push([average, first])
         }
 
         timelist.push(graph.timelist[start]);
@@ -261,7 +283,7 @@ AWFY.trim = function (graph, start, end) {
         var info = infos[i];
         for (var j = start; j < end; j++) {
             var point = oldline.data[j];
-            line.data.push([j - start, point[1]]);
+            line.data.push([j - start, point ? point[1] : null]);
             info.data.push(oldinfo.data[j]);
         }
     }
@@ -318,9 +340,9 @@ AWFY.requestZoom = function (display, kind, start_t, end_t) {
         for (var month = firstMonth; month <= lastMonth; month++) {
             var name = kind + '-' +
                        display.id + '-' +
+                       this.machineId + '-' +
                        year + '-' +
-                       month + '-' +
-                       this.machineId;
+                       month;
             files.push(name);
         }
     }

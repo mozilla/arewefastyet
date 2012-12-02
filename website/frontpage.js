@@ -347,7 +347,7 @@ Display.prototype.createToolTip = function (item, extended) {
     // Find the point previous to this one.
     var prev = null;
     for (var i = x - 1; i >= 0; i--) {
-        if (line.data[i] && line.data[i].score) {
+        if (line.data[i] && line.data[i][0]) {
             prev = line.data[i];
             break;
         }
@@ -355,8 +355,8 @@ Display.prototype.createToolTip = function (item, extended) {
 
     if (prev) {
         // Compute a difference.
-        var diff = Math.round((y - prev.score) * 10) / 10;
-        var perc = -Math.round(((y - prev.score) / prev.score) * 1000) / 10;
+        var diff = Math.round((y - prev[0]) * 10) / 10;
+        var perc = -Math.round(((y - prev[0]) / prev[0]) * 1000) / 10;
         var better;
         if ((perc < 0 && this.graph.direction == -1) ||
             (perc > 0 && this.graph.direction == 1))
@@ -394,26 +394,26 @@ Display.prototype.createToolTip = function (item, extended) {
     var point = line.data[x];
 
     if (extended) {
-        if (point.last) {
+        if (point.length > 1 && point[2]) {
             text += so + 'revs: ' + sc +
-                    '<a href="' + vendor.url + point.first + '">' + point.first + '</a>' +
+                    '<a href="' + vendor.url + point[1] + '">' + point[1] + '</a>' +
                     ' to ' +
-                    '<a href="' + vendor.url + point.last + '">' + point.last + '</a>' +
+                    '<a href="' + vendor.url + point[2] + '">' + point[2] + '</a>' +
                     '<br>';
         } else {
             text += so + 'rev: ' + sc +
-                    '<a href="' + vendor.url + point.first + '">' + point.first + '</a>' +
+                    '<a href="' + vendor.url + point[1] + '">' + point[1] + '</a>' +
                     '<br>';
         }
     } else {
-        if (point.last) {
+        if (point[2]) {
             text += so + 'revs: ' + sc +
-                    point.first +
+                    point[1] +
                     ' to ' +
-                    point.last +
+                    point[2] +
                     '<br>';
         } else {
-            text += so + 'rev: ' + sc + point.first + '<br>';
+            text += so + 'rev: ' + sc + point[1] + '<br>';
         }
     }
 
@@ -442,7 +442,7 @@ Display.prototype.createToolTip = function (item, extended) {
             return text;
         }
 
-        if (point.last && x < this.graph.timelist.length - 1) {
+        if (point[2] && x < this.graph.timelist.length - 1) {
             text += so + 'tested: ' + sc +
                     datefmt(this.graph.timelist[x], false, true) + ' to ' +
                     datefmt(this.graph.timelist[x + 1], true, true) + '<br>';
