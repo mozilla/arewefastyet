@@ -41,7 +41,7 @@ def delete_metadata(prefix, data):
         os.remove(name)
 
 def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
-    query = "SELECT r.id, r.stamp, b.cset, s.score, m.id                            \
+    query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id                       \
              FROM awfy_breakdown s                                                  \
              JOIN awfy_mode m ON m.id = s.mode_id                                   \
              JOIN fast_run r ON s.run_id = r.id                                     \
@@ -58,7 +58,7 @@ def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
     return c.fetchall()
 
 def fetch_suite_scores(machine_id, suite_id, earliest_run_id):
-    query = "SELECT r.id, r.stamp, b.cset, s.score, m.id                    \
+    query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id               \
              FROM awfy_score s                                              \
              JOIN awfy_mode m                                               \
              JOIN fast_run r ON s.run_id = r.id                             \
@@ -290,6 +290,7 @@ def main(argv):
 
     update_all(cx)
     condenser.condense_all(cx)
+    export_master(cx)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
