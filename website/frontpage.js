@@ -394,7 +394,7 @@ Display.prototype.createToolTip = function (item, extended) {
     var point = line.data[x];
 
     if (extended) {
-        if (point.length > 1 && point[2]) {
+        if (point.length > 1 && point[2] && point[1] != point[2]) {
             text += so + 'revs: ' + sc +
                     '<a href="' + vendor.url + point[1] + '">' + point[1] + '</a>' +
                     ' to ' +
@@ -406,7 +406,7 @@ Display.prototype.createToolTip = function (item, extended) {
                     '<br>';
         }
     } else {
-        if (point[2]) {
+        if (point.length > 1 && point[2] && point[1] != point[2]) {
             text += so + 'revs: ' + sc +
                     point[1] +
                     ' to ' +
@@ -442,7 +442,11 @@ Display.prototype.createToolTip = function (item, extended) {
             return text;
         }
 
-        if (point[2] && x < this.graph.timelist.length - 1) {
+        if (point.length > 1 &&
+            point[2] && 
+            point[1] != point[2] &&
+            x < this.graph.timelist.length - 1)
+        {
             text += so + 'tested: ' + sc +
                     datefmt(this.graph.timelist[x], false, true) + ' to ' +
                     datefmt(this.graph.timelist[x + 1], true, true) + '<br>';
@@ -454,28 +458,14 @@ Display.prototype.createToolTip = function (item, extended) {
         // Include a short timestamp if we're looking at recent changesets.
         var d = new Date(this.graph.timelist[x] * 1000);
         var now = new Date();
-        var set = false;
-        if (now.getMonth() == d.getMonth() &&
-            now.getFullYear() == d.getFullYear())
-        {
-            if (now.getDate() == d.getDate()) {
-                text += so + 'tested: ' + sc + 'Today, ';
-                set = true;
-            } else if (now.getDate() - 1 == d.getDate()) {
-                text += so + 'tested: ' + sc + 'Yesterday, ';
-                set = true;
-            }
-        }
-        if (!set) {
-            text += so + 'tested: ' + sc;
-            if (this.graph.aggregate && x < this.historical)
-                text += 'around ';
-            text += Display.Months[d.getMonth()] + ' ' + d.getDate();
-            if (now.getFullYear() != d.getFullYear())
-                text += ', ' + d.getFullYear() + ' ';
-            else
-                text += ' ';
-        }
+        text += so + 'tested: ' + sc;
+        if (this.graph.aggregate && x < this.historical)
+            text += 'around ';
+        text += Display.Months[d.getMonth()] + ' ' + d.getDate();
+        if (now.getFullYear() != d.getFullYear())
+            text += ', ' + d.getFullYear() + ' ';
+        else
+            text += ' ';
         if (!this.graph.aggregate || x >= this.historical)
             text += pad(d.getHours()) + ':' + pad(d.getMinutes()) + '<br>';
     }
