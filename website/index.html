@@ -7,7 +7,9 @@
  <link rel="stylesheet" title="Default Stylesheet" type="text/css" href="style.css">
  <link rel="shortcut icon" href="http://www.arewefastyet.com/awfy_favicon.png">
  <script type="text/javascript" src="jquery/jquery-1.8.3.min.js"></script>
+ <script type="text/javascript" src="jquery/jquery.ba-hashchange.min.js"></script>
  <script type="text/javascript" src="flot/jquery.flot.js"></script>
+ <script type="text/javascript" src="flot/jquery.flot.selection.js"></script>
  <script type="text/javascript" src="data/master.js"></script>
  <script type="text/javascript" src="awfy.js"></script>
  <script type="text/javascript" src="frontpage.js"></script>
@@ -16,14 +18,24 @@
 <body>
   <script type="text/javascript">
     $(document).ready(function () {
-	AWFY.refresh = true;
-	AWFY.panes = ['kraken', 'ss', 'v8real'];
 	AWFY.startup();
     });
   </script>
 
  <div class="graph-row">
-  <ul id="legend"></ul>
+  <div id="navcontainer">
+    <ul id="legend"></ul>
+    <br><br>
+    <ul class="menu">
+      <li><a href="#" id="machinedrop">Machines</a> &#187;
+        <ul id="machinelist"></ul>
+      </li>
+      <li><a href="#" id="bkdrop">Breakdown</a> &#187;
+        <ul id="breakdownlist"></ul>
+      </li>
+      <li><a href='#' id="aboutdrop">About</a> &#187;</li>
+    </ul>
+  </div>
   <div class="graph-container">
     <div id="kraken-label">kraken time</div>
     <div class="graph" id="kraken-graph"><h2>Loading...</h2></div>
@@ -43,6 +55,62 @@
      <div class="graph" id="v8real-graph"><h2>Loading...</h2></div>
    </div>
   </div>
+ </div>
+ <div id="breakdown">
+ </div>
+ <div id="about">
+  <h2>AreWeFastYet: tracking performance of popular JavaScript engines</h2>
+  <strong>Basic usage:</strong>
+  <ul>
+   <li>The x-axis is the date we ran tests, and the y-axis is the score of the benchmark.</li>
+   <li>The front page displays a hybrid of historical data, as well as the most recent samples.</li>
+   <li>You can click on a datapoint to see a tooltip with more information.</li>
+   <li>Tooltips can be dragged around, for easier comparison.</li>
+   <li>Some benchmarks use time (lower is better), and some use points (higher is better). We orient all graphs so lower is better, visually.</li>
+   <li>Use the "machine" menu to see different computers' benchmark results.</li>
+   <li>Use the "view" menu to drill down into individual benchmarks.</li>
+   <li>You can click and highlight any area of any graph to zoom in. It might pause to download data.</li>
+   <li>You can unzoom by double-clicking inside a graph.</li>
+  </ul>
+  <strong>FAQ:</strong>
+  <ul>
+   <li>
+    <p>Who maintains this site?</p>
+    <p>This site is maintained by Mozilla's JavaScript team.</p>
+   </li>
+   <li>
+    <p>How does it work?</p>
+    <p>AWFY is automated. Throughout the day, we checkout the latest source code to each available JavaScript engine, and compile it. Then we run it through some benchmark suites, and tally up the scores into a database. This data gets exported as JSON which can then be easily plotted.</p>
+   </li>
+   <li>
+    <p>Why aren't Opera or IE available?</p>
+    <p>AWFY currently runs standalone, command-line JavaScript shells - not the web browsers that embed them. Opera doesn't provide a standalone shell, and IE doesn't work on Mac or Linux (which is where we benchmark right now).</p>
+   </li>
+   <li>
+    <p>What are the graphs?</p>
+    <p>The top left-hand graph is Mozilla's Kraken benchmark. The top right-hand graph is Apple's SunSpider benchmark. The bottom graph is Google's V8 benchmark suite.</p>
+   </li>
+   <li>
+    <p>What do the hover tips mean?</p>
+    <p>"Source" is where we got the engine from. "Tested" is when we downloaded the engine, compiled, and tested it. "Rev" is the unique point in the engine's revision history we tested. If the datapoint represents a range, there may be multiple revs. These numbers/strings are for developers to see which changes happened in between points in the graph.</p>
+   </li>
+   <li>
+    <p>What's ARM?</p>
+    <p>ARM is the CPU present in many embedded devices, like smartphones. We're interested in this for mobile Firefox and Firefox OS.</p>
+   </li>
+   <li>
+    <p>Is this open source?</p>
+    <p>Fo' sho', <a href="https://github.com/dvander/arewefastyet">https://github.com/dvander/arewefastyet</a></p>
+   </li>
+   <li>
+    <p>Can I still see the original AWFY, from the JaegerMonkey days?</p>
+    <p>Yup: <a href="http://arewefastyet.com/historic/old-awfy.php">http://arewefastyet.com/historic/old-awfy.php</a></p>
+   </li>
+   <li>
+    <p>Suggestions?</p>
+    <p><a href="mailto:danderson@mozilla.com">e-mail</a></p>
+  </ul>
+ </div>
  <br>
 </body>
 </html>

@@ -6,11 +6,12 @@ AWFY.refreshTime = 1000 * 60 * 5;
 AWFY.machineId = 0;
 AWFY.hasLegend = false;
 AWFY.panes = [];
-AWFY.queryParams = {};
+AWFY.queryParams = null;
 AWFY.aggregate = null;
 AWFY.xhr = [];
-AWFY.view = 'overview';
+AWFY.view = 'none';
 AWFY.suiteName = null;
+AWFY.lastHash = null;
 
 AWFY.request = function (files, callback) {
     var url = window.location.protocol + '//' +
@@ -42,6 +43,27 @@ AWFY.request = function (files, callback) {
                   };
         this.xhr.push($.ajax(url + files[i] + '.json', req));
     }
+}
+
+AWFY.pushState = function () {
+    // Build URL query.
+    var vars = []
+    vars.push('machine=' + this.machineId);
+
+    if (this.view == 'breakdown') {
+        vars.push('view=breakdown');
+        vars.push('suite=' + this.suiteName);
+    }
+
+    if ($('#about').is(':visible'))
+        vars.push('about=1');
+
+    var text = '#' + vars.join('&');
+    this.lastHash = text;
+    if (window.history.pushState)
+        window.history.pushState(null, 'AreWeFastYet', text);
+    else
+        window.location.hash = '#' + text;
 }
 
 AWFY.loadAggregateGraph = function (blobgraph) {
@@ -505,39 +527,97 @@ AWFY.reset = function (view) {
     this.xhr = [];
 }
 
-AWFY.startup = function () {
-    this.panes = [$('#ss-graph'),
-                  $('#kraken-graph'),
-                  $('#v8real-graph')];
+AWFY.onHashChange = function () {
+    this.parseURL();
+}
 
-    var query = window.location.search.substring(1);
+AWFY.parseURL = function () {
+    if (this.lastHash == window.location.hash)
+        return;
+
+    var query = window.location.hash.substring(1);
     var items = query.split('&');
+    this.queryParams = {};
     for (var i = 0; i < items.length; i++) {
         var item = items[i].split('=');
         this.queryParams[item[0]] = item[1];
     }
 
+    var machineId;
     if ('machine' in this.queryParams)
-        this.machineId = parseInt(this.queryParams['machine']);
+        machineId = parseInt(this.queryParams['machine']);
     else
-        this.machineId = 11;
+        machineId = 11;
 
-    this.request(['aggregate-' + this.machineId],
-               this.computeAggregate.bind(this));
+    var view = this.queryParams['view'];
+    if (!view || (view != 'overview' && view != 'breakdown'))
+        view = 'overview';
+    if (view == 'breakdown') {
+        var suiteName = this.queryParams['suite'];
+        if (!suiteName || !AWFYMaster.suites[suiteName])
+            view = 'overview';
+    }
+
+    // Make sure the menus are up to date.
+    if (this.view != 'none') {
+        if (this.machineId != machineId) {
+            $('#machinelist .clicked').removeClass('clicked');
+            $('#machine' + machineId).addClass('clicked');
+        }
+        $('#breakdownlist .clicked').removeClass('clicked');
+        if (view == 'overview')
+            $('#suite-overview').addClass('clicked');
+        else if (view == 'breakdown')
+            $('#suite-' + suiteName).addClass('clicked');
+    }
+
+    if (view == this.view) {
+        // See if we just need to change the current machine.
+        if (view == 'overview') {
+            if (machineId != this.machineId)
+                this.changeMachine(machineId);
+            return;
+        } else if (view == 'breakdown') {
+            if (suiteName == this.suiteName) {
+                if (machineId != this.machineId) 
+                    this.changeMachine(machineId);
+                return;
+            }
+        }
+    }
+
+    // Nope.
+    this.machineId = machineId;
+
+    if (view == 'overview')
+        this.showOverview();
+    else if (view == 'breakdown')
+        this.showBreakdown(suiteName);
+
+    this.lastHash = window.location.hash;
+}
+
+AWFY.startup = function () {
+    this.panes = [$('#ss-graph'),
+                  $('#kraken-graph'),
+                  $('#v8real-graph')];
+
+    this.parseURL();
 
     // Add machine information to the menu.
     var menu = $('#machinelist');
     for (var id in AWFYMaster.machines) {
         var machine = AWFYMaster.machines[id];
         var li = $('<li></li>');
-        var a = $('<a href="#"></a>');
+        var a = $('<a href="#" id="machine' + id + '"></a>');
         a.click((function (id) {
             return (function (event) {
                 this.changeMachine(parseInt(id));
                 $('#machinelist .clicked').removeClass('clicked');
                 $(event.target).addClass('clicked');
+                this.pushState();
                 return false;
-            }).bind(this)
+            }).bind(this);
         }).bind(this)(id));
         if (parseInt(id) == this.machineId)
             a.addClass('clicked');
@@ -559,26 +639,33 @@ AWFY.startup = function () {
 
     var breakdown = $('#breakdownlist');
 
-    $('<a href="#" class="clicked"></a>').click(
+    var home = $('<a href="#" id="suite-overview"></a>').click(
         (function (event) {
             $('#breakdownlist .clicked').removeClass('clicked');
             $(event.target).addClass('clicked');
             this.showOverview();
+            this.pushState();
+            return false;
          }).bind(this))
     .html('Overview')
     .appendTo($('<li></li>').appendTo(breakdown));
+    if (this.view == 'overview')
+        home.addClass('clicked');
 
     for (var name in AWFYMaster.suites) {
         var li = $('<li></li>');
-        var a = $('<a href="#"></a>');
+        var a = $('<a href="#" id="suite-' + name + '"></a>');
         a.click((function (name) {
             return (function(event) {
                 $('#breakdownlist .clicked').removeClass('clicked');
                 $(event.target).addClass('clicked');
                 this.showBreakdown(name);
+                this.pushState();
                 return false;
             }).bind(this);
         }).bind(this)(name));
+        if (this.view == 'breakdown' && this.suiteName == name)
+            a.addClass('clicked');
         a.html(AWFYMaster.suites[name].description);
         a.appendTo(li);
         li.appendTo(breakdown);
@@ -611,7 +698,14 @@ AWFY.startup = function () {
         }
         menu.hide();
         breakdown.hide();
+        this.pushState();
         return false;
     }).bind(this));
+
+    if (this.queryParams['help'])
+        about.trigger('click');
+
+    $(window).hashchange(this.onHashChange.bind(this));
+    $(window).bind('popstate', this.onHashChange.bind(this));
 }
 
