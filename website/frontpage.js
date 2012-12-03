@@ -427,16 +427,30 @@ Display.prototype.createToolTip = function (item, extended) {
 
     if (extended) {
         if (point.length > 1 && point[2] && point[1] != point[2]) {
-            text += so + 'revs: ' + sc +
-                    '<a href="' + vendor.url + point[1] + '">' + point[1] + '</a>' +
-                    ' to ' +
-                    '<a href="' + vendor.url + point[2] + '">' + point[2] + '</a>' +
-                    '<br>';
+            if (vendor.rangeURL) {
+                var url = vendor.rangeURL
+                            .replace("{from}", point[1])
+                            .replace("{to}", point[2]);
+                text += so + 'revs: ' + sc +
+                             '<a href="' + url + '">' + point[1] + " to " + point[2] + '</a>';
+            } else {
+                text += so + 'revs: ' + sc +
+                        '<a href="' + vendor.url + point[1] + '">' + point[1] + '</a>' +
+                        ' to ' +
+                        '<a href="' + vendor.url + point[2] + '">' + point[2] + '</a>';
+            }
         } else {
             text += so + 'rev: ' + sc +
-                    '<a href="' + vendor.url + point[1] + '">' + point[1] + '</a>' +
-                    '<br>';
+                    '<a href="' + vendor.url + point[1] + '">' + point[1] + '</a>';
+
+            if (prev && vendor.rangeURL) {
+                var url = vendor.rangeURL
+                            .replace("{from}", prev[1])
+                            .replace("{to}", point[1]);
+                text += ' (<a href="' + url + '">changelog</a>)';
+            }
         }
+        text += '<br>';
     } else {
         if (point.length > 1 && point[2] && point[1] != point[2]) {
             text += so + 'revs: ' + sc +
