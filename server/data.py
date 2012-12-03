@@ -156,6 +156,6 @@ class Context(object):
     def exportSuites(self):
         o = { }
         for b in self.benchmarks:
-            o[b.id] = b.export()
+            o[b.name] = b.export()
         return o
 
