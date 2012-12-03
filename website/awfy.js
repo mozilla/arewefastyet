@@ -4,12 +4,13 @@ var AWFY = { };
 
 AWFY.refreshTime = 1000 * 60 * 5;
 AWFY.machineId = 0;
-AWFY.refresh = true;
 AWFY.hasLegend = false;
 AWFY.panes = [];
 AWFY.queryParams = {};
 AWFY.aggregate = null;
 AWFY.xhr = [];
+AWFY.view = 'overview';
+AWFY.suiteName = null;
 
 AWFY.request = function (files, callback) {
     var url = window.location.protocol + '//' +
@@ -43,6 +44,85 @@ AWFY.request = function (files, callback) {
     }
 }
 
+AWFY.loadAggregateGraph = function (blobgraph) {
+    var lines = [];
+    for (var i = 0; i < blobgraph.lines.length; i++) {
+        var blobline = blobgraph.lines[i];
+
+        var points = [];
+        for (var j = 0; j < blobline.data.length; j++) {
+            var point = blobline.data[j];
+            var score = point && point[0]
+                        ? point[0]
+                        : null;
+            points.push([j, score]);
+        }
+
+        // Mark the mode as used.
+        var mode = AWFYMaster.modes[blobline.modeid];
+        mode.used = true;
+
+        var line = { color: mode.color, data: points };
+        lines.push(line);
+    }
+
+    var graph = { lines: lines,
+                  direction: blobgraph.direction,
+                  aggregate: blobgraph.aggregate,
+                  timelist: blobgraph.timelist,
+                  earliest: blobgraph.earliest,
+                  info: blobgraph.lines
+                };
+    return graph;
+}
+
+AWFY.displayNewGraph = function (name, graph) {
+    var elt = $('#' + name + '-graph');
+    var display = elt.data('awfy-display');
+    if (!display) {
+        display = new Display(this, name, elt, graph);
+        elt.data('awfy-display', display);
+    }
+    display.setup(graph);
+    display.draw();
+    this.aggregate[name] = graph;
+}
+
+AWFY.drawLegend = function () {
+    // Draw the legend if needed.
+    if (this.hasLegend)
+        return;
+
+    var legend = $("#legend");
+
+    legend.empty();
+
+    for (var modename in AWFYMaster.modes) {
+        var mode = AWFYMaster.modes[modename];
+        var vendor = AWFYMaster.vendors[mode.vendor_id];
+        var item = $('<li style="border-color:' + mode.color + '"></li>');
+        item.text(vendor.browser + ' (' + mode.name + ')');
+        item.appendTo(legend);
+    }
+
+    this.hasLegend = true;
+}
+
+AWFY.computeBreakdown = function (data, id) {
+    var blob = typeof data == "string"
+               ? JSON.parse(data)
+               : data;
+
+    // Should we handle version changes better?
+    if (blob.version != AWFYMaster.version) {
+        window.location.reload();
+        return;
+    }
+
+    var graph = this.loadAggregateGraph(blob['graph']);
+    this.displayNewGraph(id, graph);
+}
+
 AWFY.computeAggregate = function (received) {
     var blob = typeof received[0] == "string"
                ? JSON.parse(received[0])
@@ -57,55 +137,16 @@ AWFY.computeAggregate = function (received) {
     var graphs = { };
     for (var name in blob.graphs) {
         var blobgraph = blob.graphs[name];
-
-        var lines = [];
-        for (var i = 0; i < blobgraph.lines.length; i++) {
-            var blobline = blobgraph.lines[i];
-
-            var points = [];
-            for (var j = 0; j < blobline.data.length; j++) {
-                var point = blobline.data[j];
-                var score = point && point[0]
-                            ? point[0]
-                            : null;
-                points.push([j, score]);
-            }
-
-            // Mark the mode as used.
-            var mode = AWFYMaster.modes[blobline.modeid];
-            mode.used = true;
-
-            var line = { color: mode.color, data: points };
-            lines.push(line);
-        }
-
-        var graph = { lines: lines,
-                      direction: blobgraph.direction,
-                      aggregate: blobgraph.aggregate,
-                      timelist: blobgraph.timelist,
-                      earliest: blobgraph.earliest,
-                      info: blobgraph.lines
-                    };
-        graphs[name] = graph;
+        graphs[name] = this.loadAggregateGraph(blobgraph);
     }
 
     // Save this for if/when we need to zoom out.
     this.aggregate = graphs;
 
-    // Everything built successfully, so now we can send this to be drawn.
-    for (var i = 0; i < this.panes.length; i++) {
-        var id = this.panes[i];
-        var elt = $('#' + id + '-graph');
-        var graph = graphs[id];
-        var display = new Display(this, id, elt, graph);
-        display.draw();
-    }
+    for (var id in graphs)
+        this.displayNewGraph(id, graphs[id]);
 
-    // Draw the legend if needed.
-    if (!this.hasLegend) {
-        Display.drawLegend();
-        this.hasLegend = true;
-    }
+    this.drawLegend();
 }
 
 AWFY.mergeJSON = function (blobs) {
@@ -343,6 +384,8 @@ AWFY.requestZoom = function (display, kind, start_t, end_t) {
                        this.machineId + '-' +
                        year + '-' +
                        month;
+            if (this.view == 'breakdown')
+                name = 'bk-' + name;
             files.push(name);
         }
     }
@@ -354,36 +397,119 @@ AWFY.requestZoom = function (display, kind, start_t, end_t) {
     this.request(files, zoom.bind(this));
 }
 
-AWFY.changeMachine = function (machine_id) {
-    this.reset();
-    this.machineId = machine_id;
-    this.request(['aggregate-' + this.machineId],
-               this.computeAggregate.bind(this));
+AWFY.showOverview = function () {
+    this.reset('overview');
+
+    $('#breakdown').empty();
+    $('#breakdown').hide();
+
+    $('.graph-container').show();
+
+    this.suiteName = null;
+    this.panes = [$('#ss-graph',
+                    '#v8real-graph',
+                    '#kraken-graph')
+                 ];
+
+    this.request(['aggregate-' + this.machineId], this.computeAggregate.bind(this));
 }
 
-AWFY.reset = function () {
-    // Reset all our state to accept our new graphs.
-    for (var i = 0; i < AWFY.panes.length; i++) {
-        var id = this.panes[i];
-        var elt = $('#' + id + '-graph');
+AWFY.showBreakdown = function (name) {
+    this.reset('breakdown');
+
+    // Clear the breakdown view.
+    var breakdown = $('#breakdown');
+    breakdown.empty()
+
+    $('.graph-container').hide();
+    breakdown.show();
+
+    this.suiteName = name;
+    this.panes = [];
+
+    var total = 0;
+
+    // Create a div for each sub-test.
+    var suite = AWFYMaster.suites[name];
+    for (var i = 0; i < suite.tests.length; i++) {
+        var test = suite.tests[i];
+        var id = name + '-' + test;
+        $('<div></div>').html('<b>' + id + '</b>').appendTo(breakdown);
+        var div = $('<div id="' + id + '-graph" class="graph"></div>');
+        div.appendTo(breakdown);
+        $('<br><br>').appendTo(breakdown);
+
+        this.panes.push(div);
+
+        var callback = (function (id) {
+            return (function (received) {
+                if (received[0])
+                    this.computeBreakdown(received[0], id);
+                if (++total == suite.tests.length)
+                    this.drawLegend();
+            }).bind(this);
+        }).bind(this)(id);
+
+        // Fire off an XHR request for each test.
+        var file = 'bk-aggregate-' + id + '-' + this.machineId;
+        this.request([file], callback);
+    }
+}
+
+AWFY.changeMachine = function (machine_id) {
+    this.reset(this.view);
+    this.machineId = machine_id;
+
+    if (this.view == 'overview') {
+        this.request(['aggregate-' + this.machineId],
+                   this.computeAggregate.bind(this));
+    } else if (this.view == 'breakdown') {
+        var suite = AWFYMaster.suites[this.suiteName];
+        for (var i = 0; i < suite.tests.length; i++) {
+            var id = this.suiteName + '-' + suite.tests[i];
+            var callback = (function (id) {
+                return (function (received) {
+                    if (received[0])
+                        this.computeBreakdown(received[0], id);
+                }).bind(this);
+            }).bind(this)(id);
+            var file = 'bk-aggregate-' + id + '-' + this.machineId;
+            this.request([file], callback);
+        }
+    }
+}
+
+AWFY.reset = function (view) {
+    // Delete everything from the existing panes.
+    for (var i = 0; i < this.panes.length; i++) {
+        var elt = this.panes[i];
         var display = elt.data('awfy-display');
         if (!display)
             continue;
         display.shutdown();
-        elt.data('awfy-display', null);
-        elt.empty();
-        $('<h2>Loading...</h2>').appendTo(elt);
+
+        // If we're changing views, remove the display.
+        if (this.view != view) {
+            elt.data('awfy-display', null);
+            elt.empty();
+        }
     }
 
     this.hasLegend = false;
-    this.aggregate = null;
+    this.aggregate = { };
+    this.view = view;
 
+    // Drop all outstanding XHR requests.
     for (var i = 0; i < this.xhr.length; i++)
         this.xhr[i].abort();
     this.xhr = [];
 }
 
 AWFY.startup = function () {
+    this.panes = [$('#ss-graph'),
+                  $('#kraken-graph'),
+                  $('#v8real-graph')];
+
     var query = window.location.search.substring(1);
     var items = query.split('&');
     for (var i = 0; i < items.length; i++) {
@@ -408,7 +534,7 @@ AWFY.startup = function () {
         a.click((function (id) {
             return (function (event) {
                 this.changeMachine(parseInt(id));
-                $('.clicked').removeClass('clicked');
+                $('#machinelist .clicked').removeClass('clicked');
                 $(event.target).addClass('clicked');
                 return false;
             }).bind(this)
@@ -431,20 +557,61 @@ AWFY.startup = function () {
     }).bind(this));
     menu.hide();
 
+    var breakdown = $('#breakdownlist');
+
+    $('<a href="#" class="clicked"></a>').click(
+        (function (event) {
+            $('#breakdownlist .clicked').removeClass('clicked');
+            $(event.target).addClass('clicked');
+            this.showOverview();
+         }).bind(this))
+    .html('Overview')
+    .appendTo($('<li></li>').appendTo(breakdown));
+
+    for (var name in AWFYMaster.suites) {
+        var li = $('<li></li>');
+        var a = $('<a href="#"></a>');
+        a.click((function (name) {
+            return (function(event) {
+                $('#breakdownlist .clicked').removeClass('clicked');
+                $(event.target).addClass('clicked');
+                this.showBreakdown(name);
+                return false;
+            }).bind(this);
+        }).bind(this)(name));
+        a.html(AWFYMaster.suites[name].description);
+        a.appendTo(li);
+        li.appendTo(breakdown);
+    }
+    $('#bkdrop').click((function (event) {
+        if (!breakdown.is(':visible') && !$('#about').is(':visible')) {
+            breakdown.show();
+        } else {
+            breakdown.hide();
+        }
+        return false;
+    }).bind(this));
+    breakdown.hide();
+
     var about = $('#aboutdrop');
     about.click((function (event) {
         var help = $('#about');
         if (!help.is(':visible')) {
             $('.graph-container').hide();
+            $('#breakdown').hide();
             help.show();
             about.text('Home');
         } else {
             help.hide();
-            $('.graph-container').show();
+            if (this.view == 'breakdown')
+                $('#breakdown').show();
+            else
+                $('.graph-container').show();
             about.text('About');
         }
         menu.hide();
+        breakdown.hide();
         return false;
-    }));
+    }).bind(this));
 }
 

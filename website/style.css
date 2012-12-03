@@ -107,7 +107,13 @@ h1 {
 
 #about {
  display: none;
- margin-left: 200px;
+ margin-left: 250px;
+ width: 700px;
+}
+
+#breakdown {
+ display: none;
+ margin-left: 250px;
  width: 700px;
 }
 

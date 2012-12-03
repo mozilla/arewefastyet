@@ -112,7 +112,7 @@ ToolTip.prototype.onDrag = function (event) {
         return;
     this.line.setAttribute('x2', this.midpoint().x);
     this.line.setAttribute('y2', this.midpoint().y);
-    this.svg.height($('window').height());
+    this.svg.height(Math.max($('window').height(), $('body').height()));
     this.dragged = true;
 }
 

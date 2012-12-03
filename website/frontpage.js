@@ -5,21 +5,26 @@ function Display(awfy, id, elt, graph)
 {
     this.awfy = awfy;
     this.id = id;
-    this.graph = graph;
     this.elt = elt;
-    this.zoomInfo = { prev: null,
-                      level: 'aggregate'
-                    };
-    this.selectDelay = null;
     this.attachedTips = [];
+}
 
-    this.elt.data('awfy-display', this);
+Display.prototype.setup = function (graph) {
+    this.graph = graph;
 
     // The last hovering tooltip we displayed, that has not been clicked.
     this.hovering = null;
 
+    this.selectDelay = null;
+
     if (graph.aggregate)
         this.setHistoricalMidpoint();
+    else
+        this.aggregate = -1;
+
+    this.zoomInfo = { prev: null,
+                      level: 'aggregate'
+                    };
 
     this.elt.bind("plothover", this.onHover.bind(this));
     this.elt.bind('plotclick', this.onClick.bind(this));
@@ -152,7 +157,7 @@ Display.prototype.draw = function () {
     options.selection = { mode: 'x' }
 
     // Aggregate view starts from 0. We space things out when zooming in.
-    if (this.graph.aggregate)
+    if (this.graph.aggregate && this.awfy.type != 'overview')
         options.yaxis.min = 0;
 
     if (this.graph.direction == 1) {
@@ -187,6 +192,12 @@ Display.prototype.draw = function () {
         }).bind(this);
 
         options.xaxis.ticks = this.aggregateTicks();
+    }
+
+    options.yaxis.tickFormatter = function  (v, axis) {
+        if (Math.round(v) != v)
+            return v.toFixed(2);
+        return v;
     }
 
     if (!options.xaxis.ticks) {
@@ -539,20 +550,5 @@ Display.prototype.onHover = function (event, pos, item) {
 
     this.hovering = this.createToolTip(item, false);
     this.hovering.drawBasic();
-}
-
-Display.drawLegend = function ()
-{
-    var legend = $("#legend");
-
-    legend.empty();
-
-    for (var modename in AWFYMaster.modes) {
-        var mode = AWFYMaster.modes[modename];
-        var vendor = AWFYMaster.vendors[mode.vendor_id];
-        var item = $('<li style="border-color:' + mode.color + '"></li>');
-        item.text(vendor.browser + ' (' + mode.name + ')');
-        item.appendTo(legend);
-    }
 }
 
