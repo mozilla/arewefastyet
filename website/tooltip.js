@@ -9,7 +9,7 @@ function ToolTip(x, y, item, contents)
     this.contents = contents;
 }
 
-ToolTip.prototype.drawFloating = function () {
+ToolTip.prototype.drawFloating = function (list) {
     var text = '<div class="tooltip closeable"></div>';
     this.elt = $(text);
 
@@ -86,6 +86,12 @@ ToolTip.prototype.draw = function (expanded) {
         this.elt.css({ left: this.x + xOffset });
 
     this.elt.appendTo('body').fadeIn(200);
+}
+
+ToolTip.prototype.attached = function () {
+    if (this.svg)
+        return true;
+    return false;
 }
 
 ToolTip.prototype.detach = function () {

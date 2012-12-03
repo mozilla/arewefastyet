@@ -1,19 +1,19 @@
 // vim: set ts=4 sw=4 tw=99 et:
 "use strict";
 
-function Display(awfy, id, elt, graph)
+function Display(awfy, id, elt)
 {
     this.awfy = awfy;
     this.id = id;
     this.elt = elt;
     this.attachedTips = [];
+    this.graph = null;
+    this.plot = null;
+    this.hovering = null;
 }
 
 Display.prototype.setup = function (graph) {
     this.graph = graph;
-
-    // The last hovering tooltip we displayed, that has not been clicked.
-    this.hovering = null;
 
     this.selectDelay = null;
 
@@ -43,7 +43,27 @@ Display.prototype.shutdown = function () {
     this.elt.unbind('plotclick');
     this.elt.unbind('plotselected');
     this.elt.unbind('dblclick');
+    if (this.hovering) {
+        this.hovering.remove();
+        this.hovering = null;
+    }
     this.detachTips();
+    this.plot = null;
+    this.graph = null;
+}
+
+Display.prototype.shouldRefresh = function () {
+    if (this.graph) {
+        for (var i = 0; i < this.attachedTips.length; i++) {
+            var tooltip = this.attachedTips[i];
+            if (tooltip.attached())
+                return false;
+        }
+        if (this.zoomInfo.level != 'aggregate')
+            return false;
+        this.shutdown();
+    }
+    return true;
 }
 
 Display.prototype.setHistoricalMidpoint = function () {
@@ -334,6 +354,7 @@ Display.prototype.unzoom = function () {
     this.plot.enableSelection();
     this.plot.clearSelection();
     this.detachTips();
+    this.zoomInfo.level = 'aggregate';
 }
 
 Display.prototype.detachTips = function () {

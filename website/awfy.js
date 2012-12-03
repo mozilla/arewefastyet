@@ -2,7 +2,7 @@
 "use strict";
 var AWFY = { };
 
-AWFY.refreshTime = 1000 * 60 * 5;
+AWFY.refreshTime = 60 * 5;
 AWFY.machineId = 0;
 AWFY.hasLegend = false;
 AWFY.panes = [];
@@ -12,6 +12,7 @@ AWFY.xhr = [];
 AWFY.view = 'none';
 AWFY.suiteName = null;
 AWFY.lastHash = null;
+AWFY.lastRefresh = 0;
 
 AWFY.request = function (files, callback) {
     var url = window.location.protocol + '//' +
@@ -102,11 +103,13 @@ AWFY.displayNewGraph = function (name, graph) {
     var elt = $('#' + name + '-graph');
     var display = elt.data('awfy-display');
     if (!display) {
-        display = new Display(this, name, elt, graph);
+        display = new Display(this, name, elt);
         elt.data('awfy-display', display);
     }
-    display.setup(graph);
-    display.draw();
+    if (display.shouldRefresh()) {
+        display.setup(graph);
+        display.draw();
+    }
     this.aggregate[name] = graph;
 }
 
@@ -434,6 +437,7 @@ AWFY.showOverview = function () {
                  ];
 
     this.request(['aggregate-' + this.machineId], this.computeAggregate.bind(this));
+    this.lastRefresh = Date.now();
 }
 
 AWFY.showBreakdown = function (name) {
@@ -476,12 +480,10 @@ AWFY.showBreakdown = function (name) {
         var file = 'bk-aggregate-' + id + '-' + this.machineId;
         this.request([file], callback);
     }
+    this.lastRefresh = Date.now();
 }
 
-AWFY.changeMachine = function (machine_id) {
-    this.reset(this.view);
-    this.machineId = machine_id;
-
+AWFY.requestRedraw = function () {
     if (this.view == 'overview') {
         this.request(['aggregate-' + this.machineId],
                    this.computeAggregate.bind(this));
@@ -499,6 +501,13 @@ AWFY.changeMachine = function (machine_id) {
             this.request([file], callback);
         }
     }
+    this.lastRefresh = Date.now();
+}
+
+AWFY.changeMachine = function (machine_id) {
+    this.reset(this.view);
+    this.machineId = machine_id;
+    this.requestRedraw();
 }
 
 AWFY.reset = function (view) {
@@ -529,6 +538,12 @@ AWFY.reset = function (view) {
 
 AWFY.onHashChange = function () {
     this.parseURL();
+}
+
+AWFY.refresh = function () {
+    if (Date.now() - this.lastRefresh >= this.refreshTime)
+        this.requestRedraw();
+    window.setTimeout(this.refresh.bind(this), this.refreshTime * 1000);
 }
 
 AWFY.parseURL = function () {
@@ -707,5 +722,7 @@ AWFY.startup = function () {
 
     $(window).hashchange(this.onHashChange.bind(this));
     $(window).bind('popstate', this.onHashChange.bind(this));
+
+    window.setTimeout(this.refresh.bind(this), this.refreshTime * 1000);
 }
 
