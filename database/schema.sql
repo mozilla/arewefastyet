@@ -136,6 +136,7 @@ CREATE TABLE IF NOT EXISTS `awfy_vendor` (
   `vendor` varchar(30) NOT NULL,
   `csetURL` varchar(255) NOT NULL,
   `browser` varchar(30) NOT NULL,
+  `rangeURL` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 
@@ -182,10 +183,10 @@ INSERT INTO awfy_suite (id, `name`, description, better_direction) VALUES
 (4, 'kraken', 'Kraken', -1),
 (5, 'misc', 'Assorted tests', -1);
 
-INSERT INTO awfy_vendor (id, `name`, vendor, csetURL, browser) VALUES
-(1, 'V8', 'Google', 'http://code.google.com/p/v8/source/detail?r=', 'Chrome'),
-(2, 'SpiderMonkey', 'Mozilla', 'http://hg.mozilla.org/integration/mozilla-inbound/rev/', 'Firefox'),
-(3, 'Nitro', 'Apple', 'http://trac.webkit.org/changeset/', 'Safari'),
-(4, 'SpiderMonkey', 'Mozilla', 'http://hg.mozilla.org/integration/mozilla-inbound/rev/', 'Firefox'),
-(5, 'SpiderMonkey', 'Mozilla', 'http://hg.mozilla.org/integration/mozilla-inbound/rev/', 'Firefox');
+INSERT INTO `awfy_vendor` (`id`, `name`, `vendor`, `csetURL`, `browser`, `rangeURL`) VALUES
+(1, 'V8', 'Google', 'http://code.google.com/p/v8/source/detail?r=', 'Chrome', 'http://code.google.com/p/v8/source/list?num=25&start={to}'),
+(2, 'SpiderMonkey', 'Mozilla', 'http://hg.mozilla.org/integration/mozilla-inbound/rev/', 'Firefox', 'http://hg.mozilla.org/integration/mozilla-inbound/pushloghtml?fromchange={from}&tochange={to}'),
+(3, 'Nitro', 'Apple', 'http://trac.webkit.org/changeset/', 'Safari', 'http://trac.webkit.org/log/?action=stop_on_copy&mode=stop_on_copy&rev={to}&stop_rev={from}&limit=100'),
+(4, 'SpiderMonkey', 'Mozilla', 'http://hg.mozilla.org/integration/mozilla-inbound/rev/', 'Firefox', 'http://hg.mozilla.org/integration/mozilla-inbound/pushloghtml?fromchange={from}&tochange={to}'),
+(5, 'SpiderMonkey', 'Mozilla', 'http://hg.mozilla.org/integration/mozilla-inbound/rev/', 'Firefox', 'http://hg.mozilla.org/integration/mozilla-inbound/pushloghtml?fromchange={from}&tochange={to}');
 

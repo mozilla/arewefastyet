@@ -28,12 +28,13 @@ class Benchmark(object):
                }
 
 class Vendor(object):
-    def __init__(self, id, name, vendor, url, browser):
+    def __init__(self, id, name, vendor, url, browser, rangeURL):
         self.id = id
         self.name = name
         self.vendor = vendor
         self.url = url
         self.browser = browser
+        self.rangeURL = rangeURL
 
 class Machine(object):
     def __init__(self, id, os, cpu, description):
@@ -100,9 +101,9 @@ class Context(object):
         self.vendors = []
 
         c = awfy.db.cursor()
-        c.execute("SELECT id, name, vendor, csetURL, browser FROM awfy_vendor")
+        c.execute("SELECT id, name, vendor, csetURL, browser, rangeURL FROM awfy_vendor")
         for row in c.fetchall():
-            v = Vendor(row[0], row[1], row[2], row[3], row[4])
+            v = Vendor(row[0], row[1], row[2], row[3], row[4], row[5])
             self.vendors.append(v)
 
         # Get a list of modes, and a reverse mapping from DB ids.
@@ -143,7 +144,8 @@ class Context(object):
         for vendor in self.vendors:
             o[vendor.id] = { "name": vendor.name,
                              "url": vendor.url,
-                             "browser": vendor.browser
+                             "browser": vendor.browser,
+                             "rangeURL": vendor.rangeURL
                            }
         return o
 
