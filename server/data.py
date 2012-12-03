@@ -156,6 +156,8 @@ class Context(object):
     def exportSuites(self):
         o = { }
         for b in self.benchmarks:
+            if b.name == 'v8':
+                continue
             o[b.name] = b.export()
         return o
 
