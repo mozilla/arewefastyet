@@ -29,6 +29,7 @@ Setting up (3):
    hg clone http://hg.mozilla.org/projects/kraken
    svn checkout http://v8.googlecode.com/svn/trunk/benchmarks v8-v7
    svn checkout https://svn.webkit.org/repository/webkit/trunk/PerformanceTests/SunSpider
+   svn checkout http://octane-benchmark.googlecode.com/svn/trunk/ octane
    
   (a) Add a database entry for the machine configuration.
   (b) Edit driver/awfy.config to match the build architecture you want, and machine

@@ -29,6 +29,10 @@ def v8_v8(shell, env, args):
     with utils.chdir('v8-v7'):
         return _v8(shell, env, args)
 
+def v8_octane(shell, env, args):
+    with utils.chdir('octane'):
+        return _v8(shell, env, args)
+
 def _v8(shell, env, args):
     full_args = [shell]
     if args:
@@ -100,7 +104,8 @@ Benchmarks = {
                'kraken': ss_Kraken,
                'ss': ss_SunSpider,
                #'v8': ss_v8,
-               'misc': ss_Assorted
+               'misc': ss_Assorted,
+               'octane': v8_octane
              }
                 
 def RunAndSubmitAll(shell, env, args, submitter, mode):
