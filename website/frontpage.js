@@ -587,3 +587,13 @@ Display.prototype.onHover = function (event, pos, item) {
     this.hovering.drawBasic();
 }
 
+Display.prototype.hideToolTips = function () {
+    for (var i = 0; i < this.attachedTips.length; i++)
+        this.attachedTips[i].hide();
+}
+
+Display.prototype.showToolTips = function () {
+    for (var i = 0; i < this.attachedTips.length; i++)
+        this.attachedTips[i].show();
+}
+

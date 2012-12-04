@@ -107,6 +107,22 @@ ToolTip.prototype.remove = function () {
     this.closed = true;
 }
 
+ToolTip.prototype.hide = function () {
+    if (this.closed)
+        return;
+    if (this.svg)
+        this.svg.hide();
+    this.elt.hide();
+}
+
+ToolTip.prototype.show = function () {
+    if (this.closed)
+        return;
+    if (this.svg)
+        this.svg.show();
+    this.elt.show();
+}
+
 ToolTip.prototype.midpoint = function () {
     var offset = this.elt.offset();
     var width = this.elt.width();

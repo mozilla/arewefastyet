@@ -713,6 +713,12 @@ AWFY.startup = function () {
             about.text('Home');
             $('#breakdownhook').hide();
             $('#machinehook').hide();
+            for (var i = 0; i < this.panes.length; i++) {
+                var elt = this.panes[i];
+                var display = elt.data('awfy-display');
+                if (display)
+                    display.hideToolTips();
+            }
         } else {
             help.hide();
             if (this.view == 'breakdown')
@@ -722,6 +728,12 @@ AWFY.startup = function () {
             about.text('About');
             $('#breakdownhook').show();
             $('#machinehook').show();
+            for (var i = 0; i < this.panes.length; i++) {
+                var elt = this.panes[i];
+                var display = elt.data('awfy-display');
+                if (display)
+                    display.showToolTips();
+            }
         }
         menu.hide();
         breakdown.hide();
