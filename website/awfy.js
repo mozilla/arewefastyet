@@ -101,6 +101,8 @@ AWFY.loadAggregateGraph = function (blobgraph) {
 
 AWFY.displayNewGraph = function (name, graph) {
     var elt = $('#' + name + '-graph');
+    if (!elt.length)
+        return;
     var display = elt.data('awfy-display');
     if (!display) {
         display = new Display(this, name, elt);
@@ -162,6 +164,8 @@ AWFY.computeAggregate = function (received) {
     var graphs = { };
     for (var name in blob.graphs) {
         var blobgraph = blob.graphs[name];
+        if (!blobgraph)
+            continue;
         graphs[name] = this.loadAggregateGraph(blobgraph);
     }
 
