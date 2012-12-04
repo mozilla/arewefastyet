@@ -688,6 +688,10 @@ AWFY.startup = function () {
         a.html(AWFYMaster.suites[name].description);
         a.appendTo(li);
         li.appendTo(breakdown);
+
+        // Hardcode this exclusion right now, since we don't have datapoints yet.
+        if (name == 'octane')
+            li.hide();
     }
     $('#bkdrop').click((function (event) {
         if (!breakdown.is(':visible') && !$('#about').is(':visible')) {
@@ -707,6 +711,8 @@ AWFY.startup = function () {
             $('#breakdown').hide();
             help.show();
             about.text('Home');
+            $('#breakdownhook').hide();
+            $('#machinehook').hide();
         } else {
             help.hide();
             if (this.view == 'breakdown')
@@ -714,6 +720,8 @@ AWFY.startup = function () {
             else
                 $('.graph-container').show();
             about.text('About');
+            $('#breakdownhook').show();
+            $('#machinehook').show();
         }
         menu.hide();
         breakdown.hide();
