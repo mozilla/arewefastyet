@@ -237,8 +237,18 @@ Display.prototype.draw = function () {
 Display.prototype.plotSelected = function (event, ranges) {
     this.selectDelay = new Date();
 
-    var from_x = Math.round(ranges.xaxis.from);
-    var to_x = Math.round(ranges.xaxis.to);
+    var from_x = Math.floor(ranges.xaxis.from);
+    if (from_x == ranges.xaxis.from)
+        from_x -= 1;
+    if (from_x < 0)
+        from_x = 0;
+
+    var to_x = Math.ceil(ranges.xaxis.to);
+    if (to_x == ranges.xaxis.to)
+        to_x += 1;
+    if (to_x >= this.graph.timelist.length)
+        to_x = this.graph.timelist.length - 1;
+
     var start = this.graph.timelist[from_x];
     var end = this.graph.timelist[to_x];
 
