@@ -126,9 +126,17 @@ class Mozilla(Engine):
                 },
                 {
                     'mode': 'jmim',
-                    'args': ['--ion', '-m', '-n']
+                    'args': ['--ion', '-m', '-n', '--ion-parallel-compile=on']
                 }
             ]
+
+    def env(self):
+        env = os.environ.copy()
+        if self.cpu == 'x64':
+            env['DYLD_LIBRARY_PATH'] = "/usr/local/nspr64/lib"
+        elif self.cpu == 'x86':
+            env['DYLD_LIBRARY_PATH'] = "/usr/local/nspr32/lib"
+        return env
 
     def build(self):
         os.system("make -j 3 -C " + os.path.join('js', 'src', 'Opt'))
