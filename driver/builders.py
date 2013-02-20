@@ -56,7 +56,7 @@ class Nitro(Engine):
         self.puller = 'svn'
         self.source = conf.get('jsc', 'source')
         self.args = None
-        self.important = False
+        self.important = False # WebKit changes too frequently, we'd need to detect JSC changes.
         self.modes = [
                 {
                     'mode': 'jsc',
@@ -113,22 +113,12 @@ class V8(Engine):
             return os.path.join('out', 'ia32.release', 'd8')
 
 class Mozilla(Engine):
-    def __init__(self, conf):
+    def __init__(self, conf, source):
         super(Mozilla, self).__init__(conf)
         self.puller = 'hg'
-        self.source = conf.get('jm', 'source')
+        self.source = conf.get(source, 'source')
         self.args = None
         self.important = True
-        self.modes = [
-                {
-                    'mode': 'ti',
-                    'args': ['-m', '-n', '--no-ion']
-                },
-                {
-                    'mode': 'jmim',
-                    'args': ['--ion', '-m', '-n', '--ion-parallel-compile=on']
-                }
-            ]
 
     def env(self):
         env = os.environ.copy()
@@ -144,3 +134,26 @@ class Mozilla(Engine):
     def shell(self):
         return os.path.join('js', 'src', 'Opt', 'js')
 
+class MozillaInbound(Mozilla):
+    def __init__(self, conf):
+        super(MozillaInbound, self).__init__(conf, 'mi')
+        self.modes = [
+                {
+                    'mode': 'ti',
+                    'args': ['-m', '-n', '--no-ion']
+                },
+                {
+                    'mode': 'jmim',
+                    'args': ['--ion', '-m', '-n', '--ion-parallel-compile=on']
+                }
+            ]
+
+class MozillaBaselineCompiler(Mozilla):
+    def __init__(self, conf):
+        super(MozillaBaselineCompiler, self).__init__(conf, 'bc')
+        self.modes = [
+            {
+                'mode': 'bc',
+                'args': ['--ion', '--no-jm', '-n', '--ion-parallel-compile=on']
+            }
+        ]
