@@ -34,9 +34,12 @@ class Engine(object):
                 os.unlink(shell)
             except:
                 pass
-            pop2 = os.getcwd()
+
             self.build()
-            os.chdir(pop2)
+            if not os.path.isfile(shell):
+                if self.reconf():
+                    self.build()
+
             updated = True
     
         version = scm.Identify()
@@ -48,6 +51,9 @@ class Engine(object):
     
         os.chdir(pop)
         return [version, updated]
+
+    def reconf(self):
+        return False
 
     def env(self):
         return None
@@ -72,13 +78,11 @@ class Nitro(Engine):
         return env
 
     def build(self):
-        pop = os.getcwd()
-        os.chdir(os.path.join('Tools', 'Scripts'))
-        if self.cpu == 'x86':
-            Run(['/usr/bin/perl', 'build-jsc', '--32-bit'])
-        else:
-            Run(['/usr/bin/perl', 'build-jsc'])
-        os.chdir(pop)
+        with Utils.FolderChanger(os.chdir(os.path.join('Tools', 'Scripts'))):
+            if self.cpu == 'x86':
+                Run(['/usr/bin/perl', 'build-jsc', '--32-bit'])
+            else:
+                Run(['/usr/bin/perl', 'build-jsc'])
 
     def shell(self):
         return os.path.join('WebKitBuild', 'Release', 'jsc')
@@ -131,7 +135,7 @@ class Mozilla(Engine):
             env['DYLD_LIBRARY_PATH'] = "/usr/local/nspr32/lib"
         return env
 
-    def build(self):
+    def reconf(self):
         # Step 1. autoconf.
         with utils.FolderChanger(os.path.join('js', 'src')):
             if platform.system() == "Darwin":
@@ -142,11 +146,14 @@ class Mozilla(Engine):
                 utils.Shell("autoconf-2.13")
 
         # Step 2. configure
-        os.mkdir(os.path.join('js', 'src', 'Opt')) 
+        if not os.path.exists(os.path.join('js', 'src', 'Opt')):
+            os.mkdir(os.path.join('js', 'src', 'Opt')) 
         with utils.FolderChanger(os.path.join('js', 'src', 'Opt')):
             utils.Shell(self.config_line)
 
-        # Step 3. build
+        return True
+
+    def build(self):
         utils.Shell("make -j 3 -C " + os.path.join('js', 'src', 'Opt'))
 
     def shell(self):
