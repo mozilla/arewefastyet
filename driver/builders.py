@@ -1,7 +1,9 @@
 # vim: set ts=4 sw=4 tw=99 et:
 import os
 import sys
+import utils
 import puller
+import platform
 import subprocess
 from utils import Run
 
@@ -117,6 +119,7 @@ class Mozilla(Engine):
         super(Mozilla, self).__init__(conf)
         self.puller = 'hg'
         self.source = conf.get(source, 'source')
+        self.config_line = conf.get(source, 'conf')
         self.args = None
         self.important = True
 
@@ -129,7 +132,24 @@ class Mozilla(Engine):
         return env
 
     def build(self):
-        os.system("make -j 3 -C " + os.path.join('js', 'src', 'Opt'))
+        # Step 1. autoconf.
+        with utils.FolderChanger(os.path.join('js', 'src')):
+            if platform.system() == "Darwin":
+                utils.Shell("autoconf213")
+            elif platform.system() == "Linux":
+                utils.Shell("autoconf2.13")
+            elif platform.system() == "Windows":
+                utils.Shell("autoconf-2.13")
+
+        os.mkdir(os.path.join('js', 'src', 'Opt')) 
+
+        # Step 2. configure
+        with utils.FolderChanger(os.path.join('js', 'src', 'Opt')):
+            self.config_line
+            utils.Shell(self.config_line)
+
+        # Step 3. build
+        utils.Shell("make -j 3 -C " + os.path.join('js', 'src', 'Opt'))
 
     def shell(self):
         return os.path.join('js', 'src', 'Opt', 'js')

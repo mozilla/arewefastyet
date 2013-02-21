@@ -27,8 +27,9 @@ NumUpdated = 0
 for e in KnownEngines:
     try:
         cset, updated = e.updateAndBuild(True, False)
-    except:
+    except Exception as err:
         print('Build failed!')
+        print(err)
         continue
     if cset == None:
         continue
