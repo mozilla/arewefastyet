@@ -141,11 +141,9 @@ class Mozilla(Engine):
             elif platform.system() == "Windows":
                 utils.Shell("autoconf-2.13")
 
-        os.mkdir(os.path.join('js', 'src', 'Opt')) 
-
         # Step 2. configure
+        os.mkdir(os.path.join('js', 'src', 'Opt')) 
         with utils.FolderChanger(os.path.join('js', 'src', 'Opt')):
-            self.config_line
             utils.Shell(self.config_line)
 
         # Step 3. build
