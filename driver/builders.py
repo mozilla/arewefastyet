@@ -94,6 +94,7 @@ class V8(Engine):
         self.source = conf.get('v8', 'source')
         self.args = ['--expose-gc']
         self.important = True
+        self.hardfp = "hardfp" in conf.get('main', 'flags')
         self.modes = [
                 {
                     'mode': 'v8',
@@ -106,7 +107,10 @@ class V8(Engine):
         if self.cpu == 'x64':
             Run(['make', 'x64.release'])
         elif self.cpu == 'arm':
-            Run(['make', 'arm.release'])
+            if self.hardfp:
+                Run(['make', 'arm.release', 'hardfp=on'])
+            else:
+                Run(['make', 'arm.release'])
         elif self.cpu == 'x86':
             Run(['make', 'ia32.release'])
   
