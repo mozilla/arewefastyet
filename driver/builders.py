@@ -63,6 +63,10 @@ class Nitro(Engine):
         super(Nitro, self).__init__(conf)
         self.puller = 'svn'
         self.source = conf.get('jsc', 'source')
+        if conf.has_option('jsc', 'conf'):
+            self.extra = conf.get('jsc', 'conf').split(' ')
+        else:
+            self.extra = []
         self.args = None
         self.important = False # WebKit changes too frequently, we'd need to detect JSC changes.
         self.modes = [
@@ -78,11 +82,13 @@ class Nitro(Engine):
         return env
 
     def build(self):
-        with Utils.FolderChanger(os.chdir(os.path.join('Tools', 'Scripts'))):
+        with utils.FolderChanger(os.path.join('Tools', 'Scripts')):
             if self.cpu == 'x86':
-                Run(['/usr/bin/perl', 'build-jsc', '--32-bit'])
+                args = ['/usr/bin/perl', 'build-jsc', '--32-bit']
             else:
-                Run(['/usr/bin/perl', 'build-jsc'])
+                args = ['/usr/bin/perl', 'build-jsc']
+            args.extend(self.extra)
+            Run(args)
 
     def shell(self):
         return os.path.join('WebKitBuild', 'Release', 'jsc')
