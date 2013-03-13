@@ -1,5 +1,6 @@
 # vim: set ts=4 sw=4 tw=99 et:
 import os
+import commands
 import subprocess
 
 class FolderChanger:
@@ -23,4 +24,10 @@ def Run(vec):
     o = o.decode("utf-8")
     print(o)
     return o
+
+def Shell(string):
+    print(string)
+    status, output = commands.getstatusoutput(string)
+    print(output)
+    return output
 

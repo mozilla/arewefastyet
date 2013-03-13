@@ -1,7 +1,9 @@
 # vim: set ts=4 sw=4 tw=99 et:
 import os
 import sys
+import utils
 import puller
+import platform
 import subprocess
 from utils import Run
 
@@ -32,9 +34,12 @@ class Engine(object):
                 os.unlink(shell)
             except:
                 pass
-            pop2 = os.getcwd()
+
             self.build()
-            os.chdir(pop2)
+            if not os.path.isfile(shell):
+                if self.reconf():
+                    self.build()
+
             updated = True
     
         version = scm.Identify()
@@ -47,6 +52,9 @@ class Engine(object):
         os.chdir(pop)
         return [version, updated]
 
+    def reconf(self):
+        return False
+
     def env(self):
         return None
 
@@ -55,8 +63,12 @@ class Nitro(Engine):
         super(Nitro, self).__init__(conf)
         self.puller = 'svn'
         self.source = conf.get('jsc', 'source')
+        if conf.has_option('jsc', 'conf'):
+            self.extra = conf.get('jsc', 'conf').split(' ')
+        else:
+            self.extra = []
         self.args = None
-        self.important = False
+        self.important = False # WebKit changes too frequently, we'd need to detect JSC changes.
         self.modes = [
                 {
                     'mode': 'jsc',
@@ -70,13 +82,13 @@ class Nitro(Engine):
         return env
 
     def build(self):
-        pop = os.getcwd()
-        os.chdir(os.path.join('Tools', 'Scripts'))
-        if self.cpu == 'x86':
-            Run(['/usr/bin/perl', 'build-jsc', '--32-bit'])
-        else:
-            Run(['/usr/bin/perl', 'build-jsc'])
-        os.chdir(pop)
+        with utils.FolderChanger(os.path.join('Tools', 'Scripts')):
+            if self.cpu == 'x86':
+                args = ['/usr/bin/perl', 'build-jsc', '--32-bit']
+            else:
+                args = ['/usr/bin/perl', 'build-jsc']
+            args.extend(self.extra)
+            Run(args)
 
     def shell(self):
         return os.path.join('WebKitBuild', 'Release', 'jsc')
@@ -88,6 +100,7 @@ class V8(Engine):
         self.source = conf.get('v8', 'source')
         self.args = ['--expose-gc']
         self.important = True
+        self.hardfp = "hardfp" in conf.get('main', 'flags')
         self.modes = [
                 {
                     'mode': 'v8',
@@ -100,7 +113,10 @@ class V8(Engine):
         if self.cpu == 'x64':
             Run(['make', 'x64.release'])
         elif self.cpu == 'arm':
-            Run(['make', 'arm.release'])
+            if self.hardfp:
+                Run(['make', 'arm.release', 'hardfp=on'])
+            else:
+                Run(['make', 'arm.release'])
         elif self.cpu == 'x86':
             Run(['make', 'ia32.release'])
   
@@ -113,12 +129,49 @@ class V8(Engine):
             return os.path.join('out', 'ia32.release', 'd8')
 
 class Mozilla(Engine):
-    def __init__(self, conf):
+    def __init__(self, conf, source):
         super(Mozilla, self).__init__(conf)
         self.puller = 'hg'
-        self.source = conf.get('jm', 'source')
+        self.source = conf.get(source, 'source')
+        self.config_line = conf.get(source, 'conf')
         self.args = None
         self.important = True
+
+    def env(self):
+        env = os.environ.copy()
+        if self.cpu == 'x64':
+            env['DYLD_LIBRARY_PATH'] = "/usr/local/nspr64/lib"
+        elif self.cpu == 'x86':
+            env['DYLD_LIBRARY_PATH'] = "/usr/local/nspr32/lib"
+        return env
+
+    def reconf(self):
+        # Step 1. autoconf.
+        with utils.FolderChanger(os.path.join('js', 'src')):
+            if platform.system() == "Darwin":
+                utils.Shell("autoconf213")
+            elif platform.system() == "Linux":
+                utils.Shell("autoconf2.13")
+            elif platform.system() == "Windows":
+                utils.Shell("autoconf-2.13")
+
+        # Step 2. configure
+        if not os.path.exists(os.path.join('js', 'src', 'Opt')):
+            os.mkdir(os.path.join('js', 'src', 'Opt')) 
+        with utils.FolderChanger(os.path.join('js', 'src', 'Opt')):
+            utils.Shell(self.config_line)
+
+        return True
+
+    def build(self):
+        utils.Shell("make -j 3 -C " + os.path.join('js', 'src', 'Opt'))
+
+    def shell(self):
+        return os.path.join('js', 'src', 'Opt', 'js')
+
+class MozillaInbound(Mozilla):
+    def __init__(self, conf):
+        super(MozillaInbound, self).__init__(conf, 'mi')
         self.modes = [
                 {
                     'mode': 'ti',
@@ -126,13 +179,16 @@ class Mozilla(Engine):
                 },
                 {
                     'mode': 'jmim',
-                    'args': ['--ion', '-m', '-n']
+                    'args': ['--ion', '-m', '-n', '--ion-parallel-compile=on']
                 }
             ]
 
-    def build(self):
-        os.system("make -j 3 -C " + os.path.join('js', 'src', 'Opt'))
-
-    def shell(self):
-        return os.path.join('js', 'src', 'Opt', 'js')
-
+class MozillaBaselineCompiler(Mozilla):
+    def __init__(self, conf):
+        super(MozillaBaselineCompiler, self).__init__(conf, 'bc')
+        self.modes = [
+            {
+                'mode': 'bc',
+                'args': ['--ion', '--no-jm', '-n', '--ion-parallel-compile=on']
+            }
+        ]

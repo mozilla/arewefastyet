@@ -17,7 +17,8 @@ resource.setrlimit(resource.RLIMIT_DATA, (-1, -1))
 # JSC is ilooping...
 KnownEngines = [
                 builders.V8(config),
-                builders.Mozilla(config),
+                builders.MozillaInbound(config),
+                builders.MozillaBaselineCompiler(config),
                 builders.Nitro(config)
                ]
 Engines = []
@@ -26,8 +27,9 @@ NumUpdated = 0
 for e in KnownEngines:
     try:
         cset, updated = e.updateAndBuild(True, False)
-    except:
+    except Exception as err:
         print('Build failed!')
+        print(err)
         continue
     if cset == None:
         continue
