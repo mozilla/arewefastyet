@@ -128,7 +128,39 @@ AWFY.drawLegend = function () {
         var mode = AWFYMaster.modes[modename];
         var vendor = AWFYMaster.vendors[mode.vendor_id];
         var item = $('<li style="border-color:' + mode.color + '"></li>');
-        item.text(vendor.browser + ' (' + mode.name + ')');
+        var link = $('<a href="#" style="text-decoration: none">' +
+                     vendor.browser +
+                     ' (' +
+                     mode.name +
+                     ')</a>');
+
+        var onClick = (function (awfy, mode, link) {
+            return (function () {
+                if (mode.hidden) {
+                    mode.hidden = false;
+                    link.css('color', '#000000');
+                } else {
+                    mode.hidden = true;
+                    link.css('color', '#cccccc');
+                }
+                for (var i = 0; i < this.panes.length; i++) {
+                    var elt = this.panes[i];
+                    var display = elt.data('awfy-display');
+                    if (!display)
+                        continue;
+                    display.draw();
+                }
+                return false;
+            }).bind(awfy);
+        })(this, mode, link);
+        link.click(onClick);
+
+        if (mode.hidden)
+            link.css('color', '#cccccc');
+        else
+            link.css('color', '#000000');
+
+        link.appendTo(item);
         item.appendTo(legend);
     }
 
@@ -435,9 +467,10 @@ AWFY.showOverview = function () {
     $('.graph-container').show();
 
     this.suiteName = null;
-    this.panes = [$('#ss-graph',
-                    '#v8real-graph',
-                    '#kraken-graph')
+    this.panes = [$('#ss-graph'),
+                  $('#v8real-graph'),
+                  $('#kraken-graph'),
+                  $('#octane-graph')
                  ];
 
     this.request(['aggregate-' + this.machineId], this.computeAggregate.bind(this));
@@ -619,7 +652,8 @@ AWFY.parseURL = function () {
 AWFY.startup = function () {
     this.panes = [$('#ss-graph'),
                   $('#kraken-graph'),
-                  $('#v8real-graph')];
+                  $('#v8real-graph'),
+                  $('#octane-graph')];
 
     this.parseURL();
 
@@ -688,10 +722,6 @@ AWFY.startup = function () {
         a.html(AWFYMaster.suites[name].description);
         a.appendTo(li);
         li.appendTo(breakdown);
-
-        // Hardcode this exclusion right now, since we don't have datapoints yet.
-        if (name == 'octane')
-            li.hide();
     }
     $('#bkdrop').click((function (event) {
         if (!breakdown.is(':visible') && !$('#about').is(':visible')) {

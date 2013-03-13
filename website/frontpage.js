@@ -7,13 +7,26 @@ function Display(awfy, id, elt)
     this.id = id;
     this.elt = elt;
     this.attachedTips = [];
-    this.graph = null;
     this.plot = null;
     this.hovering = null;
+    this.graph = null;
+    this.orig_graph = null;
 }
 
-Display.prototype.setup = function (graph) {
+Display.prototype.setGraph = function (graph)
+{
+    // We keep both the original dataset and the one we send and display to
+    // flot, so we can redraw and hide lines. In the future this should be
+    // tightened up, so that code working with the display graph uses "graph"
+    // and code (if any) working with the original data set uses "orig_graph".
+    // And really no code should be accessing "graph" until draw().
+    this.orig_graph = graph;
     this.graph = graph;
+}
+
+Display.prototype.setup = function (graph)
+{
+    this.setGraph(graph);
 
     this.selectDelay = null;
 
@@ -49,7 +62,7 @@ Display.prototype.shutdown = function () {
     }
     this.detachTips();
     this.plot = null;
-    this.graph = null;
+    this.setGraph(null);
 }
 
 Display.prototype.shouldRefresh = function () {
@@ -165,6 +178,28 @@ Display.prototype.aggregateTicks = function () {
 
 Display.prototype.draw = function () {
     var options = { };
+    
+    // We always start out by using the original graph, since we may modify
+    // this one locally. Start by stripping out any lines that should be
+    // hidden.
+    var new_info = [];
+    var new_lines = [];
+    for (var i = 0; i < this.orig_graph.info.length; i++) {
+        var info = this.orig_graph.info[i];
+        var mode = AWFYMaster.modes[info.modeid];
+        if (mode.hidden)
+            continue;
+        new_info.push(info);
+        new_lines.push(this.orig_graph.lines[i]);
+    }
+    this.graph = {
+        lines: new_lines,
+        info: new_info,
+        timelist: this.orig_graph.timelist,
+        earliest: this.orig_graph.earliest,
+        aggregate: this.orig_graph.aggregate,
+        direction: this.orig_graph.direction
+    };
 
     options.lines = { show: true };
     options.points = { fillColor: "#ffffff", show: true };
@@ -313,7 +348,7 @@ Display.prototype.plotSelected = function (event, ranges) {
 
 Display.prototype.localZoom = function (graph) {
     graph = AWFY.condense(graph, Display.MaxPoints);
-    this.graph = graph;
+    this.setGraph(graph);
     this.draw();
     this.plot.enableSelection();
     this.plot.clearSelection();
@@ -358,7 +393,7 @@ Display.prototype.cancelZoom = function () {
 }
 
 Display.prototype.unzoom = function () {
-    this.graph = AWFY.aggregate[this.id];
+    this.setGraph(AWFY.aggregate[this.id]);
     this.setHistoricalMidpoint();
     this.draw();
     this.plot.enableSelection();
