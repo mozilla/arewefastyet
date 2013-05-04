@@ -100,7 +100,7 @@ class V8(Engine):
         self.source = conf.get('v8', 'source')
         self.args = ['--expose-gc']
         self.important = True
-        self.hardfp = "hardfp" in conf.get('main', 'flags')
+        self.hardfp = (conf.has_option('main', 'flags')) and ("hardfp" in conf.get('main', 'flags'))
         self.modes = [
                 {
                     'mode': 'v8',
