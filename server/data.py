@@ -3,11 +3,12 @@ import awfy
 import time
 
 class Benchmark(object):
-    def __init__(self, suite_id, name, description, direction):
+    def __init__(self, suite_id, name, description, direction, sort_order):
         self.id = suite_id
         self.name =  name
         self.description = description
         self.direction = direction
+        self.sort_order = sort_order
 
         # Get a list of individual tests
         self.tests = []
@@ -24,7 +25,8 @@ class Benchmark(object):
                  "name": self.name,
                  "description": self.description,
                  "direction": self.direction,
-                 "tests": self.tests
+                 "tests": self.tests,
+                 "sort_order": self.sort_order
                }
 
 class Vendor(object):
@@ -117,9 +119,9 @@ class Context(object):
 
         # Get a list of benchmark suites.
         self.benchmarks = []
-        c.execute("SELECT id, name, description, better_direction FROM awfy_suite")
+        c.execute("SELECT id, name, description, better_direction, sort_order FROM awfy_suite WHERE sort_order > 0")
         for row in c.fetchall():
-            b = Benchmark(row[0], row[1], row[2], row[3])
+            b = Benchmark(row[0], row[1], row[2], row[3], row[4])
             self.benchmarks.append(b)
 
         # Get a list of machines.
@@ -158,8 +160,6 @@ class Context(object):
     def exportSuites(self):
         o = { }
         for b in self.benchmarks:
-            if b.name == 'v8':
-                continue
             o[b.name] = b.export()
         return o
 
