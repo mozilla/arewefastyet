@@ -43,7 +43,7 @@ def BenchmarkNative(options, args):
             before = os.times()[4]
             subprocess.check_call(['./run-' + benchmark, RunFactor], stdout=fp)
             after = os.times()[4]
-            print(benchmark + ' - ' + str(after - before))
+            print(benchmark + ' - ' + str((after - before) * 1000)
 
 def Exec(vec):
     o = subprocess.check_output(vec, stderr=subprocess.STDOUT)
