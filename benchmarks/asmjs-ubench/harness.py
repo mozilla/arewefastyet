@@ -74,7 +74,7 @@ def main(argv):
     if len(args) < 1 and not options.native:
         print("Usage: ")
         print("  --native [--cc=] [--cxx] [-- flags]")
-        print("  <shell> -- [options]")
+        print("  <shell> [-- options]")
         return sys.exit(1)
 
     if options.native:
