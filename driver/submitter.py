@@ -1,15 +1,20 @@
 # vim: set ts=4 sw=4 tw=99 et:
 import re
+import urllib
 import urllib2
 
 class Submitter:
     def __init__(self, conf):
         self.url = conf.get('main', 'updateURL')
+        self.cpu = conf.get('main', 'cpu')
+        self.os = conf.get('main', 'os')
         self.machine = conf.get('main', 'machine')
 
     def Start(self):
         url = self.url
         url += '?run=yes'
+        url += '&CPU=' + self.cpu
+        url += '&OS=' + self.os
         url += '&MACHINE=' + str(self.machine)
         url = urllib2.urlopen(url)
         contents = url.read()
@@ -19,11 +24,12 @@ class Submitter:
         self.runID = int(m.group(1))
 
     def AddEngine(self, name, cset):
-        url = self.url
-        url += '?run=addEngine'
-        url += '&runid=' + str(self.runID)
-        url += '&name=' + name
-        url += '&cset=' + str(cset)
+        args = { 'run': 'addEngine',
+                 'runid': str(self.runID),
+                 'name': name,
+                 'cset': cset
+               }
+        url = self.url + '?' + urllib.urlencode(args)
         urllib2.urlopen(url)
 
     def AddTests(self, tests, suite, mode):
