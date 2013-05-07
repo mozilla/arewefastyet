@@ -120,6 +120,7 @@ CREATE TABLE IF NOT EXISTS `awfy_suite` (
   `name` varchar(45) DEFAULT NULL,
   `description` varchar(45) DEFAULT NULL,
   `better_direction` int(11) DEFAULT NULL,
+  `sort_order` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
@@ -177,11 +178,12 @@ INSERT INTO awfy_mode (id, vendor_id, `mode`, `name`, color, level) VALUES
 (14, 5, 'jmim', 'JM+TI+Ion', '#9900CC', 1);
 
 INSERT INTO awfy_suite (id, `name`, description, better_direction) VALUES
-(1, 'ss', 'SunSpider', -1),
-(2, 'v8', 'V8 (SS harness)', -1),
-(3, 'v8real', 'V8 Benchmark', 1),
-(4, 'kraken', 'Kraken', -1),
-(5, 'misc', 'Assorted tests', -1);
+(1, 'ss', 'SunSpider', -1, 10),
+(2, 'v8', 'V8 (SS harness)', -1, 0),
+(3, 'v8real', 'V8 Benchmark', 1, 20),
+(4, 'kraken', 'Kraken', -1, 30),
+(5, 'misc', 'Assorted tests', -1, 40),
+(6, 'octane', 'Octane', 1, 50);
 
 INSERT INTO `awfy_vendor` (`id`, `name`, `vendor`, `csetURL`, `browser`, `rangeURL`) VALUES
 (1, 'V8', 'Google', 'http://code.google.com/p/v8/source/detail?r=', 'Chrome', 'http://code.google.com/p/v8/source/list?num=25&start={to}'),

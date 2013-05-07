@@ -276,8 +276,6 @@ def export_master(cx):
 def update_all(cx):
     for machine in cx.machines:
         for benchmark in cx.benchmarks:
-            if benchmark.name == 'v8':
-                continue
             update(cx, machine, benchmark)
 
 def main(argv):
