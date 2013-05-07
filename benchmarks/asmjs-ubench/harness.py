@@ -23,16 +23,14 @@ def BuildNative(options, args, benchmark):
         pass
 
     if os.path.isfile(benchmark + '.cpp'):
-        argv = [options.cxx, benchmark + '.cpp']
+        argv = options.cxx.strip('"').split(' ')
+        argv += [benchmark + '.cpp']
     else:
-        argv = [options.cc, benchmark + '.c', '-std=gnu99']
+        argv = options.cc.strip('"').split(' ')
+        argv += [benchmark + '.c', '-std=gnu99']
 
-    if options.native == 'x86':
-        argv.extend(['-m32'])
-    elif options.native == 'x64':
-        argv.extend(['-m64'])
-
-    argv.extend(['-O2', '-o', 'run-' + benchmark + '.' + options.native])
+    argv.extend(args)
+    argv.extend(['-o', 'run-' + benchmark])
 
     subprocess.check_call(argv)
 
@@ -43,7 +41,7 @@ def BenchmarkNative(options, args):
     for benchmark in Benchmarks:
         with open('/dev/null', 'w') as fp:
             before = os.times()[4]
-            subprocess.check_call(['./run-' + benchmark + '.' + options.native, RunFactor], stdout=fp)
+            subprocess.check_call(['./run-' + benchmark, RunFactor], stdout=fp)
             after = os.times()[4]
             print(benchmark + ' - ' + str(after - before))
 
@@ -62,7 +60,7 @@ def BenchmarkJavaScript(options, args):
 
 def main(argv):
     parser = OptionParser()
-    parser.add_option('--native', type='string', dest='native')
+    parser.add_option('--native', action='store_true', dest='native')
     parser.add_option('--cc', type='string', dest='cc', default='cc')
     parser.add_option('--cxx', type='string', dest='cxx', default='c++')
 
@@ -71,7 +69,7 @@ def main(argv):
     args = args[1:]
 
     if len(args) < 1 and not options.native:
-        print("Usage: <shell> [-- options] or --native=x86|x64 [--cc,--cxx]")
+        print("Usage: <shell or --native --cc=... --cxx=...> -- options")
         return sys.exit(1)
 
     if options.native:
