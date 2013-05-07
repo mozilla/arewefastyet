@@ -29,6 +29,9 @@ def BuildNative(options, args, benchmark):
         argv = options.cc.strip('"').split(' ')
         argv += [benchmark + '.c', '-std=gnu99']
 
+    if len(args) == 0:
+        args = ['-O2']
+
     argv.extend(args)
     argv.extend(['-o', 'run-' + benchmark])
 
@@ -43,7 +46,7 @@ def BenchmarkNative(options, args):
             before = os.times()[4]
             subprocess.check_call(['./run-' + benchmark, RunFactor], stdout=fp)
             after = os.times()[4]
-            print(benchmark + ' - ' + str((after - before) * 1000)
+            print(benchmark + ' - ' + str((after - before) * 1000))
 
 def Exec(vec):
     o = subprocess.check_output(vec, stderr=subprocess.STDOUT)
@@ -69,7 +72,9 @@ def main(argv):
     args = args[1:]
 
     if len(args) < 1 and not options.native:
-        print("Usage: <shell or --native --cc=... --cxx=...> -- options")
+        print("Usage: ")
+        print("  --native [--cc=] [--cxx] [-- flags]")
+        print("  <shell> -- [options]")
         return sys.exit(1)
 
     if options.native:
