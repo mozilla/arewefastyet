@@ -5,8 +5,9 @@ import submitter
 import builders
 import sys
 import resource
-import benchmark
+from benchmark import Benchmarks
 import utils
+from collections import namedtuple
 
 config = ConfigParser.RawConfigParser()
 config.read('awfy.config')
@@ -18,7 +19,6 @@ resource.setrlimit(resource.RLIMIT_DATA, (-1, -1))
 KnownEngines = [
                 builders.V8(config),
                 builders.MozillaInbound(config),
-                builders.MozillaBaselineCompiler(config),
                 builders.Nitro(config)
                ]
 Engines = []
@@ -40,8 +40,14 @@ for e in KnownEngines:
 if NumUpdated == 0:
     sys.exit(0)
 
-submit = submitter.Submitter(config)
-submit.Start()
+# The native compiler is a special thing, for now.
+native = builders.NativeCompiler(config)
+
+# A mode is a configuration of an engine we just built.
+Mode = namedtuple('Mode', ['shell', 'args', 'env', 'name', 'cset'])
+
+# Make a list of all modes.
+modes = []
 for entry in Engines:
     e = entry[0]
     cset = entry[1]
@@ -57,9 +63,20 @@ for entry in Engines:
         elif m['args']:
             args = list(m['args'])
         else:
-            args = None
-        submit.AddEngine(m['mode'], cset)
-        benchmark.RunAndSubmitAll(shell, env, args, submit, m['mode'])
+            args = []
+        mode = Mode(shell, args, env, m['mode'], cset)
+        modes.append(mode)
+
+# Inform AWFY of each mode we found.
+submit = submitter.Submitter(config)
+submit.Start()
+for mode in modes:
+    submit.AddEngine(mode.name, mode.cset)
+submit.AddEngine(native.mode, native.signature)
+
+# Run through each benchmark.
+for benchmark in Benchmarks:
+    benchmark.run(submit, native, modes)
 
 submit.Finish(1)
 

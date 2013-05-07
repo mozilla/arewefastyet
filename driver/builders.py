@@ -174,12 +174,8 @@ class MozillaInbound(Mozilla):
         super(MozillaInbound, self).__init__(conf, 'mi')
         self.modes = [
                 {
-                    'mode': 'ti',
-                    'args': ['-m', '-n', '--no-ion']
-                },
-                {
                     'mode': 'jmim',
-                    'args': ['--ion', '-m', '-n', '--ion-parallel-compile=on']
+                    'args': ['--ion-parallel-compile=on', '--no-jm']
                 }
             ]
 
@@ -192,3 +188,15 @@ class MozillaBaselineCompiler(Mozilla):
                 'args': ['--ion', '--no-jm', '-n', '--ion-parallel-compile=on']
             }
         ]
+        
+class NativeCompiler(Engine):
+    def __init__(self, conf):
+        super(NativeCompiler, self).__init__(conf)
+        self.cc = conf.get('native', 'cc')
+        self.cxx = conf.get('native', 'cxx')
+        self.args = conf.get('native', 'options').split(' ')
+        self.mode = conf.get('native', 'mode')
+
+        output = Run([self.cxx, '--version'])
+        self.signature = output.splitlines()[0].strip()
+
