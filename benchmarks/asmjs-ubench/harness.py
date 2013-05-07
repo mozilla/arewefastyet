@@ -49,7 +49,7 @@ def BenchmarkNative(options, args):
             print(benchmark + ' - ' + str((after - before) * 1000))
 
 def Exec(vec):
-    o = subprocess.check_output(vec, stderr=subprocess.STDOUT)
+    o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=os.environ)
     return o.decode("utf-8")
 
 def BenchmarkJavaScript(options, args):

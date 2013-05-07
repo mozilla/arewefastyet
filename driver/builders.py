@@ -175,7 +175,7 @@ class MozillaInbound(Mozilla):
         self.modes = [
                 {
                     'mode': 'jmim',
-                    'args': ['--ion-parallel-compile=on', '--no-jm']
+                    'args': ['--ion-parallel-compile=on', '--no-jm', '-W']
                 }
             ]
 

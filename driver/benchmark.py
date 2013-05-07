@@ -57,6 +57,7 @@ class AsmJSMicro(Benchmark):
         
         p = subprocess.Popen(full_args, stdout=subprocess.PIPE, env=env)
         output = p.communicate()[0]
+        print(output)
         return self.parse(output)
 
     def parse(self, output):
@@ -156,4 +157,5 @@ Benchmarks = [AsmJSMicro(),
               SunSpider('ss', 'SunSpider', 'sunspider-0.9.1', 20),
               SunSpider('kraken', 'kraken', 'kraken-1.1', 5),
               SunSpider('misc', 'Assorted', 'assorted', 3),
-              Octane()]
+              Octane()
+             ]
