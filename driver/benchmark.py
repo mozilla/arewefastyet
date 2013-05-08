@@ -18,8 +18,14 @@ class Benchmark(object):
         with utils.chdir(self.folder):
             return self._run(submit, native, modes)
 
+    def omit(self, mode):
+        if mode.name == 'noasmjs':
+            return True
+
     def _run(self, submit, native, modes):
         for mode in modes:
+            if self.omit(mode):
+                continue
             try:
                 tests = None
                 print('Running ' + self.name + ' under ' + mode.shell + ' ' + ' '.join(mode.args))
@@ -33,6 +39,11 @@ class Benchmark(object):
 class AsmJSMicro(Benchmark):
     def __init__(self):
         super(AsmJSMicro, self).__init__('asmjs-ubench', 'asmjs-ubench')
+
+    def omit(self, mode):
+        if mode.name == 'noasmjs':
+            return False
+        return super(AsmJSMicro, self).omit(mode)
 
     def _run(self, submit, native, modes):
         # Run the C++ mode.
@@ -77,6 +88,11 @@ class AsmJSMicro(Benchmark):
 class AsmJSApps(Benchmark):
     def __init__(self):
         super(AsmJSApps, self).__init__('asmjs-apps', 'asmjs-apps')
+
+    def omit(self, mode):
+        if mode.name == 'noasmjs':
+            return False
+        return super(AsmJSApps, self).omit(mode)
 
     def benchmark(self, shell, env, args):
         full_args = ['python', 'harness.py', shell, '--'] + args
