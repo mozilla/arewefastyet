@@ -18,8 +18,14 @@ class Benchmark(object):
         with utils.chdir(self.folder):
             return self._run(submit, native, modes)
 
+    def omit(self, mode):
+        if mode.name == 'noasmjs':
+            return True
+
     def _run(self, submit, native, modes):
         for mode in modes:
+            if self.omit(mode):
+                continue
             try:
                 tests = None
                 print('Running ' + self.name + ' under ' + mode.shell + ' ' + ' '.join(mode.args))
@@ -33,6 +39,11 @@ class Benchmark(object):
 class AsmJSMicro(Benchmark):
     def __init__(self):
         super(AsmJSMicro, self).__init__('asmjs-ubench', 'asmjs-ubench')
+
+    def omit(self, mode):
+        if mode.name == 'noasmjs':
+            return False
+        return super(AsmJSMicro, self).omit(mode)
 
     def _run(self, submit, native, modes):
         # Run the C++ mode.
@@ -50,6 +61,38 @@ class AsmJSMicro(Benchmark):
 
         # Run normal benchmarks.
         super(AsmJSMicro, self)._run(submit, native, modes)
+
+    def benchmark(self, shell, env, args):
+        full_args = ['python', 'harness.py', shell, '--'] + args
+        print(' '.join(full_args))
+        
+        p = subprocess.Popen(full_args, stdout=subprocess.PIPE, env=env)
+        output = p.communicate()[0]
+        print(output)
+        return self.parse(output)
+
+    def parse(self, output):
+        total = 0.0
+        tests = []
+        for line in output.splitlines():
+            m = re.search("(.+) - (\d+(\.\d+)?)", line)
+            if not m:
+                continue
+            name = m.group(1)
+            score = m.group(2)
+            total += float(score)
+            tests.append({ 'name': name, 'time': score })
+        tests.append({ 'name': '__total__', 'time': total })
+        return tests
+
+class AsmJSApps(Benchmark):
+    def __init__(self):
+        super(AsmJSApps, self).__init__('asmjs-apps', 'asmjs-apps')
+
+    def omit(self, mode):
+        if mode.name == 'noasmjs':
+            return False
+        return super(AsmJSApps, self).omit(mode)
 
     def benchmark(self, shell, env, args):
         full_args = ['python', 'harness.py', shell, '--'] + args
@@ -157,5 +200,6 @@ Benchmarks = [AsmJSMicro(),
               SunSpider('ss', 'SunSpider', 'sunspider-0.9.1', 20),
               SunSpider('kraken', 'kraken', 'kraken-1.1', 5),
               SunSpider('misc', 'Assorted', 'assorted', 3),
-              Octane()
+              Octane(),
+              AsmJSApps(),
              ]

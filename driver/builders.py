@@ -176,18 +176,12 @@ class MozillaInbound(Mozilla):
                 {
                     'mode': 'jmim',
                     'args': ['--ion-parallel-compile=on', '--no-jm', '-W']
+                },
+                {
+                    'mode': 'noasmjs',
+                    'args': ['--ion-parallel-compile=on', '--no-jm', '-W', '--no-asmjs']
                 }
             ]
-
-class MozillaBaselineCompiler(Mozilla):
-    def __init__(self, conf):
-        super(MozillaBaselineCompiler, self).__init__(conf, 'bc')
-        self.modes = [
-            {
-                'mode': 'bc',
-                'args': ['--ion', '--no-jm', '-n', '--ion-parallel-compile=on']
-            }
-        ]
         
 class NativeCompiler(Engine):
     def __init__(self, conf):
