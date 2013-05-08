@@ -187,7 +187,10 @@ Display.prototype.draw = function () {
     for (var i = 0; i < this.orig_graph.info.length; i++) {
         var info = this.orig_graph.info[i];
         var mode = AWFYMaster.modes[info.modeid];
-        if (mode.hidden)
+        if (!mode || mode.hidden)
+            continue;
+        // Strip JM+TI, BC
+        if (info.modeid == 12 || info.modeid == 15)
             continue;
         new_info.push(info);
         new_lines.push(this.orig_graph.lines[i]);

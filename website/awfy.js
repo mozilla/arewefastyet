@@ -69,6 +69,7 @@ AWFY.pushState = function () {
 
 AWFY.loadAggregateGraph = function (blobgraph) {
     var lines = [];
+    var info = [];
     for (var i = 0; i < blobgraph.lines.length; i++) {
         var blobline = blobgraph.lines[i];
 
@@ -81,12 +82,13 @@ AWFY.loadAggregateGraph = function (blobgraph) {
             points.push([j, score]);
         }
 
-        // Mark the mode as used.
         var mode = AWFYMaster.modes[blobline.modeid];
-        mode.used = true;
+        if (!mode)
+            continue;
 
         var line = { color: mode.color, data: points };
         lines.push(line);
+        info.push(blobline);
     }
 
     var graph = { lines: lines,
@@ -94,7 +96,7 @@ AWFY.loadAggregateGraph = function (blobgraph) {
                   aggregate: blobgraph.aggregate,
                   timelist: blobgraph.timelist,
                   earliest: blobgraph.earliest,
-                  info: blobgraph.lines
+                  info: info
                 };
     return graph;
 }
@@ -124,8 +126,19 @@ AWFY.drawLegend = function () {
 
     legend.empty();
 
+    var modes = [];
     for (var modename in AWFYMaster.modes) {
         var mode = AWFYMaster.modes[modename];
+        // hack - strip jm+ti, bc
+        if (modename == 12 || modename == 15)
+            continue;
+        if (AWFY.machineId != 14 && modename == 16)
+            continue;
+        modes.push(mode);
+    }
+
+    for (var i = 0; i < modes.length; i++) {
+        var mode = modes[i];
         var vendor = AWFYMaster.vendors[mode.vendor_id];
         var item = $('<li style="border-color:' + mode.color + '"></li>');
         var link = $('<a href="#" style="text-decoration: none">' +
@@ -274,6 +287,8 @@ AWFY.mergeJSON = function (blobs) {
     var actual = [];
     var info = [];
     for (var modename in lines) {
+        if (!(modename in AWFYMaster.modes))
+            continue;
         var line = { data: lines[modename].points,
                      color: AWFYMaster.modes[modename].color
                    };
@@ -468,7 +483,7 @@ AWFY.showOverview = function () {
 
     this.suiteName = null;
     this.panes = [$('#ss-graph'),
-                  $('#v8real-graph'),
+                  /*$('#v8real-graph'),*/
                   $('#kraken-graph'),
                   $('#octane-graph')
                  ];
@@ -652,7 +667,7 @@ AWFY.parseURL = function () {
 AWFY.startup = function () {
     this.panes = [$('#ss-graph'),
                   $('#kraken-graph'),
-                  $('#v8real-graph'),
+                  /*$('#v8real-graph'),*/
                   $('#octane-graph')];
 
     this.parseURL();
@@ -705,7 +720,17 @@ AWFY.startup = function () {
     if (this.view == 'overview')
         home.addClass('clicked');
 
-    for (var name in AWFYMaster.suites) {
+    var suites = [];
+    for (var name in AWFYMaster.suites)
+        suites.push([name, AWFYMaster.suites[name]]);
+
+    suites.sort(function (a, b) {
+        return a[1].sort_order - b[1].sort_order;
+    });
+
+    for (var i = 0; i < suites.length; i++) {
+        var name = suites[i][0];
+        var suite = suites[i][1];
         var li = $('<li></li>');
         var a = $('<a href="#" id="suite-' + name + '"></a>');
         a.click((function (name) {
@@ -719,7 +744,7 @@ AWFY.startup = function () {
         }).bind(this)(name));
         if (this.view == 'breakdown' && this.suiteName == name)
             a.addClass('clicked');
-        a.html(AWFYMaster.suites[name].description);
+        a.html(suite.description);
         a.appendTo(li);
         li.appendTo(breakdown);
     }

@@ -23,9 +23,9 @@ def Startup():
     name = config.get('mysql', 'name')
 
     if host[0] == '/':
-        db = mdb.connect(unix_socket=host, user=user, passwd=pw, db=name)
+        db = mdb.connect(unix_socket=host, user=user, passwd=pw, db=name, use_unicode=True)
     else:
-        db = mdb.connect(host, user, pw, name)
+        db = mdb.connect(host, user, pw, name, use_unicode=True)
 
     c = db.cursor()
     c.execute("SELECT `value` FROM awfy_config WHERE `key` = 'version'")

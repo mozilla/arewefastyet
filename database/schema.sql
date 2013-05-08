@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS `awfy_score` (
 CREATE TABLE IF NOT EXISTS `awfy_suite` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(45) DEFAULT NULL,
-  `description` varchar(45) DEFAULT NULL,
+  `description` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `better_direction` int(11) DEFAULT NULL,
   `sort_order` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
