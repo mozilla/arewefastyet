@@ -134,12 +134,16 @@ AWFY.drawLegend = function () {
             continue;
         if (AWFY.machineId != 14 && modename == 16)
             continue;
+        if (!mode.used)
+            continue;
         modes.push(mode);
     }
 
     for (var i = 0; i < modes.length; i++) {
         var mode = modes[i];
         var vendor = AWFYMaster.vendors[mode.vendor_id];
+        if (!vendor)
+            continue;
         var item = $('<li style="border-color:' + mode.color + '"></li>');
         var link = $('<a href="#" style="text-decoration: none">' +
                      vendor.browser +
@@ -541,12 +545,15 @@ AWFY.requestRedraw = function () {
                    this.computeAggregate.bind(this));
     } else if (this.view == 'breakdown') {
         var suite = AWFYMaster.suites[this.suiteName];
+        var total = 0;
         for (var i = 0; i < suite.tests.length; i++) {
             var id = this.suiteName + '-' + suite.tests[i];
             var callback = (function (id) {
                 return (function (received) {
                     if (received[0])
                         this.computeBreakdown(received[0], id);
+                    if (++total == suite.tests.length)
+                        this.drawLegend();
                 }).bind(this);
             }).bind(this)(id);
             var file = 'bk-aggregate-' + id + '-' + this.machineId;
@@ -577,6 +584,9 @@ AWFY.reset = function (view) {
             elt.empty();
         }
     }
+
+    for (var mode in AWFYMaster.modes)
+        AWFYMaster.modes[mode].used = false;
 
     this.hasLegend = false;
     this.aggregate = { };
