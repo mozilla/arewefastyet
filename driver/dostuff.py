@@ -17,8 +17,8 @@ resource.setrlimit(resource.RLIMIT_DATA, (-1, -1))
 
 # JSC is ilooping...
 KnownEngines = [
-                builders.V8(config),
                 builders.MozillaInbound(config),
+                builders.V8(config),
                 builders.Nitro(config)
                ]
 Engines = []
