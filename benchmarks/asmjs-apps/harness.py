@@ -15,7 +15,7 @@ def Exec(vec):
 
 def BenchmarkJavaScript(options, args):
     for benchmark in Benchmarks:
-        for factor in range(1, 5):
+        for factor in range(0, 5):
             # Don't overwrite args!
             argv = [] + args
             argv.extend(['run.js', '--', benchmark + '.js', str(factor)])
