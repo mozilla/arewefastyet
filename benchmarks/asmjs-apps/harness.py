@@ -107,8 +107,8 @@ class Zlib(object):
 
         return os.path.join('zlib', 'run-zlib')
 
-Benchmarks = [#Box2D(),
-              #Bullet(),
+Benchmarks = [Box2D(),
+              Bullet(),
               Zlib()
              ]
 
