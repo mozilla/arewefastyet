@@ -5,9 +5,123 @@ import sys
 import subprocess
 from optparse import OptionParser
 
-Benchmarks = ['box2d',
-              'bullet',
-              'zlib']
+class FolderChanger:
+    def __init__(self, folder):
+        self.old = os.getcwd()
+        self.new = folder
+
+    def __enter__(self):
+        os.chdir(self.new)
+
+    def __exit__(self, type, value, traceback):
+        os.chdir(self.old)
+
+def MakeEnv(options, args):
+    env = os.environ.copy()
+    env['CC'] = options.cc
+    env['CXX'] = options.cxx
+    env['CFLAGS'] = ' '.join(args)
+    env['CXXFLAGS'] = ' '.join(args)
+    return env
+
+def Make(options, args):
+    subprocess.check_output(['make', '-j4'], stderr=subprocess.STDOUT, env=os.environ)
+
+def Configure(options, args, path, extra = []):
+    # Bypass normal MakeEnv since we expect the benchmark to pass -O2 automatically.
+    env = MakeEnv(options, args)
+    args = [path] + extra
+    subprocess.check_output(args, stderr=subprocess.STDOUT, env=env)
+
+def BuildNative(options, args, benchmark):
+    env = MakeEnv(options, args)
+    with FolderChanger(benchmark):
+        subprocess.check_output(['make', 'clean'], stderr=subprocess.STDOUT, env=env)
+        subprocess.check_output(['make'], stderr=subprocess.STDOUT, env=env)
+    return os.path.join(benchmark, benchmark)
+
+class Box2D(object):
+    def __init__(self):
+        self.name = 'box2d'
+
+    def build(self, options, args):
+        return BuildNative(options, args, self.name)
+
+class Bullet(object):
+    def __init__(self):
+        self.name = 'bullet'
+
+    def build(self, options, args):
+        extra = ['--disable-demos', '--disable-dependency-tracking']
+        build_dir = 'build-bullet'
+
+        if not os.path.exists(build_dir):
+            os.mkdir(build_dir)
+
+        with FolderChanger(build_dir):
+            try:
+                Make(options, args)
+            except:
+                Configure(options, args, os.path.join('..', 'bullet', 'configure'), extra)
+                Make(options, args)
+
+        libs = [os.path.join('src', '.libs', 'libBulletDynamics.a'),
+                os.path.join('src', '.libs', 'libBulletCollision.a'),
+                os.path.join('src', '.libs', 'libLinearMath.a')]
+
+        with FolderChanger('build-bullet'):
+            demo = os.path.join('..', 'bullet', 'Demos', 'Benchmarks')
+            env = MakeEnv(options, args)
+            argv = options.cxx.strip('"').split(' ')
+            argv += args
+            argv += [os.path.join(demo, 'BenchmarkDemo.cpp')]
+            argv += [os.path.join(demo, 'main.cpp')]
+            argv += libs
+            argv += ['-I' + os.path.join(demo)]
+            argv += ['-I' + os.path.join('..', 'bullet', 'src')]
+            argv += ['-o', 'bullet']
+            subprocess.check_output(argv, stderr=subprocess.STDOUT, env=env)
+        
+        return os.path.join('build-bullet', 'bullet')
+
+class Zlib(object):
+    def __init__(self):
+        self.name = 'zlib'
+
+    def build(self, options, args):
+        with FolderChanger('zlib'):
+            try:
+                Make(options, args)
+            except:
+                Configure(options, args, './configure')
+                Make(options, args)
+
+            env = MakeEnv(options, args)
+            argv = options.cc.strip('"').split(' ')
+            argv += args
+            argv += ['benchmark.c']
+            argv += ['libz.a']
+            argv += ['-o', 'run-zlib']
+            print(' '.join(argv))
+            subprocess.check_output(argv, stderr=subprocess.STDOUT, env=env)
+
+        return os.path.join('zlib', 'run-zlib')
+
+Benchmarks = [#Box2D(),
+              #Bullet(),
+              Zlib()
+             ]
+
+def BenchmarkNative(options, args):
+    for benchmark in Benchmarks:
+        binary = benchmark.build(options, args)
+
+        for factor in range(0, 5):
+            with open('/dev/null', 'w') as fp:
+                before = os.times()[4]
+                subprocess.check_call([binary, str(factor)], stdout=fp)
+                after = os.times()[4]
+                print(benchmark.name + ' - ' + str((after - before) * 1000))
 
 def Exec(vec):
     o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=os.environ)
@@ -18,22 +132,29 @@ def BenchmarkJavaScript(options, args):
         for factor in range(0, 5):
             # Don't overwrite args!
             argv = [] + args
-            argv.extend(['run.js', '--', benchmark + '.js', str(factor)])
+            argv.extend(['run.js', '--', benchmark.name + '.js', str(factor)])
             t = Exec(argv)
             t = t.strip()
-            print(benchmark + '-workload' + str(factor) + ' - ' + t)
+            print(benchmark.name + '-workload' + str(factor) + ' - ' + t)
 
 def main(argv):
     parser = OptionParser()
+    parser.add_option('--native', action='store_true', dest='native')
+    parser.add_option('--cc', type='string', dest='cc', default='cc')
+    parser.add_option('--cxx', type='string', dest='cxx', default='c++')
     (options, args) = parser.parse_args(argv)
 
     args = args[1:]
 
-    if len(args) < 1:
-        print("Usage: <shell> [-- options]")
-        return sys.exit(1)
+    if len(args) < 1 and not options.native:
+        print("Usage: ")
+        print("  --native [--cc=] [--cxx=] [-- flags]")
+        print("  <shell> [-- options]")
 
-    BenchmarkJavaScript(options, args)
+    if options.native:
+        BenchmarkNative(options, args)
+    else:
+        BenchmarkJavaScript(options, args)
 
 if __name__ == "__main__":
     main(sys.argv)
