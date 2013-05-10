@@ -119,7 +119,7 @@ def BenchmarkNative(options, args):
                 before = os.times()[4]
                 subprocess.check_call([binary, str(factor)], stdout=fp)
                 after = os.times()[4]
-                print(benchmark.name + ' - ' + str((after - before) * 1000))
+                print(benchmark.name + '-workload' + str(factor) + ' - ' + str((after - before) * 1000))
 
 def Exec(vec):
     o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=os.environ)
