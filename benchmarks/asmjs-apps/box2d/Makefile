@@ -47,17 +47,17 @@ OBJECTS = \
   $(O)/Dynamics/Joints/b2WeldJoint.o \
   $(O)/Dynamics/Joints/b2WheelJoint.o \
   $(O)/Rope/b2Rope.o \
-	Benchmark.o
+  Benchmark.o
 
-all: box2d
+all: run-box2d
 
 %.o: %.cpp
 	$(CXX) -I. $< -o $@ $(CXXFLAGS) -c
 
-box2d: $(OBJECTS)
-	$(CXX) -o $@ $(OBJECTS)
+run-box2d: $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJECTS)
 
 clean:
-	rm -f box2d
+	rm -f run-box2d
 	find . | grep "\.o$$" | xargs rm -f
 

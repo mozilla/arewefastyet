@@ -18,10 +18,12 @@ class FolderChanger:
 
 def MakeEnv(options, args):
     env = os.environ.copy()
-    env['CC'] = options.cc
-    env['CXX'] = options.cxx
+    env['CC'] = options.cc.strip('"')
+    env['CXX'] = options.cxx.strip('"')
     env['CFLAGS'] = ' '.join(args)
     env['CXXFLAGS'] = ' '.join(args)
+    if '-m32' in args:
+        env['LDFLAGS'] = '-m32'
     return env
 
 def Make(options, args):
@@ -33,19 +35,16 @@ def Configure(options, args, path, extra = []):
     args = [path] + extra
     subprocess.check_output(args, stderr=subprocess.STDOUT, env=env)
 
-def BuildNative(options, args, benchmark):
-    env = MakeEnv(options, args)
-    with FolderChanger(benchmark):
-        subprocess.check_output(['make', 'clean'], stderr=subprocess.STDOUT, env=env)
-        subprocess.check_output(['make'], stderr=subprocess.STDOUT, env=env)
-    return os.path.join(benchmark, benchmark)
-
 class Box2D(object):
     def __init__(self):
         self.name = 'box2d'
 
     def build(self, options, args):
-        return BuildNative(options, args, self.name)
+        env = MakeEnv(options, args)
+        with FolderChanger('box2d'):
+            subprocess.check_output(['make', 'clean'], stderr=subprocess.STDOUT, env=env)
+            subprocess.check_output(['make'], stderr=subprocess.STDOUT, env=env)
+        return os.path.join('box2d', 'run-box2d')
 
 class Bullet(object):
     def __init__(self):
@@ -102,7 +101,6 @@ class Zlib(object):
             argv += ['benchmark.c']
             argv += ['libz.a']
             argv += ['-o', 'run-zlib']
-            print(' '.join(argv))
             subprocess.check_output(argv, stderr=subprocess.STDOUT, env=env)
 
         return os.path.join('zlib', 'run-zlib')
