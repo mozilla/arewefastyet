@@ -46,6 +46,21 @@ class Box2D(object):
             subprocess.check_output(['make'], stderr=subprocess.STDOUT, env=env)
         return os.path.join('box2d', 'run-box2d')
 
+class LuaBinaryTrees(object):
+    def __init__(self):
+        self.name = 'lua-binarytrees'
+
+    def build(self, options, args):
+        env = MakeEnv(options, args)
+        with FolderChanger('lua'):
+            subprocess.check_output(['make', 'clean'], stderr=subprocess.STDOUT, env=env)
+            try:
+                subprocess.check_output(['make', 'generic'], stderr=subprocess.STDOUT, env=env)
+            except subprocess.CalledProcessError, e:
+                pass # lua needs two make's, first fails
+            subprocess.check_output(['make', 'generic'], stderr=subprocess.STDOUT, env=env)
+        return os.path.join('lua', 'run-lua-binarytrees.sh')
+
 class Bullet(object):
     def __init__(self):
         self.name = 'bullet'
@@ -107,6 +122,7 @@ class Zlib(object):
 
 Benchmarks = [Box2D(),
               Bullet(),
+              LuaBinaryTrees(),
               Zlib()
              ]
 
