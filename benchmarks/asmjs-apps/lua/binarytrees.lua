@@ -22,6 +22,20 @@ local function ItemCheck(tree)
 end
 
 local N = tonumber(arg and arg[1]) or 0
+
+-- 0-4 logic
+if N == 0 then
+  N = 0
+elseif N == 1 then
+  N = 11
+elseif N == 2 then
+  N = 13
+elseif N == 3 then
+  N = 14
+elseif N == 4 then
+  N = 16
+end
+
 local mindepth = 4
 local maxdepth = mindepth + 2
 if maxdepth < N then maxdepth = N end
