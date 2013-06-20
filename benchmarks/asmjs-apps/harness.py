@@ -48,7 +48,7 @@ class Box2D(object):
 
 class LuaBinaryTrees(object):
     def __init__(self):
-        self.name = 'lua-binarytrees'
+        self.name = 'lua_binarytrees'
 
     def build(self, options, args):
         env = MakeEnv(options, args)
