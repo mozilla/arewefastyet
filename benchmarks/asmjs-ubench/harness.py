@@ -10,6 +10,7 @@ Benchmarks = ['copy',
               'fannkuch',
               'fasta',
               'life',
+              'linpack',
               'memops',
               'primes',
               'skinning']
