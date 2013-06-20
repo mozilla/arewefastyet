@@ -8,7 +8,7 @@ var __ARGV__ = (function (argv) {
   if (argv.length > i)
     __BENCHMARK__ = argv[i++];
   return argv.slice(i, argv.length);
-})(arguments);
+})(arguments || scriptArgs);
 
 var scriptArgs = __ARGV__;
 var arguments = __ARGV__;
