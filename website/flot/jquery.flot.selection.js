@@ -82,6 +82,7 @@ The plugin allso adds the following methods to the plot object:
         var savedhandlers = {};
 
         var mouseUpHandler = null;
+        var disabled = false;
         
         function onMouseMove(e) {
             if (selection.active) {
@@ -92,7 +93,7 @@ The plugin allso adds the following methods to the plot object:
         }
 
         function onMouseDown(e) {
-            if (e.which != 1)  // only accept left-click
+            if (e.which != 1 || disabled)  // only accept left-click
                 return;
             
             // cancel out any text selections
@@ -282,6 +283,13 @@ The plugin allso adds the following methods to the plot object:
         plot.clearSelection = clearSelection;
         plot.setSelection = setSelection;
         plot.getSelection = getSelection;
+        plot.disableSelection = function () {
+            disabled = true;
+        }
+        plot.enableSelection = function () {
+            disabled = false;
+        }
+ 
 
         plot.hooks.bindEvents.push(function(plot, eventHolder) {
             var o = plot.getOptions();
