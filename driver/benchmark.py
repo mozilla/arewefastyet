@@ -139,10 +139,6 @@ class SunSpider(Benchmark):
         else:
             args = ''
 
-        if self.suite == "assorted":
-            p = subprocess.Popen(["hg", "pull", "-u"], stdout=subprocess.PIPE)
-            p.communicate()
-
         p = subprocess.Popen(["./sunspider",
                               "--shell=" + shell,
                               "--runs=" + str(self.runs),
@@ -180,6 +176,6 @@ Benchmarks = [AsmJSApps(),
               AsmJSMicro(),
               SunSpider('ss', 'SunSpider', 'sunspider-0.9.1', 20),
               SunSpider('kraken', 'kraken', 'kraken-1.1', 5),
-              SunSpider('misc', 'Assorted', 'assorted', 3),
+              SunSpider('misc', 'misc', 'assorted', 3),
               Octane(),
              ]
