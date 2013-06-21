@@ -18,21 +18,26 @@ Setting up (2):
 
 Setting up (3):
   I set it up like:
+
    mkdir awfy
    cd awfy
    svn checkout http://v8.googlecode.com/svn/branches/bleeding_edge/ v8
-   svn checkout https://svn.webkit.org/repository/webkit/trunk WebKit
    hg clone http://hg.mozilla.org/integration/mozilla-inbound
-   mkdir driver
-   cp <awfy-src>/driver/* driver/
+
+   # Mac/Linux only
+   svn checkout https://svn.webkit.org/repository/webkit/trunk WebKit
+
+   ln -s <awfy-src>/driver .
    cd driver
-   hg clone http://hg.mozilla.org/projects/kraken
-   svn checkout http://v8.googlecode.com/svn/trunk/benchmarks v8-v7
-   svn checkout https://svn.webkit.org/repository/webkit/trunk/PerformanceTests/SunSpider
-   svn checkout http://octane-benchmark.googlecode.com/svn/trunk/ octane
+   ln -s <awfy-src>/benchmarks/kraken .
+   ln -s <awfy-src>/benchmarks/octane .
+   ln -s <awfy-src>/benchmarks/SunSpider .
+   ln -s <awfy-src>/benchmarks/asmjs-apps .
+   ln -s <awfy-src>/benchmarks/asmjs-ubench .
+   cp awfy.config.sample awfy.config
    
   (a) Add a database entry for the machine configuration.
-  (b) Edit driver/awfy.config to match the build architecture you want, and machine
+  (b) Edit awfy.config to match the build architecture you want, and machine
       database entry.
   (c) Add a cronjob to run dostuff.py periodically. AWFY.com runs every 30min.
 
