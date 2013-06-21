@@ -18,11 +18,3 @@ misc-bugs-659467-jsunzip
 misc-bugs-663087-decompress-gzip
 misc-bugs-774119-cpg-arrays
 misc-bugs-847389-jpeg2000
-emscripten-copy
-emscripten-corrections
-emscripten-dlmalloc
-emscripten-fannkuch
-emscripten-fasta_float
-emscripten-memops
-emscripten-primes
-emscripten-skinning
