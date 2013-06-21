@@ -4,38 +4,45 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
-import ConfigParser
 import submitter
 import builders
 import sys
 import resource
-from benchmark import Benchmarks
 import utils
+from optparse import OptionParser
+from benchmark import Benchmarks
 from collections import namedtuple
 
-config_name = 'awfy.config'
-if len(sys.argv) == 2:
-    config_name = sys.argv[1]
+parser = OptionParser(usage="usage: %prog [options]")
+parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
+                  help="Force runs even without source changes")
+parser.add_option("-n", "--no-update", dest="noupdate", action="store_true", default=False,
+                  help="Skip updating source repositories")
+parser.add_option("-c", "--config", dest="config_name", type="string", default="awfy.config",
+                  help="Config file (default: awfy.config)")
 
-config = ConfigParser.RawConfigParser()
-config.read(config_name)
+(options, args) = parser.parse_args()
+
+utils.InitConfig(options.config_name)
+
+# Set resource limits for child processes
 resource.setrlimit(resource.RLIMIT_AS, (-1, -1))
 resource.setrlimit(resource.RLIMIT_RSS, (-1, -1))
 resource.setrlimit(resource.RLIMIT_DATA, (-1, -1))
 
-# JSC is ilooping...
+# Set of builders we'll use.
 KnownEngines = [
-                builders.MozillaInboundGGC(config),
-                builders.MozillaInbound(config),
-                builders.V8(config),
-                builders.Nitro(config)
+                builders.MozillaInboundGGC(),
+                builders.MozillaInbound(),
+                builders.V8(),
+                builders.Nitro()
                ]
 Engines = []
 MozillaUpdated = False
 NumUpdated = 0
 for e in KnownEngines:
     try:
-        cset, updated = e.updateAndBuild(True, False)
+        cset, updated = e.updateAndBuild(not options.noupdate, options.force)
     except Exception as err:
         print('Build failed!')
         print(err)
@@ -46,7 +53,7 @@ for e in KnownEngines:
         NumUpdated += 1
     Engines.append([e, cset, updated])
 
-if NumUpdated == 0:
+if NumUpdated == 0 and not options.force:
     sys.exit(0)
 
 # The native compiler is a special thing, for now.
@@ -60,9 +67,9 @@ modes = []
 for entry in Engines:
     e = entry[0]
     cset = entry[1]
-    shell = os.path.join(config.get('main', 'testroot'), e.source, e.shell())
+    shell = os.path.join(utils.RepoPath, e.source, e.shell())
     env = None
-    with utils.chdir(os.path.join(config.get('main', 'testroot'), e.source)):
+    with utils.chdir(os.path.join(utils.RepoPath, e.source)):
         env = e.env()
     for m in e.modes:
         if e.args:

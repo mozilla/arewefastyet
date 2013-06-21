@@ -12,14 +12,14 @@ import subprocess
 from utils import Run
 
 class Engine(object):
-    def __init__(self, conf):
-        self.testroot = conf.get('main', 'testroot')
-        self.cpu = conf.get('main', 'cpu')
-        
+    def __init__(self):
+        self.cpu = utils.config.get('main', 'cpu')
+
     def updateAndBuild(self, update, forceRebuild):
-        pop = os.getcwd()
-        os.chdir(os.path.join(self.testroot, self.source))
-    
+        with utils.FolderChanger(os.path.join(utils.RepoPath, self.source)):
+            return self._updateAndBuild(update, forceRebuild)
+
+    def _updateAndBuild(self, update, forceRebuild):
         if self.puller == 'svn':
             scm = puller.SVN
         elif self.puller == 'hg':
@@ -50,10 +50,8 @@ class Engine(object):
     
         if not os.path.isfile(shell):
             print(shell)
-            os.chdir(pop)
             raise Exception('could not find shell')
     
-        os.chdir(pop)
         return [version, updated]
 
     def reconf(self):
@@ -63,12 +61,12 @@ class Engine(object):
         return None
 
 class Nitro(Engine):
-    def __init__(self, conf):
-        super(Nitro, self).__init__(conf)
+    def __init__(self):
+        super(Nitro, self).__init__()
         self.puller = 'svn'
-        self.source = conf.get('jsc', 'source')
-        if conf.has_option('jsc', 'conf'):
-            self.extra = conf.get('jsc', 'conf').split(' ')
+        self.source = utils.config.get('jsc', 'source')
+        if utils.config.has_option('jsc', 'conf'):
+            self.extra = utils.config.get('jsc', 'conf').split(' ')
         else:
             self.extra = []
         self.args = None
@@ -98,13 +96,14 @@ class Nitro(Engine):
         return os.path.join('WebKitBuild', 'Release', 'jsc')
 
 class V8(Engine):
-    def __init__(self, conf):
-        super(V8, self).__init__(conf)
+    def __init__(self):
+        super(V8, self).__init__()
         self.puller = 'svn'
-        self.source = conf.get('v8', 'source')
+        self.source = utils.config.get('v8', 'source')
         self.args = ['--expose-gc']
         self.important = True
-        self.hardfp = (conf.has_option('main', 'flags')) and ("hardfp" in conf.get('main', 'flags'))
+        self.hardfp = (utils.config.has_option('main', 'flags')) and \
+                       ("hardfp" in utils.config.get('main', 'flags'))
         self.modes = [
                 {
                     'mode': 'v8',
@@ -133,11 +132,11 @@ class V8(Engine):
             return os.path.join('out', 'ia32.release', 'd8')
 
 class Mozilla(Engine):
-    def __init__(self, conf, source):
-        super(Mozilla, self).__init__(conf)
+    def __init__(self, source):
+        super(Mozilla, self).__init__()
         self.puller = 'hg'
-        self.source = conf.get(source, 'source')
-        self.config_line = conf.get(source, 'conf')
+        self.source = utils.config.get(source, 'source')
+        self.config_line = utils.config.get(source, 'conf')
         self.args = None
         self.important = True
         self.objdir = 'Opt'
@@ -175,8 +174,8 @@ class Mozilla(Engine):
         return os.path.join('js', 'src', self.objdir, 'js')
 
 class MozillaInbound(Mozilla):
-    def __init__(self, conf):
-        super(MozillaInbound, self).__init__(conf, 'mi')
+    def __init__(self):
+        super(MozillaInbound, self).__init__('mi')
         self.modes = [
                 {
                     'mode': 'jmim',
@@ -189,8 +188,8 @@ class MozillaInbound(Mozilla):
             ]
 
 class MozillaInboundGGC(Mozilla):
-    def __init__(self, conf):
-        super(MozillaInboundGGC, self).__init__(conf, 'mi')
+    def __init__(self):
+        super(MozillaInboundGGC, self).__init__('mi')
         self.config_line += ' --enable-exact-rooting --enable-gcgenerational'
         self.objdir = 'OptGGC'
         self.modes = [
@@ -201,12 +200,12 @@ class MozillaInboundGGC(Mozilla):
             ]
         
 class NativeCompiler(Engine):
-    def __init__(self, conf):
-        super(NativeCompiler, self).__init__(conf)
-        self.cc = conf.get('native', 'cc')
-        self.cxx = conf.get('native', 'cxx')
-        self.args = conf.get('native', 'options').split(' ')
-        self.mode = conf.get('native', 'mode')
+    def __init__(self):
+        super(NativeCompiler, self).__init__()
+        self.cc = utils.config.get('native', 'cc')
+        self.cxx = utils.config.get('native', 'cxx')
+        self.args = utils.config.get('native', 'options').split(' ')
+        self.mode = utils.config.get('native', 'mode')
 
         output = Run([self.cxx, '--version'])
         self.signature = output.splitlines()[0].strip()

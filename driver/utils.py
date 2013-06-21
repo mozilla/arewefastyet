@@ -4,8 +4,23 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
+import sys
 import commands
 import subprocess
+import ConfigParser
+
+config = None
+RepoPath = None
+BenchmarkPath = None
+
+def InitConfig(name):
+    global config, RepoPath, BenchmarkPath
+    config = ConfigParser.RawConfigParser()
+    if not os.path.isfile(name):
+        raise Exception('could not find file: ' + name)
+    config.read(name)
+    RepoPath = config.get('main', 'repos')
+    BenchmarkPath = config.get('main', 'benchmarks')
 
 class FolderChanger:
     def __init__(self, folder):

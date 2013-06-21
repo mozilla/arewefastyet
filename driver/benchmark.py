@@ -19,7 +19,7 @@ class Benchmark(object):
         self.folder = folder
 
     def run(self, submit, native, modes):
-        with utils.chdir(self.folder):
+        with utils.chdir(os.path.join(utils.BenchmarkPath, self.folder)):
             return self._run(submit, native, modes)
 
     def omit(self, mode):

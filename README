@@ -19,27 +19,32 @@ Setting up (2):
 Setting up (3):
   I set it up like:
 
-   mkdir awfy
+   git clone http://github.com/dvander/arewefastyet awfy
    cd awfy
+   mkdir repos
+   cd repos
+
+   # Get V8
    svn checkout http://v8.googlecode.com/svn/branches/bleeding_edge/ v8
+
+   # Get Mozilla
    hg clone http://hg.mozilla.org/integration/mozilla-inbound
 
-   # Mac/Linux only
+   # Get WebKit - Mac/Linux only
    svn checkout https://svn.webkit.org/repository/webkit/trunk WebKit
 
-   ln -s <awfy-src>/driver .
-   cd driver
-   ln -s <awfy-src>/benchmarks/kraken .
-   ln -s <awfy-src>/benchmarks/octane .
-   ln -s <awfy-src>/benchmarks/SunSpider .
-   ln -s <awfy-src>/benchmarks/asmjs-apps .
-   ln -s <awfy-src>/benchmarks/asmjs-ubench .
+   cd ../driver
    cp awfy.config.sample awfy.config
-   
+
   (a) Add a database entry for the machine configuration.
   (b) Edit awfy.config to match the build architecture you want, and machine
       database entry.
   (c) Add a cronjob to run dostuff.py periodically. AWFY.com runs every 30min.
+
+   # Note It is not safe to share multiple AWFY instances from the same
+   # repository, since C++ object files are generally re-used and may
+   # not correctly link depending on build flags.
+   
 
 Setting up (4):
   Put awfy-server.config in /etc/, edit it to point at your database and 
