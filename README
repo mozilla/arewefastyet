@@ -39,7 +39,13 @@ Setting up (3):
   (a) Add a database entry for the machine configuration.
   (b) Edit awfy.config to match the build architecture you want, and machine
       database entry.
-  (c) Add a cronjob to run dostuff.py periodically. AWFY.com runs every 30min.
+  (c) Run dostuff.py periodically - Mozilla uses "run.sh" which will run
+      continuously, since a cronjob could run overlapping jobs.
+
+   # Note, interrupting dostuff.py can cause problems with subversion, for
+   # example, the WebKit repository may become stuck and need an svn cleanup
+   # or an rm -rf and clean checkout. For sanity, run.sh will pause its next
+   # run if it sees a /tmp/awfy lock in place, and this can be used to wait.
 
    # Note It is not safe to share multiple AWFY instances from the same
    # repository, since C++ object files are generally re-used and may
