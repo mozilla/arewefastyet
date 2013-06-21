@@ -57,7 +57,7 @@ if NumUpdated == 0 and not options.force:
     sys.exit(0)
 
 # The native compiler is a special thing, for now.
-native = builders.NativeCompiler(config)
+native = builders.NativeCompiler()
 
 # A mode is a configuration of an engine we just built.
 Mode = namedtuple('Mode', ['shell', 'args', 'env', 'name', 'cset'])
@@ -84,7 +84,7 @@ for entry in Engines:
         modes.append(mode)
 
 # Inform AWFY of each mode we found.
-submit = submitter.Submitter(config)
+submit = submitter.Submitter()
 submit.Start()
 for mode in modes:
     submit.AddEngine(mode.name, mode.cset)

@@ -4,15 +4,16 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
+import utils
 import urllib
 import urllib2
 
 class Submitter:
-    def __init__(self, conf):
-        self.url = conf.get('main', 'updateURL')
-        self.cpu = conf.get('main', 'cpu')
-        self.os = conf.get('main', 'os')
-        self.machine = conf.get('main', 'machine')
+    def __init__(self):
+        self.url = utils.config.get('main', 'updateURL')
+        self.cpu = utils.config.get('main', 'cpu')
+        self.os = utils.config.get('main', 'os')
+        self.machine = utils.config.get('main', 'machine')
 
     def Start(self):
         url = self.url
