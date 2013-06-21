@@ -136,6 +136,7 @@ class Mozilla(Engine):
         self.config_line = conf.get(source, 'conf')
         self.args = None
         self.important = True
+        self.objdir = 'Opt'
 
     def env(self):
         env = os.environ.copy()
@@ -156,18 +157,18 @@ class Mozilla(Engine):
                 utils.Shell("autoconf-2.13")
 
         # Step 2. configure
-        if not os.path.exists(os.path.join('js', 'src', 'Opt')):
-            os.mkdir(os.path.join('js', 'src', 'Opt')) 
-        with utils.FolderChanger(os.path.join('js', 'src', 'Opt')):
+        if not os.path.exists(os.path.join('js', 'src', self.objdir)):
+            os.mkdir(os.path.join('js', 'src', self.objdir)) 
+        with utils.FolderChanger(os.path.join('js', 'src', self.objdir)):
             utils.Shell(self.config_line)
 
         return True
 
     def build(self):
-        utils.Shell("make -j 3 -C " + os.path.join('js', 'src', 'Opt'))
+        utils.Shell("make -j 3 -C " + os.path.join('js', 'src', self.objdir))
 
     def shell(self):
-        return os.path.join('js', 'src', 'Opt', 'js')
+        return os.path.join('js', 'src', self.objdir, 'js')
 
 class MozillaInbound(Mozilla):
     def __init__(self, conf):
@@ -179,6 +180,18 @@ class MozillaInbound(Mozilla):
                 },
                 {
                     'mode': 'noasmjs',
+                    'args': ['--ion-parallel-compile=on', '--no-jm', '-W', '--no-asmjs']
+                }
+            ]
+
+class MozillaInboundGGC(Mozilla):
+    def __init__(self, conf):
+        super(MozillaInboundGGC, self).__init__(conf, 'mi')
+        self.config_line += ' --enable-exact-rooting --enable-gcgenerational'
+        self.objdir = 'OptGGC'
+        self.modes = [
+                {
+                    'mode': 'ggc',
                     'args': ['--ion-parallel-compile=on', '--no-jm', '-W', '--no-asmjs']
                 }
             ]

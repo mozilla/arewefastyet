@@ -9,14 +9,19 @@ from benchmark import Benchmarks
 import utils
 from collections import namedtuple
 
+config_name = 'awfy.config'
+if len(sys.argv) == 2:
+    config_name = sys.argv[1]
+
 config = ConfigParser.RawConfigParser()
-config.read('awfy.config')
+config.read(config_name)
 resource.setrlimit(resource.RLIMIT_AS, (-1, -1))
 resource.setrlimit(resource.RLIMIT_RSS, (-1, -1))
 resource.setrlimit(resource.RLIMIT_DATA, (-1, -1))
 
 # JSC is ilooping...
 KnownEngines = [
+                builders.MozillaInboundGGC(config),
                 builders.MozillaInbound(config),
                 builders.V8(config),
                 builders.Nitro(config)
