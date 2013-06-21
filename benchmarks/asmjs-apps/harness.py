@@ -59,10 +59,10 @@ class LuaBinaryTrees(object):
             subprocess.call(['make', 'clean'], stderr=subprocess.STDOUT, env=env)
             vec = ['make', 'generic', 'MYCFLAGS=' + env['CFLAGS']]
             try:
-                subprocess.call(vec, stderr=subprocess.STDOUT, env=env)
+                subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env)
             except subprocess.CalledProcessError, e:
                 pass # lua needs two make's, first fails
-            subprocess.call(vec, stderr=subprocess.STDOUT, env=env)
+            subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env)
         return os.path.join('lua', 'run-lua-binarytrees.sh')
 
 class Bullet(object):
