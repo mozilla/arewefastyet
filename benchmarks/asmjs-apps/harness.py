@@ -124,8 +124,7 @@ class Zlib(object):
 
         return os.path.join('zlib', 'run-zlib')
 
-Benchmarks = [LuaBinaryTrees(),
-              Box2D(),
+Benchmarks = [Box2D(),
               Bullet(),
               LuaBinaryTrees(),
               Zlib()
