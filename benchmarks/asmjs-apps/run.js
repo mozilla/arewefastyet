@@ -19,7 +19,10 @@ var arguments = __ARGV__;
 function RunBenchmark(file)
 {
   var begin = Date.now();
+  var p = print, perr = printErr;
+  print = function(){}, perr = print;
   load(file);
+  print = p, printErr = perr;
   return Date.now() - begin;
 }
 

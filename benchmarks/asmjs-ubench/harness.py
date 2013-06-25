@@ -59,7 +59,7 @@ def BenchmarkJavaScript(options, args):
     for benchmark in Benchmarks:
         # Don't overwrite args!
         argv = [] + args
-        argv.extend(['ubench.js', '--', benchmark + '.js', RunFactor])
+        argv.extend(['-W', 'ubench.js', '--', benchmark + '.js', RunFactor])
         t = Exec(argv)
         t = t.strip()
         print(benchmark + ' - ' + t)
