@@ -150,7 +150,7 @@ def BenchmarkJavaScript(options, args):
         for factor in range(0, 5):
             # Don't overwrite args!
             argv = [] + args
-            argv.extend(['-W', 'run.js', '--', benchmark.name + '.js', str(factor)])
+            argv.extend(['run.js', '--', benchmark.name + '.js', str(factor)])
             t = Exec(argv)
             t = t.strip()
             print(benchmark.name + '-workload' + str(factor) + ' - ' + t)
