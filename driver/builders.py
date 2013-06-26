@@ -195,7 +195,7 @@ class MozillaInboundGGC(Mozilla):
         self.modes = [
                 {
                     'mode': 'ggc',
-                    'args': ['--ion-parallel-compile=on', '--no-jm', '-W', '--no-asmjs']
+                    'args': ['--ion-parallel-compile=on', '--no-jm', '-W']
                 }
             ]
         
