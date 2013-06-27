@@ -11,6 +11,8 @@ import platform
 import subprocess
 from utils import Run
 
+UpdateCache = { }
+
 class Engine(object):
     def __init__(self):
         self.cpu = utils.config.get('main', 'cpu')
@@ -29,9 +31,14 @@ class Engine(object):
         if not os.path.isfile(shell):
             forceRebuild = True
     
-        updated = False
-        if update:
-            updated = scm.Update()
+        if self.source in UpdateCache:
+            updated = UpdateCache[self.source]
+        else:
+            if update:
+                updated = scm.Update()
+            else:
+                updated = False
+            UpdateCache[self.source] = updated
     
         if forceRebuild or updated:
             try:
