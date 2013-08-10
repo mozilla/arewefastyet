@@ -60,9 +60,12 @@ def BenchmarkJavaScript(options, args):
         # Don't overwrite args!
         argv = [] + args
         argv.extend(['ubench.js', '--', benchmark + '.js', RunFactor])
-        t = Exec(argv)
-        t = t.strip()
-        print(benchmark + ' - ' + t)
+        try:
+            t = Exec(argv)
+            t = t.strip()
+            print(benchmark + ' - ' + t)
+        except Exception as e:
+            print('Exception when running ' + benchmark.name + ': ' + str(e))
 
 def main(argv):
     parser = OptionParser()
