@@ -7,6 +7,7 @@ import os
 import submitter
 import builders
 import sys
+import signal
 import resource
 import utils
 from optparse import OptionParser
@@ -91,8 +92,23 @@ for mode in modes:
 submit.AddEngine(native.mode, native.signature)
 
 # Run through each benchmark.
-for benchmark in Benchmarks:
+class TimeException(Exception):
+    pass
+
+def timeout_handler(signum, frame):
+    raise TimeException()
+
+ for benchmark in Benchmarks:
+    try:
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(15*60) # trigger alarm in 15 minutes
+
+        benchmark.run(submit, native, modes)
+
+        signal.alarm(0)
+    except TimeException:
+        pass
+    
     benchmark.run(submit, native, modes)
 
 submit.Finish(1)
-
