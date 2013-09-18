@@ -98,7 +98,7 @@ class TimeException(Exception):
 def timeout_handler(signum, frame):
     raise TimeException()
 
- for benchmark in Benchmarks:
+for benchmark in Benchmarks:
     try:
         signal.signal(signal.SIGALRM, timeout_handler)
         signal.alarm(15*60) # trigger alarm in 15 minutes
