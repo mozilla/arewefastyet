@@ -26,6 +26,8 @@ class Engine(object):
             scm = puller.SVN
         elif self.puller == 'hg':
             scm = puller.HG
+        elif self.puller == 'git':
+            scm = puller.GIT
         shell = self.shell()
     
         if not os.path.isfile(shell):

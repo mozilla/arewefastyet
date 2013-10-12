@@ -37,3 +37,17 @@ class SVN:
             raise Exception('unknown output from svn: ' + output)
         return m.group(1)
 
+class GIT:
+    @staticmethod
+    def Update():
+        output = Run(['git', 'pull'])
+        return re.search("Already up-to-date", output) == None
+
+    @staticmethod
+    def Identify():
+        output = Run(['git', 'log', '-1'])
+        m = re.match("commit ([0-9a-z]+)\s*", output)
+        if m == None:
+            raise Exception('unknown output from git: ' + output)
+        return m.group(1)
+
