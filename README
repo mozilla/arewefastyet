@@ -67,6 +67,13 @@ Setting up (4):
   The metadata and raw JSON files are updated as needed. The aggregate and
   condensed files are always re-generated from the raw data.
 
+  There is also a monitor.py script provided in the server folder. You can run
+  this regularly to send e-mails for benchmarking machines that haven't sent
+  results in a certain amount of time (this time is specified in awfy-server.config).
+  It will send e-mail through the local SMTP server, using the "contact" field
+  for each machine in the database. This field should be a comma-delimited list
+  of e-mail addresses (i.e. "egg@yam.com,bob@egg.com").
+
 Setting up (5):
   Nothing special needed. Note that our flot is slightly modified, so it
   might not work to just replace it.

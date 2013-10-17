@@ -192,6 +192,8 @@ CREATE TABLE `awfy_machine` (
   `cpu` varchar(30) NOT NULL,
   `description` varchar(255) NOT NULL,
   `active` tinyint(1) NOT NULL,
+  `last_checked` int(10) unsigned NOT NULL,
+  `contact` mediumtext NOT NULL
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=16 ;
 
