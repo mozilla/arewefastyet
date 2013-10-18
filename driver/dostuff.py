@@ -108,7 +108,5 @@ for benchmark in Benchmarks:
         signal.alarm(0)
     except TimeException:
         pass
-    
-    benchmark.run(submit, native, modes)
 
 submit.Finish(1)
