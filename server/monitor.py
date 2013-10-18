@@ -65,19 +65,20 @@ for machine_row in machines:
 
     text = """AreWeFastYet has not received results from machine {0} (id {1}) in {2} hours.
     """.format(machine_description, machine_id, delta)
-        
 
     message = MIMEText(text)
     message['Subject'] = 'AreWeFastYet Machine {0} id {1} not reporting'.format(
         machine_description,
         machine_id
     )
-    message['From'] = 'no-reply@arewefastyet.com'
+    message['From'] = 'AreWeFastYet <no-reply@arewefastyet.com>'
     message['To'] = ', '.join(machine_contact.split(','))
 
     mailer = SMTP('localhost')
     mailer.sendmail(
-      'no-reply@arewefastyet.com',
+      'AreWeFastYet <no-reply@arewefastyet.com>',
       machine_contact.split(','),
       message.as_string()
     )
+
+    print(message.as_string())

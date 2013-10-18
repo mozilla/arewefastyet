@@ -169,6 +169,7 @@ CREATE TABLE `awfy_breakdown` (
   KEY `run_id` (`run_id`),
   KEY `mode_id` (`mode_id`),
   KEY `test_id` (`test_id`),
+  KEY `run_test` (`run_id`, `test_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------

@@ -21,3 +21,8 @@ def json_load(fp):
         text = fp.read()
         return cjson.decode(text)
     return json.load(fp)
+
+def json_dumps(obj):
+    if cjson:
+        return cjson.encode(obj)
+    return json.dumps(obj)
