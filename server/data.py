@@ -119,10 +119,12 @@ class Context(object):
             self.modes.append(m)
 
         # Get a list of benchmark suites.
+        self.suitemap = {}
         self.benchmarks = []
         c.execute("SELECT id, name, description, better_direction, sort_order FROM awfy_suite WHERE sort_order > 0")
         for row in c.fetchall():
             b = Benchmark(row[0], row[1], row[2], row[3], row[4])
+            self.suitemap[row[0]] = b
             self.benchmarks.append(b)
 
         # Get a list of machines.

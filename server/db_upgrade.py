@@ -62,5 +62,9 @@ if 'test' in awfy_breakdown_columns:
             c.execute("update awfy_breakdown set test_id = %s where suite_id = %s and test = %s",
                       (test_id, suite_id, test_name))
 
-    print('Dropping old column...')
+    print('Dropping old column test...')
     c.execute("alter table `awfy_breakdown` drop `test`")
+
+if 'suite_id' in awfy_breakdown_columns:
+    print('Dropping old column suite_id...')
+    c.execute("alter table `awfy_breakdown` drop `suite_id`")

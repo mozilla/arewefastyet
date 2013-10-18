@@ -162,7 +162,6 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 CREATE TABLE `awfy_breakdown` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `run_id` int(11) DEFAULT NULL,
-  `suite_id` int(11) DEFAULT NULL,
   `mode_id` int(11) DEFAULT NULL,
   `score` varchar(45) DEFAULT NULL,
   `test_id` int(10) DEFAULT NULL,

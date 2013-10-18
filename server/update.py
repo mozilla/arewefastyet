@@ -50,7 +50,8 @@ def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
              JOIN awfy_mode m ON m.id = s.mode_id                                   \
              JOIN fast_run r ON s.run_id = r.id                                     \
              JOIN awfy_build b ON (s.run_id = b.run_id AND s.mode_id = b.mode_id)   \
-             WHERE s.suite_id = %s                                                  \
+             JOIN awfy_suite_test st ON (st.id = s.test_id)                         \
+             WHERE st.suite_id = %s                                                 \
              AND s.test_id = %s                                                     \
              AND r.status = 1                                                       \
              AND r.machine = %s                                                     \
