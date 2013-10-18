@@ -51,9 +51,9 @@ if (isset($_GET['run']) && $_GET['run'] == 'yes') {
     } else {
         $test_id = find_or_add_test($suite_id, $name);
         mysql_query("INSERT INTO awfy_breakdown
-                     (run_id, suite_id, mode_id, score, test_id)
+                     (run_id, mode_id, score, test_id)
                      VALUES
-                     ($run, $suite_id, $mode_id, $time, $test_id)")
+                     ($run, $mode_id, $time, $test_id)")
             or die("ERROR: " . mysql_error());
     }
 }
