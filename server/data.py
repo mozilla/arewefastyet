@@ -26,7 +26,7 @@ class Benchmark(object):
                  "name": self.name,
                  "description": self.description,
                  "direction": self.direction,
-                 "tests": self.tests,
+                 "tests": [entry[1] for entry in self.tests],
                  "sort_order": self.sort_order
                }
 
