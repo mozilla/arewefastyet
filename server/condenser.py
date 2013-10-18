@@ -6,8 +6,7 @@
 import re
 import os
 import sys
-import awfy
-import json
+import awfy, util
 from profiler import Profiler
 from datetime import datetime
 
@@ -28,7 +27,7 @@ def export(name, j):
     if os.path.exists(path):
         os.remove(path)
     with open(path, 'w') as fp:
-        json.dump(j, fp)
+        util.json_dump(j, fp)
 
 def find_all_months(cx, prefix, name):
     pattern = prefix + 'raw-' + name + '-(\d\d\d\d)-(\d+)\.json'
@@ -47,7 +46,7 @@ def find_all_months(cx, prefix, name):
     graphs = []
     for when, file in files:
         with open(os.path.join(awfy.path, file)) as fp:
-            cache = json.load(fp)
+            cache = util.json_load(fp)
         graphs.append((when, cache['graph']))
 
     return graphs
