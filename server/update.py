@@ -56,11 +56,6 @@ def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
              ORDER BY r.stamp ASC                                                   \
              "
     c = awfy.db.cursor()
-    #text = query % (name, machine_id, earliest_run_id)
-    #text = text.replace('\n', ' ')
-    #while '  ' in text:
-    #    text = text.replace('  ', ' ')
-    #print(text)
     c.execute(query, [name, machine_id, earliest_run_id])
     return c.fetchall()
 
@@ -272,8 +267,8 @@ def update(cx, machine, suite):
 
     # This is a little cheeky, but as an optimization we don't bother querying
     # subtests if we didn't find new rows.
-    #if not new_rows:
-    #    return
+    if not new_rows:
+        return
 
     for test_id, test_name in suite.tests:
         def fetch_test(machine, earliest_run_id):
