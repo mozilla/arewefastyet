@@ -17,12 +17,9 @@ class Benchmark(object):
         # Get a list of individual tests
         self.tests = []
         c = awfy.db.cursor()
-        c.execute("SELECT test FROM awfy_breakdown  \
-                   WHERE suite_id = %s              \
-                   GROUP BY test",
-                   [suite_id])
+        c.execute("select id, name from awfy_suite_test where suite_id = %s", (suite_id,))
         for row in c.fetchall():
-            self.tests.append(row[0])
+            self.tests.append((row[0], row[1]))
 
     def export(self):
         return { "id": self.id,

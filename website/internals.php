@@ -57,6 +57,19 @@ function find_suite($suite)
     return intval($row[0]);
 }
 
+function find_or_add_test($suite_id, $name)
+{
+    $query = "select id from awfy_suite_test where suite_id = $suite_id and name = '$name'";
+    $results = mysql_query($query);
+    if (!$results || mysql_num_rows($results) < 1) {
+        $query = "insert into awfy_suite_test (suite_id, name) values($suite_id, $name)";
+        mysql_query($query);
+        return mysql_insert_id();
+    }
+    $row = mysql_fetch_array($results);
+    return intval($row[0]);
+}
+
 function awfy_query($query)
 {
     $result = mysql_query($query) or die(mysql_error());

@@ -86,6 +86,14 @@ CREATE TABLE `awfy_suite` (
   UNIQUE KEY `name_UNIQUE` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
 
+CREATE TABLE IF NOT EXISTS `awfy_suite_test` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `suite_id` int(11) NOT NULL,
+  `name` varchar(128) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `suite_id` (`suite_id`,`name`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
 --
 -- Dumping data for table `awfy_suite`
 --
@@ -156,14 +164,13 @@ CREATE TABLE `awfy_breakdown` (
   `run_id` int(11) DEFAULT NULL,
   `suite_id` int(11) DEFAULT NULL,
   `mode_id` int(11) DEFAULT NULL,
-  `test` varchar(45) DEFAULT NULL,
   `score` varchar(45) DEFAULT NULL,
+  `test_id` int(10) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `run_id` (`run_id`),
   KEY `suite_id` (`suite_id`),
   KEY `mode_id` (`mode_id`),
-  KEY `suite_id_2` (`suite_id`,`test`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=7636046 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -178,7 +185,7 @@ CREATE TABLE `awfy_build` (
   `cset` varchar(256) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `index2` (`run_id`,`mode_id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=136734 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -195,7 +202,7 @@ CREATE TABLE `awfy_machine` (
   `last_checked` int(10) unsigned NOT NULL,
   `contact` mediumtext NOT NULL
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=16 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -212,7 +219,7 @@ CREATE TABLE `awfy_score` (
   PRIMARY KEY (`id`),
   KEY `run_id` (`run_id`),
   KEY `mode_id` (`mode_id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=480043 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -228,5 +235,5 @@ CREATE TABLE `fast_run` (
   `status` int(11) NOT NULL,
   `error` mediumtext NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=33848 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 

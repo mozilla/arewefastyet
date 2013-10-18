@@ -9,9 +9,19 @@ import sys
 import awfy
 import json
 from profiler import Profiler
+from datetime import datetime
 
 SecondsPerDay = 60 * 60 * 24
 MaxRecentRuns = 30
+
+def should_export(name, when):
+    path = os.path.join(awfy.path, name)
+    if not os.path.exists(path):
+        return True
+    now = datetime.now()
+    if now.year == when[0] and now.month == when[1]:
+        return True
+    return False
 
 def export(name, j):
     path = os.path.join(awfy.path, name)
@@ -208,6 +218,11 @@ def condense(cx, suite, prefix, name):
 
     for when, graph in graphs:
         new_name = prefix + 'condensed-' + name + '-' + str(when[0]) + '-' + str(when[1])
+
+        # Don't condense if it already exists...
+        if not should_export(new_name + '.json', when):
+            continue
+
         sys.stdout.write('Condensing ' + new_name + '... ')
         sys.stdout.flush()
         with Profiler() as p:
@@ -233,13 +248,13 @@ def condense_suite(cx, machine, suite):
     # the combine graph back to our caller.
     suite_aggregate = condense(cx, suite, '', name)
 
-    for test in suite.tests:
-        test_name = suite.name + '-' + test + '-' + str(machine.id)
-        test_aggregate = condense(cx, suite, 'bk-', test_name)
+    for test_id, test_name in suite.tests:
+        test_path = suite.name + '-' + test_name + '-' + str(machine.id)
+        test_aggregate = condense(cx, suite, 'bk-', test_path)
         j = { 'version': awfy.version,
               'graph': test_aggregate
             }
-        export('bk-aggregate-' + test_name + '.json', j)
+        export('bk-aggregate-' + test_path + '.json', j)
 
     return suite_aggregate
 

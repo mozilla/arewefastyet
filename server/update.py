@@ -51,7 +51,7 @@ def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
              JOIN fast_run r ON s.run_id = r.id                                     \
              JOIN awfy_build b ON (s.run_id = b.run_id AND s.mode_id = b.mode_id)   \
              WHERE s.suite_id = %s                                                  \
-             AND s.test = %s                                                        \
+             AND s.test_id = %s                                                     \
              AND r.status = 1                                                       \
              AND r.machine = %s                                                     \
              AND r.id > %s                                                          \
@@ -254,11 +254,11 @@ def update(cx, machine, suite):
     if not new_rows:
         return
 
-    for test in suite.tests:
+    for test_id, test_name in suite.tests:
         def fetch_test(earliest_run_id):
-            return fetch_test_scores(machine.id, suite.id, test, earliest_run_id)
+            return fetch_test_scores(machine.id, suite.id, test_id, earliest_run_id)
 
-        prefix = 'bk-raw-' + suite.name + '-' + test + '-' + str(machine.id)
+        prefix = 'bk-raw-' + suite.name + '-' + test_name + '-' + str(machine.id)
         perform_update(cx, suite, prefix, fetch_test)
 
 def export_master(cx):
