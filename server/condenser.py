@@ -260,6 +260,10 @@ def condense_suite(cx, machine, suite):
 
 def condense_all(cx):
     for machine in cx.machines:
+        # If a machine is set to no longer report scores, don't condense it.
+        if machine.active == 2:
+            continue
+
         aggregates = { }
         for suite in cx.benchmarks:
             if suite.name == 'v8':

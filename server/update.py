@@ -280,6 +280,10 @@ def export_master(cx):
 
 def update_all(cx):
     for machine in cx.machines:
+        # Don't try to update machines that we're no longer tracking.
+        if machine.active == 2:
+            continue
+
         for benchmark in cx.benchmarks:
             update(cx, machine, benchmark)
 
