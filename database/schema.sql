@@ -167,8 +167,8 @@ CREATE TABLE `awfy_breakdown` (
   `test_id` int(10) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `run_id` (`run_id`),
-  KEY `suite_id` (`suite_id`),
   KEY `mode_id` (`mode_id`),
+  KEY `test_id` (`test_id`),
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -218,6 +218,7 @@ CREATE TABLE `awfy_score` (
   PRIMARY KEY (`id`),
   KEY `run_id` (`run_id`),
   KEY `mode_id` (`mode_id`)
+  KEY `suite_id` (`suite_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------

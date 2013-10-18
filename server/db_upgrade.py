@@ -68,3 +68,16 @@ if 'test' in awfy_breakdown_columns:
 if 'suite_id' in awfy_breakdown_columns:
     print('Dropping old column suite_id...')
     c.execute("alter table `awfy_breakdown` drop `suite_id`")
+
+def try_add_column(table, column):
+    try:
+        c.execute("alter table `{0}` add index {1} ({2})".format(table, column, column))
+    except:
+        pass
+
+try_add_column('awfy_breakdown', 'run_id')
+try_add_column('awfy_breakdown', 'mode_id')
+try_add_column('awfy_breakdown', 'test_id')
+try_add_column('awfy_score', 'run_id')
+try_add_column('awfy_score', 'mode_id')
+try_add_column('awfy_score', 'suite_id')
