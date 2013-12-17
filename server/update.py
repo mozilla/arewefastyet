@@ -48,7 +48,7 @@ def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
     query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id                       \
              FROM awfy_breakdown s                                                  \
              JOIN fast_run r ON s.run_id = r.id                                     \
-             JOIN awfy_build b ON s.run_id = b.run_id                               \
+             JOIN awfy_build b ON s.run_id = b.run_id AND s.mode_id = b.mode_id     \
              WHERE s.test_id = %s                                                   \
              AND r.status = 1                                                       \
              AND r.machine = %s                                                     \
@@ -60,15 +60,15 @@ def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
     return c.fetchall()
 
 def fetch_suite_scores(machine_id, suite_id, earliest_run_id):
-    query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id               \
-             FROM awfy_score s                                              \
-             JOIN fast_run r ON s.run_id = r.id                             \
-             JOIN awfy_build b ON s.run_id = b.run_id                       \
-             WHERE s.suite_id = %s                                          \
-             AND r.id > %s                                                  \
-             AND r.status = 1                                               \
-             AND r.machine = %s                                             \
-             ORDER BY r.stamp ASC                                           \
+    query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id                       \
+             FROM awfy_score s                                                      \
+             JOIN fast_run r ON s.run_id = r.id                                     \
+             JOIN awfy_build b ON s.run_id = b.run_id AND s.mode_id = b.mode_id     \
+             WHERE s.suite_id = %s                                                  \
+             AND r.id > %s                                                          \
+             AND r.status = 1                                                       \
+             AND r.machine = %s                                                     \
+             ORDER BY r.stamp ASC                                                   \
              "
     c = awfy.db.cursor()
     c.execute(query, [suite_id, earliest_run_id, machine_id])
