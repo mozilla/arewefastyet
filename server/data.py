@@ -17,7 +17,7 @@ class Benchmark(object):
         # Get a list of individual tests
         self.tests = []
         c = awfy.db.cursor()
-        c.execute("select id, name from awfy_suite_test where suite_id = %s", (suite_id,))
+        c.execute("select id, name from awfy_suite_test where suite_id = %s AND visible = 1", (suite_id,))
         for row in c.fetchall():
             self.tests.append((row[0], row[1]))
 
