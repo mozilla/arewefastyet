@@ -134,12 +134,20 @@ def BenchmarkNative(options, args):
     for benchmark in Benchmarks:
         binary = benchmark.build(options, args)
 
-        for factor in range(0, 5):
-            with open('/dev/null', 'w') as fp:
-                before = os.times()[4]
-                subprocess.check_call([binary, str(factor)], stdout=fp)
-                after = os.times()[4]
-                print(benchmark.name + '-workload' + str(factor) + ' - ' + str((after - before) * 1000))
+        # factor 1: loadtime
+        with open('/dev/null', 'w') as fp:
+            before = os.times()[4]
+            subprocess.check_call([binary, '1'], stdout=fp)
+            after = os.times()[4]
+            print(benchmark.name + '-loadtime - ' + str((after - before) * 1000))
+
+        # factor 3: throughput
+        with open('/dev/null', 'w') as fp:
+            before = os.times()[4]
+            subprocess.check_call([binary, '3'], stdout=fp)
+            after = os.times()[4]
+            print(benchmark.name + '-throughput - ' + str((after - before) * 1000))
+
 
 def Exec(vec):
     o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=os.environ)
@@ -147,16 +155,26 @@ def Exec(vec):
 
 def BenchmarkJavaScript(options, args):
     for benchmark in Benchmarks:
-        for factor in range(0, 5):
-            # Don't overwrite args!
-            argv = [] + args
-            argv.extend(['run.js', '--', benchmark.name + '.js', str(factor)])
-            try:
-                t = Exec(argv)
-                t = t.strip()
-                print(benchmark.name + '-workload' + str(factor) + ' - ' + t)
-            except Exception as e:
-                print('Exception when running ' + benchmark.name + ': ' + str(e))
+
+        # factor 1: loadtime
+        argv = [] + args
+        argv.extend(['run.js', '--', benchmark.name + '.js', '1'])
+        try:
+            t = Exec(argv)
+            t = t.strip()
+            print(benchmark.name + '-loadtime - ' + t)
+        except Exception as e:
+            print('Exception when running ' + benchmark.name + ': ' + str(e))
+
+        # factor 3: throughput
+        argv = [] + args
+        argv.extend(['run.js', '--', benchmark.name + '.js', '3'])
+        try:
+            t = Exec(argv)
+            t = t.strip()
+            print(benchmark.name + '-throughput - ' + t)
+        except Exception as e:
+            print('Exception when running ' + benchmark.name + ': ' + str(e))
 
 def main(argv):
     parser = OptionParser()
