@@ -39,7 +39,6 @@ KnownEngines = [
                 builders.Nitro()
                ]
 Engines = []
-MozillaUpdated = False
 NumUpdated = 0
 for e in KnownEngines:
     try:
@@ -54,7 +53,12 @@ for e in KnownEngines:
         NumUpdated += 1
     Engines.append([e, cset, updated])
 
+submit = submitter.Submitter()
+
+# No updates. Report to server and wait 60 seconds, before moving on
 if NumUpdated == 0 and not options.force:
+    submit.Awake();
+    sleep(60)
     sys.exit(0)
 
 # The native compiler is a special thing, for now.
@@ -85,7 +89,6 @@ for entry in Engines:
         modes.append(mode)
 
 # Inform AWFY of each mode we found.
-submit = submitter.Submitter()
 submit.Start()
 for mode in modes:
     submit.AddEngine(mode.name, mode.cset)

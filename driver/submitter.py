@@ -13,6 +13,12 @@ class Submitter:
         self.url = utils.config.get('main', 'updateURL')
         self.machine = utils.config.get('main', 'machine')
 
+    def Awake(self):
+        url = self.url
+        url += '?awake=yes'
+        url += '&MACHINE=' + str(self.machine)
+        urllib2.urlopen(url)
+
     def Start(self):
         url = self.url
         url += '?run=yes'
