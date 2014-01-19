@@ -16,16 +16,15 @@ awfy.Startup()
 config = ConfigParser.RawConfigParser()
 config.read('/etc/awfy-server.config')
 
-machine_timeout_minutes = int(config.get('general', 'machine_timeout'))
-
 c = awfy.db.cursor()
-c.execute("select id, description, last_checked, contact from awfy_machine where active = 1")
+c.execute("select id, description, last_checked, timeout, contact from awfy_machine where active = 1")
 machines = c.fetchall()
 for machine_row in machines:
     machine_id = machine_row[0]
     machine_description = machine_row[1]
     machine_last_checked = machine_row[2]
-    machine_contact = machine_row[3]
+    machine_timeout_minutes = machine_row[3]
+    machine_contact = machine_row[4]
 
     # Find the last time this machine submitted any data.
     c.execute(

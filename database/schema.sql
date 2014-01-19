@@ -201,7 +201,8 @@ CREATE TABLE `awfy_machine` (
   `description` varchar(255) NOT NULL,
   `active` tinyint(1) NOT NULL,
   `last_checked` int(10) unsigned NOT NULL,
-  `contact` mediumtext NOT NULL
+  `timeout` int(11) unsigned NOT NULL,
+  `contact` mediumtext NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
@@ -219,7 +220,7 @@ CREATE TABLE `awfy_score` (
   `score` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `run_id` (`run_id`),
-  KEY `mode_id` (`mode_id`)
+  KEY `mode_id` (`mode_id`),
   KEY `suite_id` (`suite_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 

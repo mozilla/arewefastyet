@@ -5,6 +5,7 @@
 "use strict";
 var AWFY = { };
 
+AWFY.DEFAULT_MACHINE_ID = 11;
 AWFY.refreshTime = 60 * 5;
 AWFY.machineId = 0;
 AWFY.hasLegend = false;
@@ -627,7 +628,7 @@ AWFY.parseURL = function () {
     if ('machine' in this.queryParams)
         machineId = parseInt(this.queryParams['machine']);
     else
-        machineId = 11;
+        machineId = this.DEFAULT_MACHINE_ID;
 
     var view = this.queryParams['view'];
     if (!view || (view != 'overview' && view != 'breakdown'))
