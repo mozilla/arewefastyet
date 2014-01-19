@@ -180,7 +180,7 @@ class Mozilla(Engine):
         utils.Shell("make -j 3 -C " + os.path.join('js', 'src', self.objdir))
 
     def shell(self):
-        return os.path.join('js', 'src', self.objdir, 'js')
+        return os.path.join('js', 'src', self.objdir, 'dist', 'bin', 'js')
 
 class MozillaInbound(Mozilla):
     def __init__(self):
