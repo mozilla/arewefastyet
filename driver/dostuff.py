@@ -10,6 +10,7 @@ import sys
 import signal
 import resource
 import utils
+import time
 from optparse import OptionParser
 from benchmark import Benchmarks
 from collections import namedtuple
@@ -58,7 +59,7 @@ submit = submitter.Submitter()
 # No updates. Report to server and wait 60 seconds, before moving on
 if NumUpdated == 0 and not options.force:
     submit.Awake();
-    sleep(60)
+    time.sleep(60)
     sys.exit(0)
 
 # The native compiler is a special thing, for now.
