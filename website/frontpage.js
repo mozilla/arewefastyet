@@ -251,8 +251,9 @@ Display.prototype.draw = function () {
             var axis = plot.getAxes();
             var rx = Math.round(axis.xaxis.c2p(x));
             if (this.graph.timelist[rx] < this.graph.earliest) {
-                ctx.strokeRect(x - radius / 2, y - radius / 2, radius, radius);
-                ctx.clearRect(x - radius / 4, y - radius / 4, radius / 2, radius / 2);
+                ctx.strokeRect(x - radius / 3, y - radius / 3, radius * 2/3, radius * 2/3);
+                // Disable clearRect due to bug in Firefox for Android (bug 936177)
+                //ctx.clearRect(x - radius / 4, y - radius / 4, radius / 2, radius / 2);
             } else {
                 ctx.arc(x, y, radius, 0, shadow ? Math.PI : Math.PI * 2, false);
             }
