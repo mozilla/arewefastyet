@@ -1,0 +1,10 @@
+[main]
+repos = /Users/mozilla/awfy/repos
+benchmarks = /Users/mozilla/awfy/benchmarks
+#TODO: add temporary directory for builds
+
+machine = 16
+updateURL = http://www.arewefastyet.com/???
+
+[mozilla]
+nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux/
