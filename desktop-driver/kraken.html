@@ -167,11 +167,12 @@ function finish()
             time += output[i][test];
         }
         total += time;
-        results[results.length] = {'name': 'kraken-' + test, 'time': time / output.length}
+        var pos = test.indexOf("-");
+        if (pos >= 0)
+            test = test.substring(pos + 1)
+        results[results.length] = {'name': test, 'time': time / output.length}
     }
     results[results.length] = {'name': "__total__", 'time': total / output.length}
-
-    console.log(results)
 
     location.href = "/submit?results="+encodeURIComponent(JSON.stringify(results))
 }
