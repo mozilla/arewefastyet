@@ -3,6 +3,7 @@ import BaseHTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 import urlparse
 import os
+import json
 
 # we allow to view the top directory
 os.chdir("../")
@@ -17,6 +18,34 @@ class FakeHandler(SimpleHTTPRequestHandler):
             fp = open("desktop-driver/results", "w");
             fp.write(queryParsed["results"][0]);
             fp.close()
+        elif self.path[:13] == "/sunspider.js":
+            parsedParams = urlparse.urlparse(self.path)
+            queryParsed = urlparse.parse_qs(parsedParams.query)
+            tests = queryParsed["tests"][0]
+
+            fp = open(tests+"/LIST", "r");
+            test_list = fp.read()
+            test_list = test_list.replace("\r\n", "\n").replace("\r", "\n")
+            test_list = test_list.split("\n")
+            if test_list[-1].strip() == "":
+                test_list = test_list[:-1]
+            fp.close()
+            
+            output = "var tests = " + json.dumps(test_list)+";\n"
+
+            test_content = []
+            for t in test_list:
+                fp = open(tests+"/"+t+".js", "r");
+                test_content.append(fp.read())
+                fp.close()
+
+            output += "var testContents = " + json.dumps(test_content)+";\n"
+
+            self.send_response(200)
+            self.send_header("Content-type", "application/javascript")
+            self.end_headers()
+            self.wfile.write(bytes(output))
+            return
 
         return SimpleHTTPRequestHandler.do_GET(self)
 
