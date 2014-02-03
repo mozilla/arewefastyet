@@ -111,7 +111,7 @@ function finish()
             time += output[i][test];
         }
         total += time;
-        results[results.length] = {'name': test, 'time': time / output.length}
+        results[results.length] = {'name': 'ss-' + test, 'time': time / output.length}
     }
     results[results.length] = {'name': "__total__", 'time': total / output.length}
 
