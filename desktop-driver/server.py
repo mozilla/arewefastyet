@@ -35,9 +35,18 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
             test_content = []
             for t in test_list:
+                content = ""
+
+                if os.path.exists(tests+"/"+t+"-data.js"):
+                    fp = open(tests+"/"+t+"-data.js", "r");
+                    content += fp.read()
+                    fp.close()
+
                 fp = open(tests+"/"+t+".js", "r");
-                test_content.append(fp.read())
+                content += fp.read()
                 fp.close()
+
+                test_content.append(content)
 
             output += "var testContents = " + json.dumps(test_content)+";\n"
 
