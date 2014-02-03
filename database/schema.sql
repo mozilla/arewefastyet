@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS `awfy_suite_test` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `suite_id` int(11) NOT NULL,
   `name` varchar(128) NOT NULL,
-  `visible` int(1) NOT NULL,
+  `visible` int(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `suite_id` (`suite_id`,`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
