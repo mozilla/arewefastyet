@@ -42,8 +42,12 @@ class Octane(Benchmark):
                 ret.append({'name': key, 'time': results[key]})
         return ret
 
+class SunSpider(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "ss", "desktop-driver/ss.html")
 
-Benchmarks = [Octane()]
+
+Benchmarks = [Octane(), SunSpider()]
 
 # Test if server is running and start server if needed.
 s =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
