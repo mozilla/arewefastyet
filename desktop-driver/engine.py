@@ -11,6 +11,8 @@ import signal
 
 sys.path.insert(1, '../driver')
 import utils
+import zipfile
+
 
 class Engine:
     def __init__(self):
@@ -33,8 +35,8 @@ class Mozilla(Engine):
         # Step 2: Find the correct file
         response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id)
         html = response.read()
-        exec_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.linux-i686.tar.bz2", html)[0]
-        json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.linux-i686.json", html)[0]
+        exec_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.zip", html)[0]
+        json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.json", html)[0]
 
         # Step 3: Get build information
         response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id+"/"+json_file)
@@ -42,12 +44,14 @@ class Mozilla(Engine):
         info = json.loads(html)
 
         # Step 4: Fetch archive
-        #urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, "firefox.tar.bz2")
+        urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, "firefox.zip")
 
         # Step 5: Unzip
         #tar = tarfile.open("firefox.tar.bz2")
         #tar.extractall()
         #tar.close()
+        zip = zipfile.ZipFile("firefox.zip")
+        zip.extractall()
 
         # Step 6: Save info
         self.updated = True
