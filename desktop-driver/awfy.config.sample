@@ -1,7 +1,7 @@
 [main]
 repos = /Users/mozilla/awfy/repos
 benchmarks = /Users/mozilla/awfy/benchmarks
-#TODO: add temporary directory for builds
+tmpDir= C:\Users\mozilla\Desktop\tmp\
 
 machine = 16
 updateURL = http://www.arewefastyet.com/???

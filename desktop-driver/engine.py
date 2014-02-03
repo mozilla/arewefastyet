@@ -22,6 +22,7 @@ class Mozilla(Engine):
     def __init__(self):
         Engine.__init__(self)
         self.nightly_dir = utils.config.get('mozilla', 'nightlyDir')
+        self.tmp_dir = utils.config.get('main', 'tmpDir')
         self.modes = [{
             'name': 'jmim'            
         }]
@@ -44,13 +45,13 @@ class Mozilla(Engine):
         info = json.loads(html)
 
         # Step 4: Fetch archive
-        urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, "firefox.zip")
+        urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, self.tmp_dir + "firefox.zip")
 
         # Step 5: Unzip
         #tar = tarfile.open("firefox.tar.bz2")
         #tar.extractall()
         #tar.close()
-        zip = zipfile.ZipFile("firefox.zip")
+        zip = zipfile.ZipFile(self.tmp_dir + "firefox.zip")
         zip.extractall()
 
         # Step 6: Save info
@@ -59,7 +60,7 @@ class Mozilla(Engine):
 
     def run(self, page):
         # Step 1: Get profile directory
-        output = subprocess.check_output(["firefox/firefox", "-CreateProfile", "test"], stderr=subprocess.STDOUT)
+        output = subprocess.check_output([self.tmp_dir + "firefox/firefox", "-CreateProfile", "test"], stderr=subprocess.STDOUT)
         print output
         profile = re.findall("at '(.*)'", output)[0]
         profileDir = os.path.dirname(profile)
@@ -69,10 +70,10 @@ class Mozilla(Engine):
             shutil.rmtree(profileDir)
 
         # Step 3: Create new profile
-        output = subprocess.check_output(["firefox/firefox", "-CreateProfile", "test"], stderr=subprocess.STDOUT)
+        output = subprocess.check_output([self.tmp_dir + "firefox/firefox", "-CreateProfile", "test"], stderr=subprocess.STDOUT)
 
         # Step 4: Start browser
-        self.pid = subprocess.Popen(["firefox/firefox", "-P", "test", page]).pid
+        self.pid = subprocess.Popen([self.tmp_dir + "firefox/firefox", "-P", "test", page]).pid
 
     def kill(self):
         os.kill(int(self.pid), signal.SIGTERM)
