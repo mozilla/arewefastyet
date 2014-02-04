@@ -105,6 +105,10 @@ class Chrome(Engine):
         # Step 3: Unzip
         self.unzip("chrome-win32.zip")
         
+        # Step 4: Save info
+        self.updated = True
+        self.cset = self.revision
+        
     def run(self, page):
         self.pid = subprocess.Popen([self.tmp_dir + "chrome-win32/chrome.exe", page]).pid
 
