@@ -52,7 +52,7 @@ class Mozilla(Engine):
         #tar.extractall()
         #tar.close()
         zip = zipfile.ZipFile(self.tmp_dir + "firefox.zip")
-        zip.extractall()
+        zip.extractall(self.tmp_dir)
 
         # Step 6: Save info
         self.updated = True
@@ -60,8 +60,7 @@ class Mozilla(Engine):
 
     def run(self, page):
         # Step 1: Get profile directory
-        output = subprocess.check_output([self.tmp_dir + "firefox/firefox", "-CreateProfile", "test"], stderr=subprocess.STDOUT)
-        print output
+        output = subprocess.check_output([self.tmp_dir + "firefox/firefox.exe", "-CreateProfile", "test"], stderr=subprocess.STDOUT)
         profile = re.findall("at '(.*)'", output)[0]
         profileDir = os.path.dirname(profile)
 
@@ -70,10 +69,10 @@ class Mozilla(Engine):
             shutil.rmtree(profileDir)
 
         # Step 3: Create new profile
-        output = subprocess.check_output([self.tmp_dir + "firefox/firefox", "-CreateProfile", "test"], stderr=subprocess.STDOUT)
+        output = subprocess.check_output([self.tmp_dir + "firefox/firefox.exe", "-CreateProfile", "test"], stderr=subprocess.STDOUT)
 
         # Step 4: Start browser
-        self.pid = subprocess.Popen([self.tmp_dir + "firefox/firefox", "-P", "test", page]).pid
+        self.pid = subprocess.Popen([self.tmp_dir + "firefox/firefox.exe", "-P", "test", page]).pid
 
     def kill(self):
         os.kill(int(self.pid), signal.SIGTERM)
