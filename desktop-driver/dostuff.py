@@ -24,7 +24,7 @@ parser.add_option("-c", "--config", dest="config_name", type="string", default="
 
 utils.InitConfig(options.config_name)
 
-KnownEngines = [engine.Mozilla()]
+KnownEngines = [engine.Mozilla(), engine.Chrome()]
 NumUpdated = 0
 
 # Update All engines

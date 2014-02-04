@@ -17,12 +17,26 @@ import zipfile
 class Engine:
     def __init__(self):
         self.updated = False
+        self.tmp_dir = utils.config.get('main', 'tmpDir')
+
+    def unzip(self, name):
+        if "tar.bz2" in name:
+            tar = tarfile.open(self.tmp_dir + name)
+            tar.extractall(self.tmp_dir)
+            tar.close()
+        else:
+            zip = zipfile.ZipFile(self.tmp_dir + name)
+            zip.extractall(self.tmp_dir)
+            zip.close()
+            
+    def kill(self):
+        os.kill(int(self.pid), signal.SIGTERM)
+
 
 class Mozilla(Engine):
     def __init__(self):
         Engine.__init__(self)
         self.nightly_dir = utils.config.get('mozilla', 'nightlyDir')
-        self.tmp_dir = utils.config.get('main', 'tmpDir')
         self.modes = [{
             'name': 'jmim'            
         }]
@@ -48,11 +62,7 @@ class Mozilla(Engine):
         urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, self.tmp_dir + "firefox.zip")
 
         # Step 5: Unzip
-        #tar = tarfile.open("firefox.tar.bz2")
-        #tar.extractall()
-        #tar.close()
-        zip = zipfile.ZipFile(self.tmp_dir + "firefox.zip")
-        zip.extractall(self.tmp_dir)
+        self.unzip("firefox.zip")
 
         # Step 6: Save info
         self.updated = True
@@ -74,5 +84,27 @@ class Mozilla(Engine):
         # Step 4: Start browser
         self.pid = subprocess.Popen([self.tmp_dir + "firefox/firefox.exe", "-P", "test", page]).pid
 
-    def kill(self):
-        os.kill(int(self.pid), signal.SIGTERM)
+class Chrome(Engine):
+    def __init__(self):
+        Engine.__init__(self)
+        self.build_info_url = utils.config.get('chrome', 'buildInfoUrl')
+        self.nightly_dir = utils.config.get('chrome', 'nightlyDir')
+        self.modes = [{
+            'name': 'v8'            
+        }]
+
+    def update(self):
+        # Step 1: Get latest succesfull build revision
+        response = urllib2.urlopen(self.build_info_url)
+        html = response.read()
+        self.revision =  re.findall('<td class="revision">([0-9]*)</td>\n    <td class="success">success</td>', html)[0]
+        
+        # Step 2: Download the archive
+        urllib.urlretrieve(self.nightly_dir+"/Win/"+self.revision+"/chrome-win32.zip", self.tmp_dir + "chrome-win32.zip")
+
+        # Step 3: Unzip
+        self.unzip("chrome-win32.zip")
+        
+    def run(self, page):
+        self.pid = subprocess.Popen([self.tmp_dir + "chrome-win32/chrome.exe", page]).pid
+
