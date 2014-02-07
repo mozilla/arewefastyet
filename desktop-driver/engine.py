@@ -98,15 +98,20 @@ class Chrome(Engine):
         response = urllib2.urlopen(self.build_info_url)
         html = response.read()
         dirname =  re.findall('<td class="revision">([0-9]*)</td>\n    <td class="success">success</td>', html)[0]
-        revision =  re.findall('<td class="success">success</td>    <td><a href="../builders/Win/builds/([0-9]*)">', html)[0]
-        
+        revision =  re.findall('<td class="success">success</td>    <td><a href="([0-9a-zA-Z/.]*)">', html)[0]
+
         # Step 2: Download the archive
         urllib.urlretrieve(self.nightly_dir+"/Win/"+dirname+"/chrome-win32.zip", self.tmp_dir + "chrome-win32.zip")
 
         # Step 3: Unzip
         self.unzip("chrome-win32.zip")
         
-        # Step 4: Save info
+        # Step 4: Get v8 revision
+        response = urllib2.urlopen(self.build_info_url + "/../"+ revision)
+        html = response.read()
+        self.cset = re.findall('<td class="left">got_v8_revision</td>\n    <td class="middle"><abbr title="\n              ([0-9]*)\n      ">', html)[0]
+
+        # Step 5: Save info
         self.updated = True
         self.cset = revision
         
