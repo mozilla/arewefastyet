@@ -97,17 +97,18 @@ class Chrome(Engine):
         # Step 1: Get latest succesfull build revision
         response = urllib2.urlopen(self.build_info_url)
         html = response.read()
-        self.revision =  re.findall('<td class="revision">([0-9]*)</td>\n    <td class="success">success</td>', html)[0]
+        dirname =  re.findall('<td class="revision">([0-9]*)</td>\n    <td class="success">success</td>', html)[0]
+        revision =  re.findall('<td class="success">success</td>    <td><a href="../builders/Win/builds/([0-9]*)">', html)[0]
         
         # Step 2: Download the archive
-        urllib.urlretrieve(self.nightly_dir+"/Win/"+self.revision+"/chrome-win32.zip", self.tmp_dir + "chrome-win32.zip")
+        urllib.urlretrieve(self.nightly_dir+"/Win/"+dirname+"/chrome-win32.zip", self.tmp_dir + "chrome-win32.zip")
 
         # Step 3: Unzip
         self.unzip("chrome-win32.zip")
         
         # Step 4: Save info
         self.updated = True
-        self.cset = self.revision
+        self.cset = revision
         
     def run(self, page):
         self.pid = subprocess.Popen([self.tmp_dir + "chrome-win32/chrome.exe", page]).pid
