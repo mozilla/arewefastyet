@@ -113,7 +113,6 @@ class Chrome(Engine):
 
         # Step 5: Save info
         self.updated = True
-        self.cset = revision
         
     def run(self, page):
         self.pid = subprocess.Popen([self.tmp_dir + "chrome-win32/chrome.exe", page]).pid
