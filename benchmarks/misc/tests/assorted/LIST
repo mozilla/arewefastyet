@@ -17,3 +17,6 @@ misc-bugs-652303-arraymod
 misc-bugs-659467-jsunzip
 misc-bugs-663087-decompress-gzip
 misc-bugs-847389-jpeg2000
+misc-f32-fft
+misc-f32-exp
+misc-f32-markov
