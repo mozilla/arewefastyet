@@ -142,7 +142,6 @@ class SunSpider(Benchmark):
         p = subprocess.Popen(["./sunspider",
                               "--shell=" + shell,
                               "--runs=" + str(self.runs),
-                              "--suite=" + self.suite,
                               args],
                               stdout=subprocess.PIPE,
                               env=env)
@@ -174,8 +173,8 @@ class SunSpider(Benchmark):
 
 Benchmarks = [AsmJSApps(),
               AsmJSMicro(),
-              SunSpider('ss', 'SunSpider', 'sunspider-0.9.1', 20),
-              SunSpider('kraken', 'kraken', 'kraken-1.1', 5),
-              SunSpider('misc', 'misc', 'assorted', 3),
+              SunSpider('ss', 'SunSpider', 20),
+              SunSpider('kraken', 'kraken', 5),
+              SunSpider('misc', 'misc', 3),
               Octane(),
              ]
