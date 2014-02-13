@@ -128,9 +128,8 @@ class Octane(Benchmark):
         return tests
 
 class SunSpider(Benchmark):
-    def __init__(self, name, folder, suite, runs):
+    def __init__(self, name, folder, runs):
         super(SunSpider, self).__init__(name, folder)
-        self.suite = suite
         self.runs = runs
 
     def benchmark(self, shell, env, args):
