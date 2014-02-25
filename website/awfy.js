@@ -225,8 +225,9 @@ AWFY.computeAggregate = function (received) {
     // Save this for if/when we need to zoom out.
     this.aggregate = graphs;
 
-    for (var id in graphs)
+    for (var id in graphs) {
         this.displayNewGraph(id, graphs[id]);
+    }
 
     this.drawLegend();
 }
@@ -491,7 +492,6 @@ AWFY.showOverview = function () {
 
     this.suiteName = null;
     this.panes = [$('#ss-graph'),
-                  /*$('#v8real-graph'),*/
                   $('#kraken-graph'),
                   $('#octane-graph')
                  ];
@@ -642,8 +642,7 @@ AWFY.parseURL = function () {
     // Make sure the menus are up to date.
     if (this.view != 'none') {
         if (this.machineId != machineId) {
-            $('#machinelist .clicked').removeClass('clicked');
-            $('#machine' + machineId).addClass('clicked');
+            this.updateMachineList(machineId);
         }
         $('#breakdownlist .clicked').removeClass('clicked');
         if (view == 'overview')
@@ -657,11 +656,13 @@ AWFY.parseURL = function () {
         if (view == 'overview') {
             if (machineId != this.machineId)
                 this.changeMachine(machineId);
+            this.lastHash = window.location.hash;
             return;
         } else if (view == 'breakdown') {
             if (suiteName == this.suiteName) {
                 if (machineId != this.machineId) 
                     this.changeMachine(machineId);
+                this.lastHash = window.location.hash;
                 return;
             }
         }
@@ -678,35 +679,44 @@ AWFY.parseURL = function () {
     this.lastHash = window.location.hash;
 }
 
+AWFY.updateMachineList = function (machineId) {
+    var menu = $('#machinelist');
+    menu.empty();
+    var showAll = false;
+    if (!AWFYMaster.machines[machineId].frontpage)
+        showAll = true;
+    for (var id in AWFYMaster.machines) {
+        var machine = AWFYMaster.machines[id];
+        if (!showAll && !machine.frontpage)
+            continue;
+        var li = $('<li></li>');
+        var a = $('<a href="#" id="machine' + id + '"></a>');
+        a.click((function (id) {
+            return (function (event) {
+                this.updateMachineList(parseInt(id));
+                this.changeMachine(parseInt(id));
+                this.pushState();
+                return false;
+            }).bind(this);
+        }).bind(this)(id));
+        if (parseInt(id) == machineId)
+            a.addClass('clicked');
+        a.html(machine.description);
+        a.appendTo(li);
+        li.appendTo(menu);
+    }
+}
+
 AWFY.startup = function () {
     this.panes = [$('#ss-graph'),
                   $('#kraken-graph'),
-                  /*$('#v8real-graph'),*/
                   $('#octane-graph')];
 
     this.parseURL();
 
     // Add machine information to the menu.
     var menu = $('#machinelist');
-    for (var id in AWFYMaster.machines) {
-        var machine = AWFYMaster.machines[id];
-        var li = $('<li></li>');
-        var a = $('<a href="#" id="machine' + id + '"></a>');
-        a.click((function (id) {
-            return (function (event) {
-                this.changeMachine(parseInt(id));
-                $('#machinelist .clicked').removeClass('clicked');
-                $(event.target).addClass('clicked');
-                this.pushState();
-                return false;
-            }).bind(this);
-        }).bind(this)(id));
-        if (parseInt(id) == this.machineId)
-            a.addClass('clicked');
-        a.html(machine.description);
-        a.appendTo(li);
-        li.appendTo(menu);
-    }
+    this.updateMachineList(this.machineId);
 
     // Hide it by default.
     $('#machinedrop').click((function (event) {
