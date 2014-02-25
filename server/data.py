@@ -40,18 +40,20 @@ class Vendor(object):
         self.rangeURL = rangeURL
 
 class Machine(object):
-    def __init__(self, id, os, cpu, description, active):
+    def __init__(self, id, os, cpu, description, active, frontpage):
         self.id = id
         self.os = os
         self.cpu = cpu
         self.description = description
         self.active = active
+        self.frontpage = frontpage
 
     def export(self):
         return { "id": self.id,
                  "os": self.os,
                  "cpu": self.cpu,
-                 "description": self.description
+                 "description": self.description,
+                 "frontpage": self.frontpage
                }
 
 class Mode(object):
@@ -130,9 +132,9 @@ class Context(object):
 
         # Get a list of machines.
         self.machines = []
-        c.execute("SELECT id, os, cpu, description, active FROM awfy_machine WHERE active >= 1")
+        c.execute("SELECT id, os, cpu, description, active, frontpage FROM awfy_machine WHERE active >= 1")
         for row in c.fetchall():
-            m = Machine(row[0], row[1], row[2], row[3], row[4])
+            m = Machine(row[0], row[1], row[2], row[3], row[4], row[5])
             self.machines.append(m)
 
     def exportModes(self):
