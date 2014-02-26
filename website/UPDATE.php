@@ -24,7 +24,7 @@ if (isset($_GET['run']) && $_GET['run'] == 'yes') {
 // Finish a full benchmark run. Scores will only become visible from now on
 // (when status equals 1).
 if (isset($_GET['run']) && $_GET['run'] == 'finish') {
-    $runid = GET_run_id();
+    $runid = GET_run_id('runid');
     $status = GET_int('status');
     if (isset($_GET['error']))
         $error = '\'' . mysql_real_escape_string(GET_string('error')) . '\'';
@@ -39,7 +39,7 @@ if (isset($_GET['run']) && $_GET['run'] == 'finish') {
 }
 
 if (isset($_GET['run']) && $_GET['run'] == 'addEngine') {
-    $runid = GET_run_id();
+    $runid = GET_run_id('runid');
     $mode_id = find_mode(GET_string('name'));
     $cset = mysql_real_escape_string(GET_string('cset'));
     mysql_query("INSERT INTO awfy_build
@@ -66,7 +66,7 @@ $name = mysql_real_escape_string(GET_string('name'));
 $time = mysql_real_escape_string(GET_string('time'));
 $suite_id = find_suite(GET_string('suite'));
 $mode_id = find_mode(GET_string('mode'));
-$run = GET_run_id();
+$run = GET_run_id('run');
 if ($name == '__total__') {
     mysql_query("INSERT INTO awfy_score
                  (run_id, suite_id, mode_id, score)
