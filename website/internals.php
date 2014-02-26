@@ -76,4 +76,11 @@ function awfy_query($query)
     return $result;
 }
 
-?>
+function GET_run_id()
+{
+    $runid = GET_int('runid');
+    $results = mysql_query("SELECT id from fast_run WHERE id = $runid AND status = 0");
+    if (!$results || mysql_num_rows($results) < 1)
+        return 0;
+    return $runid;
+}
