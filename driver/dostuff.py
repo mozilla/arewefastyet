@@ -7,12 +7,14 @@ import os
 import submitter
 import builders
 import sys
-import signal
 import resource
 import utils
 import time
+import puller
+import remote
+
 from optparse import OptionParser
-from benchmark import Benchmarks
+from benchmark import runBenches
 from collections import namedtuple
 
 parser = OptionParser(usage="usage: %prog [options]")
@@ -26,6 +28,12 @@ parser.add_option("-c", "--config", dest="config_name", type="string", default="
 (options, args) = parser.parse_args()
 
 utils.InitConfig(options.config_name)
+remote.InitSlaves()
+for slave in remote.slaves:
+    # make sure the slaves are synchronized with us.
+    slave.pushRemote(utils.DriverPath + os.path.sep, slave.DriverPath)
+    # uhhh... do we ever update the benchmarks?
+    slave.pushRemote(utils.BenchmarkPath + os.path.sep, slave.BenchmarkPath)
 
 # Set resource limits for child processes
 resource.setrlimit(resource.RLIMIT_AS, (-1, -1))
@@ -54,11 +62,12 @@ for e in KnownEngines:
         NumUpdated += 1
     Engines.append([e, cset, updated])
 
-submit = submitter.Submitter()
 
 # No updates. Report to server and wait 60 seconds, before moving on
 if NumUpdated == 0 and not options.force:
-    submit.Awake();
+    for slave in slaves:
+        submit = submitter.Submitter(slave)
+        submit.Awake();
     time.sleep(60)
     sys.exit(0)
 
@@ -74,6 +83,9 @@ for entry in Engines:
     e = entry[0]
     cset = entry[1]
     shell = os.path.join(utils.RepoPath, e.source, e.shell())
+    for slave in remote.slaves:
+        rshell = os.path.join(slave.RepoPath, e.source, e.shell())
+        slave.pushRemote(shell, rshell, follow=True)
     env = None
     with utils.chdir(os.path.join(utils.RepoPath, e.source)):
         env = e.env()
@@ -90,27 +102,14 @@ for entry in Engines:
         modes.append(mode)
 
 # Inform AWFY of each mode we found.
-submit.Start()
-for mode in modes:
-    submit.AddEngine(mode.name, mode.cset)
-submit.AddEngine(native.mode, native.signature)
+for slave in remote.slaves:
+    submit = submitter.Submitter(slave)
+    submit.Start()
+    for mode in modes:
+        submit.AddEngine(mode.name, mode.cset)
+    submit.AddEngine(native.mode, native.signature)
+    runBenches(slave, submit, native, modes)
 
-# Run through each benchmark.
-class TimeException(Exception):
-    pass
-
-def timeout_handler(signum, frame):
-    raise TimeException()
-
-for benchmark in Benchmarks:
-    try:
-        signal.signal(signal.SIGALRM, timeout_handler)
-        signal.alarm(15*60) # trigger alarm in 15 minutes
-
-        benchmark.run(submit, native, modes)
-
-        signal.alarm(0)
-    except TimeException:
-        pass
-
-submit.Finish(1)
+# wait for all of the slaves to finish running before exiting.
+for slave in remote.slaves:
+    slave.synchronize()

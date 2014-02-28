@@ -9,9 +9,9 @@ import urllib
 import urllib2
 
 class Submitter:
-    def __init__(self):
+    def __init__(self, slave):
         self.url = utils.config.get('main', 'updateURL')
-        self.machine = utils.config.get('main', 'machine')
+        self.machine = slave.machine
 
     def Awake(self):
         url = self.url

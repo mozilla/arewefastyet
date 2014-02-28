@@ -9,10 +9,16 @@ import sys
 import urllib2
 import StringIO
 import subprocess
+import signal
+import pickle
+import remote
+
 import ConfigParser
 import submitter
 import utils
 
+from collections import namedtuple
+Mode = namedtuple('Mode', ['shell', 'args', 'env', 'name', 'cset'])
 class Benchmark(object):
     def __init__(self, name, folder):
         self.name = name
@@ -34,8 +40,9 @@ class Benchmark(object):
                 tests = None
                 print('Running ' + self.name + ' under ' + mode.shell + ' ' + ' '.join(mode.args))
                 tests = self.benchmark(mode.shell, mode.env, mode.args)
-            except:
+            except Exception as e:
                 print('Failed to run ' + self.name + '!')
+                print("Exception: " +  repr(e))
                 pass
             if tests:
                 submit.AddTests(tests, self.name, mode.name)
@@ -51,15 +58,12 @@ class AsmJS(Benchmark):
 
     def _run(self, submit, native, modes):
         # Run the C++ mode.
-        full_args = ['python', 'harness.py', '--native']
+        full_args = ['python2.7', 'harness.py', '--native']
         full_args += ['--cc="' + native.cc + '"']
         full_args += ['--cxx="' + native.cxx + '"']
         full_args += ['--'] + native.args
-        print(' '.join(full_args))
-
-        p = subprocess.Popen(full_args, stdout=subprocess.PIPE, env=os.environ)
-        output = p.communicate()[0]
-        print(output)
+        output = utils.RunTimedCheckOutput(full_args)
+        
         tests = self.parse(output)
         submit.AddTests(tests, self.name, native.mode)
 
@@ -67,12 +71,10 @@ class AsmJS(Benchmark):
         super(AsmJS, self)._run(submit, native, modes)
 
     def benchmark(self, shell, env, args):
-        full_args = ['python', 'harness.py', shell, '--'] + args
+        full_args = ['python2.7', 'harness.py', shell, '--'] + args
         print(' '.join(full_args))
         
-        p = subprocess.Popen(full_args, stdout=subprocess.PIPE, env=env)
-        output = p.communicate()[0]
-        print(output)
+        output = utils.RunTimedCheckOutput(full_args, env=env)
         return self.parse(output)
 
     def parse(self, output):
@@ -108,8 +110,7 @@ class Octane(Benchmark):
         full_args.append('run.js')
 
         print(os.getcwd())
-        p = subprocess.Popen(full_args, stdout=subprocess.PIPE, env=env)
-        output = p.communicate()[0]
+        output = utils.RunTimedCheckOutput(full_args, env=env)
 
         tests = []
         lines = output.splitlines()
@@ -138,14 +139,11 @@ class SunSpider(Benchmark):
         else:
             args = ''
 
-        p = subprocess.Popen(["./sunspider",
-                              "--shell=" + shell,
-                              "--runs=" + str(self.runs),
-                              args],
-                              stdout=subprocess.PIPE,
-                              env=env)
-        output = p.communicate()[0]
-
+        output = utils.RunTimedCheckOutput(["./sunspider",
+                                            "--shell=" + shell,
+                                            "--runs=" + str(self.runs),
+                                            args],
+                                           env=env)
         tests = []
 
         lines = output.splitlines()
@@ -170,10 +168,26 @@ class SunSpider(Benchmark):
 
         return tests
 
-Benchmarks = [AsmJSApps(),
+Benchmarks = [ AsmJSApps(),
               AsmJSMicro(),
               SunSpider('ss', 'SunSpider', 20),
               SunSpider('kraken', 'kraken', 5),
               SunSpider('misc', 'misc', 3),
               Octane(),
              ]
+
+
+
+def runBenches_(submit, native, modes):
+    # Run through each benchmark.
+    print "runBenches_ believes the timeout is: " + str(utils.Timeout)
+    for benchmark in Benchmarks:
+        benchmark.run(submit, native, modes)
+    submit.Finish(1)
+
+def runBenches(slave, submit, native, modes):
+    slave.rpc(sys.modules[__name__], submit, native, modes, async=True)
+
+default_function = runBenches_
+if __name__ == "__main__":
+    remote.takerpc()
