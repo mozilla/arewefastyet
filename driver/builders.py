@@ -161,14 +161,6 @@ class Mozilla(Engine):
         self.important = True
         self.objdir = 'Opt'
 
-    def env(self):
-        env = os.environ.copy()
-        if self.cpu == 'x64':
-            env['DYLD_LIBRARY_PATH'] = "/usr/local/nspr64/lib"
-        elif self.cpu == 'x86':
-            env['DYLD_LIBRARY_PATH'] = "/usr/local/nspr32/lib"
-        return env
-
     def reconf(self):
         # Step 1. autoconf.
         with utils.FolderChanger(os.path.join('js', 'src')):
