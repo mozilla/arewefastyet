@@ -20,3 +20,5 @@ misc-bugs-847389-jpeg2000
 misc-f32-fft
 misc-f32-exp
 misc-f32-markov
+misc-typedobj-utf8array-typedobj.js
+misc-typedobj-utf8array-standard.js
