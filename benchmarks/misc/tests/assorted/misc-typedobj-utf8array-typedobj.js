@@ -2,7 +2,7 @@
 
 function do_test() {
   // Hand tweaked to get something around 1 seconds on my laptop.
-  var len = 192 * 100 * 1024;
+  var len = 192 * 10 * 1024;
   var BDType = TypedObject.uint8.array(len);
   var bdArray_in = new BDType();
   var bdArray_out = new BDType();
