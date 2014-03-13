@@ -20,8 +20,7 @@ AWFY.lastRefresh = 0;
 
 AWFY.request = function (files, callback) {
     var url = window.location.protocol + '//' +
-              window.location.host +
-              window.location.pathname;
+              window.location.host;
     if (url[url.length - 1] != '/')
         url += '/';
     url += 'data/';

@@ -504,7 +504,8 @@ Display.prototype.createToolTip = function (item, extended) {
             if (prev && vendor.rangeURL) {
                 var url = vendor.rangeURL
                             .replace("{from}", prev[1])
-                            .replace("{to}", point[1]);
+                            .replace("{to}", point[1])
+                            .replace("{num}", point[1] - prev[1]);
                 text += ' (<a href="' + url + '">changelog</a>)';
             }
         }
