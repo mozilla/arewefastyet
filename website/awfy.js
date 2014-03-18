@@ -71,6 +71,8 @@ AWFY.pushState = function () {
 }
 
 AWFY.loadAggregateGraph = function (blobgraph) {
+    if (!blobgraph)
+        return;
     var lines = [];
     var info = [];
     for (var i = 0; i < blobgraph.lines.length; i++) {
@@ -108,6 +110,13 @@ AWFY.displayNewGraph = function (name, graph) {
     var elt = $('#' + name + '-graph');
     if (!elt.length)
         return;
+    if (!graph) {
+	this.aggregate[name] = undefined;
+        elt.hide();
+	return;
+    }
+    console.log(graph);
+    elt.show();
     var display = elt.data('awfy-display');
     if (!display) {
         display = new Display(this, name, elt);
@@ -522,6 +531,7 @@ AWFY.showBreakdown = function (name) {
         $('<div></div>').html('<b>' + id + '</b>').appendTo(breakdown);
         var div = $('<div id="' + id + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
+	div.hide();
         $('<br><br>').appendTo(breakdown);
 
         this.panes.push(div);
