@@ -16,7 +16,7 @@ function main() {
   var p = { pos: [0, 0, 0],
             nor: [0, 0, 0] };
   var v = [1, 2, 3];
-  var len = 192 * 500 * 1024;
+  var len = 192 * 10 * 1024;
 
   if (typeof TIME !== "undefined")
     start_time = Date.now();

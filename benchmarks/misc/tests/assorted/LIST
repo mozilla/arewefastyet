@@ -22,3 +22,5 @@ misc-f32-exp
 misc-f32-markov
 misc-typedobj-utf8array-typedobj
 misc-typedobj-utf8array-standard
+misc-typedobj-write-struct-field-typedobj
+misc-typedobj-write-struct-field-standard
