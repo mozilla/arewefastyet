@@ -120,6 +120,8 @@ class V8(Engine):
         super(V8, self).__init__()
         self.puller = 'svn'
         self.source = utils.config.get('v8', 'source')
+        self.CXX = utils.config_get_default('v8', 'CXX')
+        self.LINK = utils.config.get('v8', 'LINK')
         self.args = ['--expose-gc']
         self.important = True
         self.hardfp = (utils.config.has_option('main', 'flags')) and \
@@ -132,16 +134,22 @@ class V8(Engine):
             ]
 
     def build(self):
-        Run(['make', 'dependencies'])
+        env = os.environ.copy()
+        if self.CXX is not None:
+            env['CXX'] = self.CXX
+        if self.LINK is not None:
+            env['LINK'] = self.LINK
+
+        Run(['make', 'dependencies'], env)
         if self.cpu == 'x64':
-            Run(['make', 'x64.release'])
+            Run(['make', 'x64.release'], env)
         elif self.cpu == 'arm':
             if self.hardfp:
-                Run(['make', 'arm.release', 'hardfp=on'])
+                Run(['make', 'arm.release', 'hardfp=on', 'i18nsupport=off'], env)
             else:
-                Run(['make', 'arm.release'])
+                Run(['make', 'arm.release', 'i18nsupport=off'], env)
         elif self.cpu == 'x86':
-            Run(['make', 'ia32.release'])
+            Run(['make', 'ia32.release'], env)
   
     def shell(self):
         if self.cpu == 'x64':

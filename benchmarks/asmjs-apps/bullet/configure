@@ -15042,6 +15042,15 @@ esac
 
 
 case "$host" in
+        arm*)
+
+cat >>confdefs.h <<\_ACEOF
+#define ARCH_ARM 1
+_ACEOF
+
+                ARCH_SPECIFIC_CFLAGS=""
+                ARCH_STRING="ARM"
+                ;;
         i?86-* | k?-* | athlon-* | pentium*-)
 
 cat >>confdefs.h <<\_ACEOF

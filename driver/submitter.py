@@ -9,8 +9,8 @@ import urllib
 import urllib2
 
 class Submitter:
-    def __init__(self):
-        self.machine = utils.config.get('main', 'machine')
+    def __init__(self, slave):
+        self.machine = slave.machine
         self.urls = utils.config.get('main', 'updateURL').split(",")
         self.runIds = []
         for i in range(len(self.urls)):
