@@ -11,15 +11,13 @@ import platform
 import subprocess
 from utils import Run
 
-UpdateCache = { }
-
 class Engine(object):
     def __init__(self):
         self.cpu = utils.config.get('main', 'cpu')
 
     def updateAndBuild(self, update, forceRebuild):
         with utils.FolderChanger(os.path.join(utils.RepoPath, self.source)):
-            return self._updateAndBuild(update, forceRebuild)
+            self._updateAndBuild(update, forceRebuild)
 
     def _updateAndBuild(self, update, forceRebuild):
         if self.puller == 'svn':
@@ -33,16 +31,12 @@ class Engine(object):
         if not os.path.isfile(shell):
             forceRebuild = True
     
-        if self.source in UpdateCache:
-            updated = UpdateCache[self.source]
+        if update:
+            self.updated = scm.Update()
         else:
-            if update:
-                updated = scm.Update()
-            else:
-                updated = False
-            UpdateCache[self.source] = updated
+            self.updated = False
     
-        if forceRebuild or updated:
+        if forceRebuild or self.updated:
             try:
                 os.unlink(shell)
             except:
@@ -53,15 +47,13 @@ class Engine(object):
                 if self.reconf():
                     self.build()
 
-            updated = True
+            self.updated = True
     
-        version = scm.Identify()
+        self.cset = scm.Identify()
     
         if not os.path.isfile(shell):
             print(shell)
             raise Exception('could not find shell')
-    
-        return [version, updated]
 
     def reconf(self):
         return False
@@ -230,3 +222,19 @@ class NativeCompiler(Engine):
         output = Run([self.cxx, '--version'])
         self.signature = output.splitlines()[0].strip()
 
+def build(engines, updateRepo, forceBuild):
+    Engines = []
+    NumUpdated = 0
+    for engine in engines:
+        try:
+            engine.updateAndBuild(updateRepo, forceBuild)
+        except Exception as err:
+            print('Build failed!')
+            print(err)
+            continue
+        if engine.cset == None:
+            continue
+        if engine.updated and engine.important:
+            NumUpdated += 1
+        Engines.append(engine)
+    return Engines, NumUpdated

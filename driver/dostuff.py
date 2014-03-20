@@ -4,18 +4,18 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
-import submitter
-import builders
 import sys
 import resource
 import utils
 import time
-import puller
-import remote
-
 from optparse import OptionParser
-from benchmark import runBenches
 from collections import namedtuple
+
+import benchmarks
+import builders
+import puller
+import slaves
+import submitter
 
 parser = OptionParser(usage="usage: %prog [options]")
 parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
@@ -24,48 +24,26 @@ parser.add_option("-n", "--no-update", dest="noupdate", action="store_true", def
                   help="Skip updating source repositories")
 parser.add_option("-c", "--config", dest="config_name", type="string", default="awfy.config",
                   help="Config file (default: awfy.config)")
-
 (options, args) = parser.parse_args()
 
 utils.InitConfig(options.config_name)
-remote.InitSlaves()
-for slave in remote.slaves:
-    # make sure the slaves are synchronized with us.
-    slave.pushRemote(utils.DriverPath + os.path.sep, slave.DriverPath)
-    # uhhh... do we ever update the benchmarks?
-    slave.pushRemote(utils.BenchmarkPath + os.path.sep, slave.BenchmarkPath)
 
 # Set resource limits for child processes
 resource.setrlimit(resource.RLIMIT_AS, (-1, -1))
 resource.setrlimit(resource.RLIMIT_RSS, (-1, -1))
 resource.setrlimit(resource.RLIMIT_DATA, (-1, -1))
 
-# Set of builders we'll use.
-KnownEngines = [
-                builders.MozillaInboundGGC(),
+# Set of engines that get build.
+KnownEngines = [builders.MozillaInboundGGC(),
                 builders.MozillaInbound(),
                 builders.V8(),
                 builders.Nitro()
                ]
-Engines = []
-NumUpdated = 0
-for e in KnownEngines:
-    try:
-        cset, updated = e.updateAndBuild(not options.noupdate, options.force)
-    except Exception as err:
-        print('Build failed!')
-        print(err)
-        continue
-    if cset == None:
-        continue
-    if updated and e.important:
-        NumUpdated += 1
-    Engines.append([e, cset, updated])
-
+Engines, NumUpdated = builders.build(KnownEngines, not options.noupdate, options.force)
 
 # No updates. Report to server and wait 60 seconds, before moving on
 if NumUpdated == 0 and not options.force:
-    for slave in slaves:
+    for slave in slaves.init():
         submit = submitter.Submitter(slave)
         submit.Awake();
     time.sleep(60)
@@ -79,37 +57,33 @@ Mode = namedtuple('Mode', ['shell', 'args', 'env', 'name', 'cset'])
 
 # Make a list of all modes.
 modes = []
-for entry in Engines:
-    e = entry[0]
-    cset = entry[1]
-    shell = os.path.join(utils.RepoPath, e.source, e.shell())
-    for slave in remote.slaves:
-        rshell = os.path.join(slave.RepoPath, e.source, e.shell())
-        slave.pushRemote(shell, rshell, follow=True)
+for engine in Engines:
+    shell = os.path.join(utils.RepoPath, engine.source, engine.shell())
     env = None
-    with utils.chdir(os.path.join(utils.RepoPath, e.source)):
-        env = e.env()
-    for m in e.modes:
-        if e.args:
-            args = list(e.args)
-            if m['args']:
-                args.append(*m['args'])
-        elif m['args']:
-            args = list(m['args'])
-        else:
-            args = []
-        mode = Mode(shell, args, env, m['mode'], cset)
+    with utils.chdir(os.path.join(utils.RepoPath, engine.source)):
+        env = engine.env()
+    for m in engine.modes:
+        engineArgs = engine.args if engine.args else []
+        modeArgs = m['args'] if m['args'] else []
+        args = engineArgs + modeArgs
+        mode = Mode(shell, args, env, m['mode'], engine.cset)
         modes.append(mode)
 
-# Inform AWFY of each mode we found.
-for slave in remote.slaves:
+# Set of slaves that run the builds. 
+KnownSlaves = slaves.init()
+
+for slave in KnownSlaves:
+    slave.prepare(Engines)
+
+    # Inform AWFY of each mode we found.
     submit = submitter.Submitter(slave)
     submit.Start()
     for mode in modes:
         submit.AddEngine(mode.name, mode.cset)
     submit.AddEngine(native.mode, native.signature)
-    runBenches(slave, submit, native, modes)
 
-# wait for all of the slaves to finish running before exiting.
+    slave.benchmark(submit, native, modes)
+
+# Wait for all of the slaves to finish running before exiting.
 for slave in remote.slaves:
     slave.synchronize()
