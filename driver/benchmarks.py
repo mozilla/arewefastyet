@@ -55,7 +55,7 @@ class AsmJS(Benchmark):
 
     def _run(self, submit, native, modes):
         # Run the C++ mode.
-        full_args = ['python', 'harness.py', '--native']
+        full_args = [utils.PythonName, 'harness.py', '--native']
         full_args += ['--cc="' + native.cc + '"']
         full_args += ['--cxx="' + native.cxx + '"']
         full_args += ['--'] + native.args
@@ -68,7 +68,7 @@ class AsmJS(Benchmark):
         super(AsmJS, self)._run(submit, native, modes)
 
     def benchmark(self, shell, env, args):
-        full_args = ['python', 'harness.py', shell, '--'] + args
+        full_args = [utils.PythonName, 'harness.py', shell, '--'] + args
         print(' '.join(full_args))
         
         output = utils.RunTimedCheckOutput(full_args, env=env)

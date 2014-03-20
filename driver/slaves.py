@@ -33,8 +33,7 @@ class RemoteSlave(Slave):
         self.Timeout = utils.config_get_default(name, 'timeout', str(utils.Timeout))
         # calculate timeoutmake multiplication work!
         self.Timeout = eval(self.Timeout, {}, {})
-        # assume that the remote python shell is the currently running shell.
-        self.PythonName = utils.config_get_default(name, 'python', sys.executable)
+        self.PythonName = utils.config_get_default(name, 'python', utils.PythonName)
         self.delayed = None
         self.delayedCommand = None
 
@@ -57,6 +56,7 @@ class RemoteSlave(Slave):
         pickle.dump(self.BenchmarkPath, fd)
         pickle.dump(self.DriverPath, fd)
         pickle.dump(self.Timeout, fd)
+        pickle.dump(self.PythonName, fd)
 
         # dump out all the arguments
         pickle.dump(submit, fd)
@@ -123,6 +123,7 @@ if __name__ == "__main__":
     utils.BenchmarkPath = pickle.load(fd)
     utils.DriverPath = pickle.load(fd)
     utils.Timeout = pickle.load(fd)
+    utils.PythonName = pickle.load(fd)
 
     # pull out the pickled arguments
     submit = pickle.load(fd)
