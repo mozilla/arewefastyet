@@ -11,14 +11,11 @@ import StringIO
 import subprocess
 import signal
 import pickle
-import remote
 
 import ConfigParser
 import submitter
 import utils
 
-from collections import namedtuple
-Mode = namedtuple('Mode', ['shell', 'args', 'env', 'name', 'cset'])
 class Benchmark(object):
     def __init__(self, name, folder):
         self.name = name

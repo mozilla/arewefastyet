@@ -15,6 +15,7 @@ RepoPath = None
 BenchmarkPath = None
 DriverPath = None
 Timeout = 15*60
+
 def InitConfig(name):
     global config, RepoPath, BenchmarkPath, DriverPath, Timeout
     config = ConfigParser.RawConfigParser()
@@ -23,7 +24,6 @@ def InitConfig(name):
     config.read(name)
     RepoPath = config.get('main', 'repos')
     BenchmarkPath = config.get('main', 'benchmarks')
-    # banal assumption that we are running this from the driver directory.
     DriverPath = config_get_default('main', 'driver', os.getcwd())
     Timeout = config_get_default('main', 'timeout', str(Timeout))
     # silly hack to allow 30*60 in the config file.
@@ -86,7 +86,7 @@ class Handler():
 def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenargs):
     if timeout is None:
         timeout = Timeout
-    print('Running: "'+ '" "'.join(args) + '" with timeout: ' + str(timeout))
+    print('Running: "'+ '" "'.join(args) + '" with timeout: ' + str(timeout)+'s')
     p = subprocess.Popen(args, env = env, stdout=subprocess.PIPE, **popenargs)
     with Handler(signal.SIGALRM, timeout_handler):
         try:

@@ -112,8 +112,8 @@ class V8(Engine):
         super(V8, self).__init__()
         self.puller = 'svn'
         self.source = utils.config.get('v8', 'source')
-        self.CXX = utils.config_get_default('v8', 'CXX')
-        self.LINK = utils.config.get('v8', 'LINK')
+        self.CXX = utils.config_get_default('v8', 'CXX', None)
+        self.LINK = utils.config_get_default('v8', 'LINK', None)
         self.args = ['--expose-gc']
         self.important = True
         self.hardfp = (utils.config.has_option('main', 'flags')) and \

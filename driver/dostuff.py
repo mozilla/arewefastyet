@@ -85,5 +85,5 @@ for slave in KnownSlaves:
     slave.benchmark(submit, native, modes)
 
 # Wait for all of the slaves to finish running before exiting.
-for slave in remote.slaves:
+for slave in KnownSlaves:
     slave.synchronize()
