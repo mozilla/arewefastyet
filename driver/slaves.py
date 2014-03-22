@@ -100,13 +100,15 @@ class RemoteSlave(Slave):
 
 def init(): 
     slaves = []
-    slaveNames = utils.config_get_default('main', 'slaves', []).split(",")
-    for name in slaveNames:
-        remote = utils.config_get_default(name, 'remote', 1)
-        if remote == 1:
-            slaves.append(RemoteSlave(name))
-        else:
-            slaves.append(Slave(name))
+    slaveNames = utils.config_get_default('main', 'slaves', None)
+    if slaveNames:
+        slaveNames = slaveNames.split(",")
+        for name in slaveNames:
+            remote = utils.config_get_default(name, 'remote', 1)
+            if remote == 1:
+                slaves.append(RemoteSlave(name))
+            else:
+                slaves.append(Slave(name))
 
     if not slaves:
         slaves = [Slave("main")]
