@@ -34,8 +34,7 @@ resource.setrlimit(resource.RLIMIT_RSS, (-1, -1))
 resource.setrlimit(resource.RLIMIT_DATA, (-1, -1))
 
 # Set of engines that get build.
-KnownEngines = [builders.MozillaInboundGGC(),
-                builders.MozillaInbound(),
+KnownEngines = [builders.MozillaInbound(),
                 builders.V8(),
                 builders.Nitro()
                ]
