@@ -115,7 +115,6 @@ AWFY.displayNewGraph = function (name, graph) {
         elt.hide();
 	return;
     }
-    console.log(graph);
     elt.show();
     var display = elt.data('awfy-display');
     if (!display) {
