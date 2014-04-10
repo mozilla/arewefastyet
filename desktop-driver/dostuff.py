@@ -5,6 +5,7 @@ import tarfile
 import subprocess
 import engine
 import sys
+import time
 from optparse import OptionParser
 from benchmark import Benchmarks
 
@@ -33,8 +34,12 @@ for e in KnownEngines:
     if e.updated:
         NumUpdated += 1
 
+class Slave:
+    def __init__(self, machine):
+        self.machine = machine
+submit = submitter.Submitter(Slave(utils.config.get('main', 'machine')))
+
 # No updates. Report to server and wait 60 seconds, before moving on
-submit = submitter.Submitter()
 if NumUpdated == 0 and not options.force:
     submit.Awake();
     time.sleep(60)
