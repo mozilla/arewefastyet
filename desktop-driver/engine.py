@@ -8,11 +8,16 @@ import subprocess
 import os
 import shutil
 import signal
+import time
 
 sys.path.insert(1, '../driver')
 import utils
 import zipfile
 
+class TimeException(Exception):
+    pass
+def timeout_handler(signum, frame):
+    raise TimeException()
 
 class Engine:
     def __init__(self):
@@ -30,6 +35,14 @@ class Engine:
             zip.close()
             
     def kill(self):
+        self.subprocess.terminate()
+        
+        for i in range(100):
+            time.sleep(0.1)
+            if self.subprocess.poll():
+                return
+            time.sleep(0.1)
+
         os.kill(int(self.pid), signal.SIGTERM)
 
 
@@ -59,6 +72,7 @@ class Mozilla(Engine):
         info = json.loads(html)
 
         # Step 4: Fetch archive
+        print "Retrieving", self.nightly_dir+"/"+self.folder_id+"/"+exec_file
         urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, self.tmp_dir + "firefox.zip")
 
         # Step 5: Unzip
@@ -69,20 +83,16 @@ class Mozilla(Engine):
         self.cset = info["moz_source_stamp"]
 
     def run(self, page):
-        # Step 1: Get profile directory
-        output = subprocess.check_output([self.tmp_dir + "firefox/firefox.exe", "-CreateProfile", "test"], stderr=subprocess.STDOUT)
-        profile = re.findall("at '(.*)'", output)[0]
-        profileDir = os.path.dirname(profile)
-
         # Step 2: Delete profile
-        if os.path.exists(profileDir):
-            shutil.rmtree(profileDir)
+        if os.path.exists(self.tmp_dir + "profile"):
+            shutil.rmtree(self.tmp_dir + "profile")
 
         # Step 3: Create new profile
-        output = subprocess.check_output([self.tmp_dir + "firefox/firefox.exe", "-CreateProfile", "test"], stderr=subprocess.STDOUT)
+        output = subprocess.check_output([self.tmp_dir + "firefox/firefox.exe", "-CreateProfile", "test "+self.tmp_dir+"profile"], stderr=subprocess.STDOUT)
 
         # Step 4: Start browser
-        self.pid = subprocess.Popen([self.tmp_dir + "firefox/firefox.exe", "-P", "test", page]).pid
+        self.subprocess = subprocess.Popen([self.tmp_dir + "firefox/firefox.exe", "-P", "test", page])
+        self.pid = self.subprocess.pid
 
 class Chrome(Engine):
     def __init__(self):
@@ -101,6 +111,7 @@ class Chrome(Engine):
         revision =  re.findall('<td class="success">success</td>    <td><a href="([0-9a-zA-Z/.]*)">', html)[0]
 
         # Step 2: Download the archive
+        print "Retrieving", self.nightly_dir+"/Win/"+dirname+"/chrome-win32.zip"
         urllib.urlretrieve(self.nightly_dir+"/Win/"+dirname+"/chrome-win32.zip", self.tmp_dir + "chrome-win32.zip")
 
         # Step 3: Unzip
@@ -115,5 +126,6 @@ class Chrome(Engine):
         self.updated = True
         
     def run(self, page):
-        self.pid = subprocess.Popen([self.tmp_dir + "chrome-win32/chrome.exe", page]).pid
+        self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-win32/chrome.exe", page])
+        self.pid = self.subprocess.pid
 
