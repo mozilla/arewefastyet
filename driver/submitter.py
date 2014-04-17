@@ -19,25 +19,35 @@ class Submitter:
 
     def Awake(self):
         for i in range(len(self.urls)):
-            url = self.urls[i]
-            url += '?awake=yes'
-            url += '&MACHINE=' + str(self.machine)
-            urllib2.urlopen(url)
+            try:
+                url = self.urls[i]
+                url += '?awake=yes'
+                url += '&MACHINE=' + str(self.machine)
+                urllib2.urlopen(url)
+            except urllib2.URLError:
+                pass
 
     def Start(self):
         for i in range(len(self.urls)):
-            url = self.urls[i]
-            url += '?run=yes'
-            url += '&MACHINE=' + str(self.machine)
-            url = urllib2.urlopen(url)
-            contents = url.read()
-            m = re.search('id=(\d+)', contents)
-            if m == None:
-                raise Exception('Remote error: ' + contents)
-            self.runIds[i] = int(m.group(1))
+            try:
+                url = self.urls[i]
+                url += '?run=yes'
+                url += '&MACHINE=' + str(self.machine)
+                url = urllib2.urlopen(url)
+                contents = url.read()
+                m = re.search('id=(\d+)', contents)
+                if m == None:
+                    self.runIds[i] = None
+                else:
+                    self.runIds[i] = int(m.group(1))
+            except urllib2.URLError:
+                self.runIds[i] = None
 
     def AddEngine(self, name, cset):
         for i in range(len(self.urls)):
+            if not self.runIds[i]:
+                continue
+
             args = { 'run': 'addEngine',
                      'runid': str(self.runIds[i]),
                      'name': name,
@@ -52,6 +62,9 @@ class Submitter:
 
     def SubmitTest(self, name, suite, mode, time):
         for i in range(len(self.urls)):
+            if not self.runIds[i]:
+                continue
+
             url = self.urls[i]
             url += '?name=' + name
             url += '&run=' + str(self.runIds[i])
@@ -62,9 +75,11 @@ class Submitter:
 
     def Finish(self, status):
         for i in range(len(self.urls)):
+            if not self.runIds[i]:
+                continue
+
             url = self.urls[i]
             url += '?run=finish'
             url += '&status=' + str(status)
             url += '&runid=' + str(self.runIds[i])
             urllib2.urlopen(url)
-
