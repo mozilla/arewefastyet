@@ -86,8 +86,10 @@ class Nitro(Engine):
 
     def build(self):
         # Hack 1: Remove reporting errors for warnings that currently are present.
-        Run(["sed","-i.bac","s/-Wimplicit-fallthrough//","Source/JavaScriptCore/Configurations/Base.xcconfig"])
-        Run(["sed","-i.bac","s/-Wglobal-constructors//","Source/JavaScriptCore/Configurations/Base.xcconfig"])
+        Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/JavaScriptCore/Configurations/Base.xcconfig"])
+        Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/bmalloc/Configurations/Base.xcconfig"])
+        Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/Line.h"])
+        Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/Page.h"])
 
         with utils.FolderChanger(os.path.join('Tools', 'Scripts')):
             # Hack 2: This check fails currently. Disable checking to still have a build.
@@ -103,6 +105,9 @@ class Nitro(Engine):
             os.rename("check-for-weak-vtables-and-externals2", "check-for-weak-vtables-and-externals");
 
         Run(["svn","revert","Source/JavaScriptCore/Configurations/Base.xcconfig"])
+        Run(["svn","revert","Source/bmalloc/Configurations/Base.xcconfig"])
+        Run(["svn","revert","Source/bmalloc/bmalloc/Line.h"])
+        Run(["svn","revert","Source/bmalloc/bmalloc/Page.h"])
 
     def shell(self):
         return os.path.join('WebKitBuild', 'Release', 'jsc')
