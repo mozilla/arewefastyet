@@ -29,6 +29,9 @@ new BenchmarkSuite('zlib', [152815148], [
   new Benchmark('zlib', false, true, 
     runZlib, undefined, tearDownZlib, null, 3)]);
 
+// Fix for jsc
+read = typeof(read) == 'undefined' ? readline : read;
+
 // Generate 100kB pseudo-random bytes (compressed 25906 bytes) and
 // compress/decompress them 60 times.
 var zlibEval = eval;
