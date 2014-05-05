@@ -15,6 +15,7 @@ var __ARGV__ = (function (argv) {
 
 var scriptArgs = __ARGV__;
 var arguments = __ARGV__;
+var read = typeof(read) == 'undefined' ? readline : read;
 
 function RunBenchmark(file)
 {
