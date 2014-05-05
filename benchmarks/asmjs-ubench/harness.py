@@ -65,7 +65,7 @@ def BenchmarkJavaScript(options, args):
             t = t.strip()
             print(benchmark + ' - ' + t)
         except Exception as e:
-            print('Exception when running ' + benchmark.name + ': ' + str(e))
+            print('Exception when running ' + benchmark + ': ' + str(e))
 
 def main(argv):
     parser = OptionParser()
