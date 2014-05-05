@@ -56,7 +56,7 @@ class Mozilla(Engine):
 
     def update(self):
         # Step 1: Get newest nightly folder 
-        response = urllib2.urlopen(self.nightly_dir+"/?C=M;O=D")
+        response = urllib2.urlopen(self.nightly_dir+"/?C=N;O=D")
         html = response.read()
         self.folder_id =  re.findall("[0-9]{5,}", html)[0]
 
