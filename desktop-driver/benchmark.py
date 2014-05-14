@@ -7,7 +7,7 @@ import json
 class Benchmark:
     def __init__(self, name, page):
         self.name = name
-        self.page = "localhost:8000/"+page
+        self.page = "http://localhost:8000/"+page
 
     def run(self, engine, submit):
         for modeInfo in engine.modes:
