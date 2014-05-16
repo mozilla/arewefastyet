@@ -137,16 +137,16 @@ class V8(Engine):
         if self.LINK is not None:
             env['LINK'] = self.LINK
 
-        Run(['make', 'dependencies'], env)
+        Run(['make', 'dependencies', '-j3'], env)
         if self.cpu == 'x64':
-            Run(['make', 'x64.release'], env)
+            Run(['make', 'x64.release', '-j3'], env)
         elif self.cpu == 'arm':
             if self.hardfp:
-                Run(['make', 'arm.release', 'hardfp=on', 'i18nsupport=off'], env)
+                Run(['make', 'arm.release', 'hardfp=on', 'i18nsupport=off', '-j3'], env)
             else:
-                Run(['make', 'arm.release', 'i18nsupport=off'], env)
+                Run(['make', 'arm.release', 'i18nsupport=off', '-j3'], env)
         elif self.cpu == 'x86':
-            Run(['make', 'ia32.release'], env)
+            Run(['make', 'ia32.release', '-j3'], env)
   
     def shell(self):
         if self.cpu == 'x64':
