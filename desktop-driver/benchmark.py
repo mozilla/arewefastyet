@@ -5,8 +5,9 @@ import time
 import json
 
 class Benchmark:
-    def __init__(self, name, page):
-        self.name = name
+    def __init__(self, suite, version, page):
+        self.suite = suite
+        self.version = suite+" "+version
         self.page = "http://localhost:8000/"+page
 
     def run(self, engine, submit):
@@ -24,14 +25,14 @@ class Benchmark:
             fp.close()
 
             results = self.processResults(results)
-            submit.AddTests(results, self.name, modeInfo["name"])
+            submit.AddTests(results, self.suite, self.version, modeInfo["name"])
 
     def processResults(self, results):
         return results
 
 class Octane(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "octane", "desktop-driver/octane.html")
+        Benchmark.__init__(self, "octane", "2.0", "desktop-driver/octane.html")
 
     def processResults(self, results):
         ret = []
@@ -44,11 +45,11 @@ class Octane(Benchmark):
 
 class SunSpider(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "ss", "desktop-driver/ss.html")
+        Benchmark.__init__(self, "ss", "1.0.1", "desktop-driver/ss.html")
 
 class Kraken(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "kraken", "desktop-driver/kraken.html")
+        Benchmark.__init__(self, "kraken", "1.1", "desktop-driver/kraken.html")
 
 Benchmarks = [Octane(), SunSpider(), Kraken()]
 

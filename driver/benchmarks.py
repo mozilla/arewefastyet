@@ -17,8 +17,9 @@ import submitter
 import utils
 
 class Benchmark(object):
-    def __init__(self, name, folder):
-        self.name = name
+    def __init__(self, suite, version, folder):
+        self.suite = suite
+        self.version = suite+" "+version
         self.folder = folder
 
     def run(self, submit, native, modes):
@@ -35,18 +36,18 @@ class Benchmark(object):
                 continue
             try:
                 tests = None
-                print('Running ' + self.name + ' under ' + mode.shell + ' ' + ' '.join(mode.args))
+                print('Running ' + self.version + ' under ' + mode.shell + ' ' + ' '.join(mode.args))
                 tests = self.benchmark(mode.shell, mode.env, mode.args)
             except Exception as e:
-                print('Failed to run ' + self.name + '!')
+                print('Failed to run ' + self.version + '!')
                 print("Exception: " +  repr(e))
                 pass
             if tests:
-                submit.AddTests(tests, self.name, mode.name)
+                submit.AddTests(tests, self.suite, self.version, mode.name)
 
 class AsmJS(Benchmark):
-    def __init__(self, name, folder):
-        super(AsmJS, self).__init__(name, folder)
+    def __init__(self, suite, version, folder):
+        super(AsmJS, self).__init__(suite, version, folder)
 
     def omit(self, mode):
         if mode.name == 'noasmjs':
@@ -62,7 +63,7 @@ class AsmJS(Benchmark):
         output = utils.RunTimedCheckOutput(full_args)
         
         tests = self.parse(output)
-        submit.AddTests(tests, self.name, native.mode)
+        submit.AddTests(tests, self.suite, self.version, native.mode)
 
         # Run normal benchmarks.
         super(AsmJS, self)._run(submit, native, modes)
@@ -90,15 +91,15 @@ class AsmJS(Benchmark):
 
 class AsmJSMicro(AsmJS):
     def __init__(self):
-        super(AsmJSMicro, self).__init__('asmjs-ubench', 'asmjs-ubench')
+        super(AsmJSMicro, self).__init__('asmjs-ubench', '0.1', 'asmjs-ubench')
 
 class AsmJSApps(AsmJS):
     def __init__(self):
-        super(AsmJSApps, self).__init__('asmjs-apps', 'asmjs-apps')
+        super(AsmJSApps, self).__init__('asmjs-apps', '0.1', 'asmjs-apps')
 
 class Octane(Benchmark):
     def __init__(self):
-        super(Octane, self).__init__('octane', 'octane')
+        super(Octane, self).__init__('octane', '2.0', 'octane')
 
     def benchmark(self, shell, env, args):
         full_args = [shell]
@@ -125,9 +126,9 @@ class Octane(Benchmark):
 
         return tests
 
-class SunSpider(Benchmark):
-    def __init__(self, name, folder, runs):
-        super(SunSpider, self).__init__(name, folder)
+class SunSpiderBased(Benchmark):
+    def __init__(self, suite, version, folder, runs):
+        super(SunSpiderBased, self).__init__(suite, version, folder)
         self.runs = runs
 
     def benchmark(self, shell, env, args):
@@ -165,11 +166,23 @@ class SunSpider(Benchmark):
 
         return tests
 
+class SunSpider(SunSpiderBased):
+    def __init__(self):
+        super(SunSpider, self).__init__('ss', '1.0.1', 'SunSpider', 20)
+
+class Kraken(SunSpiderBased):
+    def __init__(self):
+        super(Kraken, self).__init__('kraken', '1.1', 'kraken', 5)
+
+class Assorted(SunSpiderBased):
+    def __init__(self):
+        super(Assorted, self).__init__('misc', '0.1', 'misc', 3)
+
 Benchmarks = [AsmJSApps(),
               AsmJSMicro(),
-              SunSpider('ss', 'SunSpider', 20),
-              SunSpider('kraken', 'kraken', 5),
-              SunSpider('misc', 'misc', 3),
+              SunSpider(),
+              Kraken(),
+              Assorted(),
               Octane(),
              ]
 

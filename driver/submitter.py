@@ -56,21 +56,23 @@ class Submitter:
             url = self.urls[i] + '?' + urllib.urlencode(args)
             urllib2.urlopen(url)
 
-    def AddTests(self, tests, suite, mode):
+    def AddTests(self, tests, suite, suiteversion, mode):
         for test in tests:
-            self.SubmitTest(test['name'], suite, mode, test['time'])
+            self.SubmitTest(test['name'], suite, suiteversion, mode, test['time'])
 
-    def SubmitTest(self, name, suite, mode, time):
+    def SubmitTest(self, name, suite, suiteversion, mode, time):
         for i in range(len(self.urls)):
             if not self.runIds[i]:
                 continue
 
-            url = self.urls[i]
-            url += '?name=' + name
-            url += '&run=' + str(self.runIds[i])
-            url += '&suite=' + suite
-            url += '&mode=' + mode
-            url += '&time=' + str(time)
+            args = { 'name': name,
+                     'run': str(self.runIds[i]),
+                     'suite': suite,
+                     'version': suiteversion,
+                     'mode': mode,
+                     'time': str(time)
+                   }
+            url = self.urls[i] + '?' + urllib.urlencode(args)
             urllib2.urlopen(url)
 
     def Finish(self, status):
