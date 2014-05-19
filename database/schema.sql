@@ -88,11 +88,18 @@ CREATE TABLE `awfy_suite` (
 
 CREATE TABLE IF NOT EXISTS `awfy_suite_test` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `suite_id` int(11) NOT NULL,
+  `suite_version_id` int(11) NOT NULL,
   `name` varchar(128) NOT NULL,
   `visible` int(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `suite_id` (`suite_id`,`name`)
+  UNIQUE KEY `suite_id` (`suite_version_id`,`name`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `awfy_suite_version` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `suite_id` int(10) unsigned NOT NULL,
+  `name` varchar(45) NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
@@ -216,14 +223,14 @@ CREATE TABLE `awfy_machine` (
 CREATE TABLE `awfy_score` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `run_id` int(11) DEFAULT NULL,
-  `suite_id` int(11) DEFAULT NULL,
+  `suite_version_id` int(11) DEFAULT NULL,
   `mode_id` int(11) DEFAULT NULL,
   `score` double DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `run_id_2` (`run_id`,`suite_id`,`mode_id`),
+  UNIQUE KEY `run_id_2` (`run_id`,`suite_version_id`,`mode_id`),
   KEY `run_id` (`run_id`),
   KEY `mode_id` (`mode_id`),
-  KEY `suite_id` (`suite_id`)
+  KEY `suite_id` (`suite_version_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
