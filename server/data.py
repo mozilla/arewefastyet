@@ -17,16 +17,21 @@ class Benchmark(object):
         # Get a list of individual tests
         self.tests = []
         c = awfy.db.cursor()
-        c.execute("select id, name from awfy_suite_test where suite_id = %s AND visible = 1", (suite_id,))
+        c.execute("SELECT t.name                                                          \
+                   FROM awfy_suite_test t                                                 \
+                   JOIN awfy_suite_version v ON v.id = t.suite_version_id                 \
+                   WHERE suite_id = %s                                                    \
+                   AND visible = 1                                                        \
+                   GROUP BY t.name", (suite_id,))
         for row in c.fetchall():
-            self.tests.append((row[0], row[1]))
+            self.tests.append(row[0])
 
     def export(self):
         return { "id": self.id,
                  "name": self.name,
                  "description": self.description,
                  "direction": self.direction,
-                 "tests": [entry[1] for entry in self.tests],
+                 "tests": self.tests,
                  "sort_order": self.sort_order
                }
 
@@ -130,6 +135,12 @@ class Context(object):
             self.suitemap[row[0]] = b
             self.benchmarks.append(b)
 
+        # Get a list of suite versions
+        self.suiteversions = []
+        c.execute("SELECT id, name FROM awfy_suite_version")
+        for row in c.fetchall():
+            self.suiteversions.append([row[0], row[1]])
+
         # Get a list of machines.
         self.machines = []
         c.execute("SELECT id, os, cpu, description, active, frontpage FROM awfy_machine WHERE active >= 1")
@@ -167,5 +178,11 @@ class Context(object):
         o = { }
         for b in self.benchmarks:
             o[b.name] = b.export()
+        return o
+
+    def exportSuiteVersions(self):
+        o = { }
+        for v in self.suiteversions:
+            o[v[0]] = v[1]
         return o
 

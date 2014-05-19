@@ -45,26 +45,30 @@ def delete_metadata(prefix, data):
         os.remove(name)
 
 def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
-    query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id                       \
+    query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id, v.id                 \
              FROM awfy_breakdown s                                                  \
              JOIN fast_run r ON s.run_id = r.id                                     \
              JOIN awfy_build b ON s.run_id = b.run_id AND s.mode_id = b.mode_id     \
-             WHERE s.test_id = %s                                                   \
+             JOIN awfy_suite_test t ON s.test_id = t.id                             \
+             JOIN awfy_suite_version v ON v.id = t.suite_version_id                 \
+             WHERE v.suite_id = %s                                                  \
+             AND t.name = %s                                                        \
              AND r.status = 1                                                       \
              AND r.machine = %s                                                     \
              AND r.id > %s                                                          \
              ORDER BY r.stamp ASC                                                   \
              "
     c = awfy.db.cursor()
-    c.execute(query, [name, machine_id, earliest_run_id])
+    c.execute(query, [suite_id, name, machine_id, earliest_run_id])
     return c.fetchall()
 
 def fetch_suite_scores(machine_id, suite_id, earliest_run_id):
-    query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id                       \
+    query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id, v.id                 \
              FROM awfy_score s                                                      \
              JOIN fast_run r ON s.run_id = r.id                                     \
              JOIN awfy_build b ON s.run_id = b.run_id AND s.mode_id = b.mode_id     \
-             WHERE s.suite_id = %s                                                  \
+             JOIN awfy_suite_version v ON v.id = s.suite_version_id                 \
+             WHERE v.suite_id = %s                                                  \
              AND r.id > %s                                                          \
              AND r.status = 1                                                       \
              AND r.machine = %s                                                     \
@@ -124,7 +128,8 @@ def update_cache(cx, suite, prefix, when, rows):
                              int(row[1]) - timezone_offset(),
                              cset,
                              None,
-                             score)
+                             score,
+			     row[5])
         line = { 'modeid': modeid,
                  'data': points
                }
@@ -270,9 +275,9 @@ def update(cx, machine, suite):
     if not new_rows:
         return
 
-    for test_id, test_name in suite.tests:
+    for test_name in suite.tests:
         def fetch_test(machine, earliest_run_id):
-            return fetch_test_scores(machine.id, suite.id, test_id, earliest_run_id)
+            return fetch_test_scores(machine.id, suite.id, test_name, earliest_run_id)
 
         prefix = 'bk-raw-' + suite.name + '-' + test_name + '-' + str(machine.id)
         perform_update(cx, machine, suite, prefix, fetch_test)
@@ -282,7 +287,8 @@ def export_master(cx):
           "modes": cx.exportModes(),
           "vendors": cx.exportVendors(),
           "machines": cx.exportMachines(),
-          "suites": cx.exportSuites()
+          "suites": cx.exportSuites(),
+          "suiteversions" : cx.exportSuiteVersions()
         }
 
     text = "var AWFYMaster = " + json.dumps(j) + ";\n"

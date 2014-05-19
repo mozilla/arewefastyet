@@ -80,21 +80,26 @@ def condense_graph(graph, regions):
     for line in graph['lines']:
         points = []
         for start, end in regions:
-            average = 0
+            total = 0
             count = 0
             first = None
             last = None
+            suite_version = None
             for i in range(start, end):
                 p = line['data'][i]
                 if not p or not p[0]:
                     continue
-                average = ((average * count) + p[0]) / (count + 1)
-                count = count + 1
+                total += p[0]
+                count += 1
                 if not first:
                     first = p[1]
                 last = p[1]
-            points.append([average, first, last])
-                
+                suite_version = p[3]
+            if count == 0:
+                avg = 0
+            else:
+                avg = total/count
+            points.append([avg, first, last, suite_version])
 
         newline = { 'modeid': line['modeid'],
                     'data': points
@@ -247,7 +252,7 @@ def condense_suite(cx, machine, suite):
     # the combine graph back to our caller.
     suite_aggregate = condense(cx, suite, '', name)
 
-    for test_id, test_name in suite.tests:
+    for test_name in suite.tests:
         test_path = suite.name + '-' + test_name + '-' + str(machine.id)
         test_aggregate = condense(cx, suite, 'bk-', test_path)
         j = { 'version': awfy.version,
