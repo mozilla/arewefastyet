@@ -91,11 +91,11 @@ class AsmJS(Benchmark):
 
 class AsmJSMicro(AsmJS):
     def __init__(self):
-        super(AsmJSMicro, self).__init__('asmjs-ubench', '0.1', 'asmjs-ubench')
+        super(AsmJSMicro, self).__init__('asmjs-ubench', '0.2', 'asmjs-ubench')
 
 class AsmJSApps(AsmJS):
     def __init__(self):
-        super(AsmJSApps, self).__init__('asmjs-apps', '0.1', 'asmjs-apps')
+        super(AsmJSApps, self).__init__('asmjs-apps', '0.2', 'asmjs-apps')
 
 class Octane(Benchmark):
     def __init__(self):
