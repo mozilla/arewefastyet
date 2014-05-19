@@ -62,19 +62,21 @@ if (isset($_GET['awake']) && $_GET['awake'] == 'yes') {
 }
 
 // Report score of a benchmark total or subtest.
-$name = mysql_real_escape_string(GET_string('name'));
 $time = mysql_real_escape_string(GET_string('time'));
-$suite_id = find_suite(GET_string('suite'));
 $mode_id = find_mode(GET_string('mode'));
 $run = GET_run_id('run');
-if ($name == '__total__') {
+$version = GET_string('suite');
+if (isset($_GET['version']))
+    $version = GET_string('version');
+$suite_version_id = find_or_add_suite_version(GET_string('suite'), $version);
+if (GET_string('name') == '__total__') {
     mysql_query("INSERT INTO awfy_score
-                 (run_id, suite_id, mode_id, score)
+                 (run_id, suite_version_id, mode_id, score)
                  VALUES
-                 ($run, $suite_id, $mode_id, $time)")
+                 ($run, $suite_version_id, $mode_id, $time)")
         or die("ERROR: " . mysql_error());
 } else {
-    $test_id = find_or_add_test($suite_id, $name);
+    $test_id = find_or_add_test($suite_version_id, GET_string('name'));
     mysql_query("INSERT INTO awfy_breakdown
                  (run_id, mode_id, score, test_id)
                  VALUES

@@ -425,14 +425,23 @@ Display.prototype.createToolTip = function (item, extended) {
     var so = extended ? '<strong>' : '';
     var sc = extended ? '</strong>' : '';
 
-    var x = item.datapoint[0];
-    var y = item.datapoint[1];
-    var text = so + 'score: ' + sc + y.toFixed() + '<br>';
-
     // Figure out the line this corresponds to.
     var line = this.graph.info[item.seriesIndex];
     if (!line)
         return;
+
+    var text = "";
+    var x = item.datapoint[0];
+    var y = item.datapoint[1];
+
+    // Show suite version.
+    if (line.data[x][3]) {
+        var suiteVersion = AWFYMaster.suiteversions[line.data[x][3]];
+        text += so + 'suite: ' + sc + suiteVersion + '<br>';
+    }
+
+    // Show score.
+    text += so + 'score: ' + sc + y.toFixed() + '<br>';
 
     // Find the point previous to this one.
     var prev = null;

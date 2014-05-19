@@ -57,12 +57,29 @@ function find_suite($suite)
     return intval($row[0]);
 }
 
-function find_or_add_test($suite_id, $name)
+function find_or_add_suite_version($suite, $version)
 {
-    $query = "select id from awfy_suite_test where suite_id = $suite_id and name = '$name'";
+    $suite_id = find_suite($suite);
+    if ($suite_id == -1)
+        return -1;
+    $query = "select id from awfy_suite_version where suite_id = $suite_id and name = '$version'";
     $results = mysql_query($query);
     if (!$results || mysql_num_rows($results) < 1) {
-        $query = "insert into awfy_suite_test (suite_id, name) values($suite_id, '$name')";
+        $query = "insert into awfy_suite_version (suite_id, name) values($suite_id, '$version')";
+        mysql_query($query);
+        return mysql_insert_id();
+    }
+    $row = mysql_fetch_array($results);
+    return intval($row[0]);
+}
+
+function find_or_add_test($suite_version_id, $name)
+{
+    $name = mysql_real_escape_string($name);
+    $query = "select id from awfy_suite_test where suite_version_id = $suite_version_id and name = '$name'";
+    $results = mysql_query($query);
+    if (!$results || mysql_num_rows($results) < 1) {
+        $query = "insert into awfy_suite_test (suite_version_id, name) values($suite_version_id, '$name')";
         mysql_query($query);
         return mysql_insert_id();
     }
