@@ -51,7 +51,11 @@ class Kraken(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "kraken", "1.1", "desktop-driver/kraken.html")
 
-Benchmarks = [Octane(), SunSpider(), Kraken()]
+class WebGLSamples(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "webglsamples", "0.1", "desktop-driver/webglsamples.html")
+
+Benchmarks = [Octane(), SunSpider(), Kraken(), WebGLSamples()]
 
 # Test if server is running and start server if needed.
 s =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<!--
+Copyright (c) 2010 Human Engines Inc. All rights reserved.
+ 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+ 
+   * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+   * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+ 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+--> 
+
+<html>
+<head>	
+	<title>Collectibles Painter</title>
+	<link rel="stylesheet" href="content/css/reset.css" type="text/css" media="screen" charset="utf-8" />		
+	<link rel="stylesheet" href="content/css/fonts.css" type="text/css" media="screen" charset="utf-8" />		
+	<link rel="stylesheet" href="content/css/layout.css" type="text/css" media="screen" charset="utf-8" />
+	<link rel="stylesheet" href="content/css/pattern-carousel_skin.css" type="text/css" media="screen" charset="utf-8" />
+	<link rel="stylesheet" href="content/css/plugin.css" type="text/css" media="screen" charset="utf-8" />
+	<!-- <link rel="stylesheet" media="screen" type="text/css" href="content/css/colorpicker.css" /> -->
+</head>
+
+
+<body>
+	<div id="pageContainer" class="">
+                <div id="webGLerror" class="hide">
+                            This page requires a browser that supports WebGL.<br/><a href="http://get.webgl.org">Click here to upgrade your browser.</a>
+                 </div>
+		<div id="loadingMenu" class="popupMenu hide">
+			<h4>Welcome to Collectibles Painter</h4>
+			<h2>Select a model to begin</h2>
+				<div>
+					<img src="content/images/assets/DollSelectionM_shadow.png" alt="Male Doll" width="150" height="322" id="dollbaseMale"  /></li>
+					<img src="content/images/assets/DollSelectionF_shadow.png" alt="Female Doll" width="150" height="322" id="dollbaseFemale"  /></li>
+				</div>
+		</div>
+			  
+		<div id="tools" class="palette hide">
+			<h3>Tools</h3>
+		  <ul>
+				<li class="zoom"><a href="#">Zoom</a></li>
+				<li class="options"><a href="#">Options</a></li>
+				<li class="cameraReset"><a href="#">CameraReset</a></li>
+				<li class="undo hide"><a href="#">Undo</a></li>
+				<li class="blank hide"><a href="#">Options</a></li>
+				<li class="doll1"><a href="#">doll1</a></li>
+				<li class="doll2"><a href="#">"doll2</a></li>
+		  </ul>
+	  </div>
+	
+	<div id="colorPalette" class="palette hide">
+		<h3>Colors</h3>
+		<div id="mini">
+		<div class="north"><span id="mHEX"> </span></div>
+		<div class="south" id="mSpec" style="HEIGHT: 128px; WIDTH: 128px;" onmousedown="Picker.core('mCur',event)">
+		 <div id="mCur" style="TOP: 82px; LEFT: 68px;"></div>
+		 <img src="content/images/circle.png" onmousedown="return false;" ondrag="return false;" onselectstart="return false;">
+		</div>
+	   </div>
+	</div>
+	<div id="decals" class="jcarousel-skin-decals hide">
+		<ul>
+			<li id="body" class="body selected"><a href="#"> </a></li>
+			<li id="eye" class="eye"><a href="#"> </a></li>
+			<li id="hair" class="hair"><a href="#"> </a></li>
+			<li id="shirt" class="shirt"><a href="#"> </a></li>
+			<li id="pants" class="pants"><a href="#"> </a></li>
+			<li id="sticker" class="sticker"><a href="#"> <numSticker id="stickerCounter"> 0/8 </numSticker></a></li>
+		</ul>
+	</div>	
+	<div id="assets" class="hide">
+		<div id="bodyAssets" class="jcarousel-skin-patterns">
+			<ul>
+				<li id="mat_default"  ><img src="content/texture/material_DullPlastic.png" /></li>
+				<li id="mat_barlights"><img src="content/texture/material_barlights.png" /></li>
+				<li id="mat_gloss"    ><img src="content/texture/material_gloss.png" /></li>
+				<li id="mat_wax"      ><img src="content/texture/material_wax.png" /></li>
+				<li id="mat_inGlass"  ><img src="content/texture/material_inGlass.png" /></li>
+				<li id="mat_normals"  ><img src="content/texture/material_normal.png" /></li>
+				<li id="mat_paint"    ><img src="content/texture/material_paint.png" /></li>
+				<li id="mat_plastic"  ><img src="content/texture/material_plastic.png" /></li>
+				<li id="mat_shadows"  ><img src="content/texture/material_shadows.png" /></li>
+				<li id="mat_skin"     ><img src="content/texture/material_skin.png" /></li>
+				
+			</ul>
+		</div>
+		<div id="eyeAssets" class="jcarousel-skin-patterns">
+			<ul>
+				<li id="head_1" ><img src="content/images/assets/Icon_HeadDecal_01.png" /></li>
+				<li id="head_2" ><img src="content/images/assets/Icon_HeadDecal_02.png" /></li>
+				<li id="head_3" ><img src="content/images/assets/Icon_HeadDecal_03.png" /></li>
+				<li id="head_4" ><img src="content/images/assets/Icon_HeadDecal_04.png" /></li>
+				<li id="head_5" ><img src="content/images/assets/Icon_HeadDecal_05.png" /></li>
+				<li id="head_6" ><img src="content/images/assets/Icon_HeadDecal_06.png" /></li>
+				<li id="head_7" ><img src="content/images/assets/Icon_HeadDecal_07.png" /></li>
+				<li id="head_8" ><img src="content/images/assets/Icon_HeadDecal_08.png" /></li>
+				<li id="head_9" ><img src="content/images/assets/Icon_HeadDecal_09.png" /></li>
+				<li id="head_10"><img src="content/images/assets/Icon_HeadDecal_10.png" /></li>
+			</ul>
+		</div>
+	
+		<div id="hairAssets" class="jcarousel-skin-patterns">
+			<ul>
+				<li id="hair_1" ><img src="content/images/assets/Icon_HairDecal_01.png" /></li>
+				<li id="hair_2" ><img src="content/images/assets/Icon_HairDecal_02.png" /></li>
+				<li id="hair_3" ><img src="content/images/assets/Icon_HairDecal_03.png" /></li>
+				<li id="hair_4" ><img src="content/images/assets/Icon_HairDecal_04.png" /></li>
+				<li id="hair_5" ><img src="content/images/assets/Icon_HairDecal_05.png" /></li>
+				<li id="hair_6" ><img src="content/images/assets/Icon_HairDecal_06.png" /></li>
+				<li id="hair_7" ><img src="content/images/assets/Icon_HairDecal_07.png" /></li>
+				<li id="hair_8" ><img src="content/images/assets/Icon_HairDecal_08.png" /></li>
+				<li id="hair_9" ><img src="content/images/assets/Icon_HairDecal_09.png" /></li>
+				<li id="hair_10"><img src="content/images/assets/Icon_HairDecal_10.png" /></li>
+			</ul>
+		</div>
+		<div id="shirtAssets" class="jcarousel-skin-patterns">
+			<ul>
+				<li id="body_1" ><img src="content/images/assets/Icon_BodyDecal_01.png" /></li>
+				<li id="body_2" ><img src="content/images/assets/Icon_BodyDecal_02.png" /></li>
+				<li id="body_3" ><img src="content/images/assets/Icon_BodyDecal_03.png" /></li>
+				<li id="body_4" ><img src="content/images/assets/Icon_BodyDecal_04.png" /></li>
+				<li id="body_5" ><img src="content/images/assets/Icon_BodyDecal_05.png" /></li>
+				<li id="body_6" ><img src="content/images/assets/Icon_BodyDecal_06.png" /></li>
+				<li id="body_7" ><img src="content/images/assets/Icon_BodyDecal_07.png" /></li>
+				<li id="body_8" ><img src="content/images/assets/Icon_BodyDecal_08.png" /></li>
+				<li id="body_9" ><img src="content/images/assets/Icon_BodyDecal_09.png" /></li>
+				<li id="body_10"><img src="content/images/assets/Icon_BodyDecal_10.png" /></li>
+			</ul>
+		</div>
+		<div id="pantsAssets" class="jcarousel-skin-patterns">
+			<ul>
+				<li id="pants_1" ><img src="content/images/assets/Icon_LegsDecal_01.png" /></li>
+				<li id="pants_2" ><img src="content/images/assets/Icon_LegsDecal_02.png" /></li>
+				<li id="pants_3" ><img src="content/images/assets/Icon_LegsDecal_03.png" /></li>
+				<li id="pants_4" ><img src="content/images/assets/Icon_LegsDecal_04.png" /></li>
+				<li id="pants_5" ><img src="content/images/assets/Icon_LegsDecal_05.png" /></li>
+				<li id="pants_6" ><img src="content/images/assets/Icon_LegsDecal_06.png" /></li>
+				<li id="pants_7" ><img src="content/images/assets/Icon_LegsDecal_07.png" /></li>
+				<li id="pants_8" ><img src="content/images/assets/Icon_LegsDecal_08.png" /></li>
+				<li id="pants_9" ><img src="content/images/assets/Icon_LegsDecal_09.png" /></li>
+				<li id="pants_10"><img src="content/images/assets/Icon_LegsDecal_10.png" /></li>
+			</ul>
+		</div>
+		<div id="stickerAssets" class="jcarousel-skin-patterns">
+			<ul>
+				<li id="sticker_1" ><img src="content/texture/StampDecal_01_DM.png" /></li>
+				<li id="sticker_2" ><img src="content/texture/StampDecal_02_DM.png" /></li>
+				<li id="sticker_3" ><img src="content/texture/StampDecal_03_DM.png" /></li>
+				<li id="sticker_4" ><img src="content/texture/StampDecal_04_DM.png" /></li>
+				<li id="sticker_5" ><img src="content/texture/StampDecal_05_DM.png" /></li>
+				<li id="sticker_6" ><img src="content/texture/StampDecal_06_DM.png" /></li>
+				<li id="sticker_7" ><img src="content/texture/StampDecal_07_DM.png" /></li>
+				<li id="sticker_8" ><img src="content/texture/StampDecal_08_DM.png" /></li>
+				<li id="sticker_9" ><img src="content/texture/StampDecal_09_DM.png" /></li>
+				<li id="sticker_10"><img src="content/texture/StampDecal_10_DM.png" /></li>
+			</ul>
+		</div>
+	</div>
+
+	    <div id="controlArea" class="hide" onmousedown="return false">
+		    <canvas id="canvas" width="500" height="500" style="cursor: pointer" onmousewheel="wheel(event)" onmousedown="g_mouseDown = true; return mouseDown(event)">&lt;canvas&gt; needs a WebGL enabled browser</canvas>
+	    </div>
+
+        <table>
+            <!--
+            <tr><td id="fps"></td></tr>
+            <tr><td id="mouse_delta"></td></tr>
+            <tr><td id="mouse_state"></td></tr>
+            <tr><td id="dbg_intent"></td></tr>
+            <tr><td id="dbg_model"></td></tr>
+            <tr><td id="mtx_x"></td></tr>
+            <tr><td id="mtx_y"></td></tr>
+            <tr><td id="mtx_z"></td></tr>
+            <tr><td id="mtx_t"></td></tr>
+            -->
+        </table>
+
+			<div id="optionsMenu" class="hide">
+				<div id="gear"><img src="content/images/send.png" /></div>
+				<div id="close">X</div>
+				<h2>Collectibles Painter Options</h2>
+					<div>
+						<div id="share" class="button">Share with Friends
+							<div class="inputs">
+								Copy the link below to share with your friends:
+								<input name="long-link" id="long-link" readonly="readonly" value="http://www.amazon.com/12345/test/1234/test?123=456" />
+								<!-- <input name="bitly" id="bitly" readonly="readonly" value="Loading..."/> -->
+							</div>
+						</div>
+						<div id="restart" class="button">Start Over</div>
+						<div id="graphics" class="button">Graphics Options <span><a href="#" id="high">High</a></span> <span><a href="#" id="low">Low</a></span></div>
+					</div>
+			</div>
+	</div>
+	<div id="footer"><a href="http://www.humanengines.com" target="_blank"><img src="content/images/HumanEngines-logo.png" alt="HumanEngines" /></a></div>
+</body>
+
+<!-- JQuery Library hosted on Google -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" ></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.3/jquery-ui.min.js" type="text/javascript"></script>
+<script src="script-compiled/collectibles.js"                        type="text/javascript"></script>
+
+</html>

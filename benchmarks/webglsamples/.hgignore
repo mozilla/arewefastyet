@@ -1,0 +1,15 @@
+syntax: glob
+
+*~
+*.swp
+*.bat
+*.bak
+temp
+.mayaSwatches
+.git
+.svn
+.git*
+*.pyc
+*.orig
+.DS_Store
+.project
