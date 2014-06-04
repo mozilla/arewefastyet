@@ -1601,10 +1601,10 @@ function initialize() {
       total = 0;
       count = 0;
       window.setTimeout(function() {
-          location.href = "/submit?results="+encodeURIComponent(JSON.stringify({
-              "__total__": total/count,
-              "aquarium": total/count
-          }))
+          location.href = "/submit?results="+encodeURIComponent(JSON.stringify([
+              {"name": "__total__", "time": total/count*1000},
+              {"name": "aquarium", "time": total/count*1000}
+          ]))
       }, 10000);
   
   }, 5000);
