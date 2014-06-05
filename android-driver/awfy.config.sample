@@ -1,0 +1,15 @@
+[main]
+repos = /Users/mozilla/awfy/repos
+benchmarks = /Users/mozilla/awfy/benchmarks
+tmpDir= /tmp/
+serverURL = http://192.168.0.212:8000/
+
+machine = 27
+updateURL = http://server2.arewefastyet.com/???
+
+[mozilla]
+nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-inbound-android/
+
+[chrome]
+buildInfoUrl = http://build.chromium.org/p/chromium.lkgr/builders/Android
+nightlyDir = http://commondatastorage.googleapis.com/chromium-browser-continuous
