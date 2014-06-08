@@ -48,12 +48,17 @@ if NumUpdated == 0 and not options.force:
 # Report all engines
 submit.Start()
 for e in KnownEngines:
-    for modeInfo in e.modes:
-        submit.AddEngine(modeInfo["name"], e.cset)
+    if e.updated:
+        for modeInfo in e.modes:
+            submit.AddEngine(modeInfo["name"], e.cset)
 
 # Run all benches
+ranBenchmark = False
 for benchmark in Benchmarks:
     for e in KnownEngines:
-        benchmark.run(e, submit)
+        if e.updated:
+            if benchmark.run(e, submit):
+                ranBenchmark = True
 
-submit.Finish(1)   
+if ranBenchmark:
+    submit.Finish(1)   

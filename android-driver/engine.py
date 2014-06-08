@@ -100,7 +100,7 @@ class Mozilla(Engine):
 
         #TODO: remove profile
         print subprocess.check_output(["adb", "shell", "am", "start", "-a", "android.intent.action.VIEW",
-                                 "-n", "org.mozilla.fennec/.App", "-d", page])
+                                   "-n", "org.mozilla.fennec/.App", "-d", page])
 
     def kill(self):
         print subprocess.check_output(["adb", "shell", "pm", "clear", "org.mozilla.fennec"]);
@@ -138,7 +138,10 @@ class Chrome(Engine):
             urllib.urlretrieve(self.nightly_dir+"/Android/"+dirname+"/chrome-android.zip", self.tmp_dir + "chrome-android.zip")
 
             # Step 3.2: Unzip
-            self.unzip("chrome-android.zip")
+            try:
+                self.unzip("chrome-android.zip")
+            except zipfile.BadZipfile:
+                return
 
             # Step 3.3: Write the new revision
             fp = open(self.tmp_dir + "/chrome-revision", 'w')
@@ -156,7 +159,8 @@ class Chrome(Engine):
         self.kill()
 
         print subprocess.check_output(["adb", "shell", "am", "start", "-a", "android.intent.action.VIEW",
-                                       "-n", "org.chromium.chrome.shell/org.chromium.chrome.shell.ChromeShellActivity", "-d", page])
+                                   "-n", "org.chromium.chrome.shell/org.chromium.chrome.shell.ChromeShellActivity",
+                                   "-d", page])
 
     def kill(self):
         print subprocess.check_output(["adb", "shell", "pm", "clear", "org.chromium.chrome.shell"]);

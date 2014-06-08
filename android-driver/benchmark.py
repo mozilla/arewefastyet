@@ -15,14 +15,21 @@ class Benchmark:
         self.page = page
 
     def run(self, engine, submit):
+        runOneBenchmark = False
         for modeInfo in engine.modes:
             if os.path.exists("results"):
                 os.unlink("results")
 
             engine.run(utils.config.get('main', 'serverURL')+self.page)
-            while not os.path.exists("results"):
+            timeout = 60*15
+            while not os.path.exists("results") and timeout > 0:
                 time.sleep(10)
+                timeout -= 10
             engine.kill()
+
+            if timeout <= 0:
+                print "Running benchmark timed out"
+                continue
 
             fp = open("results", "r")
             results = json.loads(fp.read())
@@ -30,6 +37,8 @@ class Benchmark:
 
             results = self.processResults(results)
             submit.AddTests(results, self.suite, self.version, modeInfo["name"])
+            runOneBenchmark = True
+        return runOneBenchmark
 
     def processResults(self, results):
         return results
