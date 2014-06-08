@@ -71,9 +71,22 @@ class Mozilla(Engine):
         html = response.read()
         info = json.loads(html)
 
-        # Step 4: Fetch archive
-        print "Retrieving", self.nightly_dir+"/"+self.folder_id+"/"+exec_file
-        urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, self.tmp_dir + "fennec.apk")
+        # Step 4: Test if there is a new revision
+        old_revision = ""
+        if os.path.isfile(self.tmp_dir + "mozilla-revision"):
+            fp = open(self.tmp_dir + "mozilla-revision", 'r')
+            old_revision = fp.read() 
+            fp.close()
+        if info["moz_source_stamp"] != old_revision:
+
+            # Step 4.1: Fetch archive
+            print "Retrieving", self.nightly_dir+"/"+self.folder_id+"/"+exec_file
+            urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, self.tmp_dir + "fennec.apk")
+
+            # Step 4.2: Write the new revision
+            fp = open(self.tmp_dir + "/mozilla-revision", 'w')
+            fp.write(info["moz_source_stamp"])
+            fp.close()
 
         # Step 5: Install on device
         print subprocess.check_output(["adb", "install", "-r", self.tmp_dir+"/fennec.apk"])
@@ -108,22 +121,34 @@ class Chrome(Engine):
         dirname = re.findall('<td class="revision">([0-9]*)</td>\n\s*<td class="success">success</td>', html)[0]
         revision = re.findall('<td class="success">success</td>\s*<td><a href="([0-9a-zA-Z/.]*)">', html)[0]
 
-        # Step 2: Download the archive
-        print "Retrieving", self.nightly_dir+"/Android/"+dirname+"/chrome-android.zip"
-        urllib.urlretrieve(self.nightly_dir+"/Android/"+dirname+"/chrome-android.zip", self.tmp_dir + "chrome-android.zip")
-
-        # Step 3: Unzip
-        self.unzip("chrome-android.zip")
-        
-        # Step 4: Get v8 revision
+        # Step 2: Get v8 revision
         response = urllib2.urlopen(self.build_info_url + "/../"+ revision)
         html = response.read()
         self.cset = re.findall('<td class="left">got_v8_revision</td>\n\s*<td class="middle"><abbr title="\n\s*([0-9]*)\n\s*">', html)[0]
 
-        # Step 5: Install on device
+        # Step 3: Test if there is a new revision
+        old_revision = ""
+        if os.path.isfile(self.tmp_dir + "chrome-revision"):
+            fp = open(self.tmp_dir + "chrome-revision", 'r')
+            old_revision = fp.read() 
+            fp.close()
+        if self.cset != old_revision:
+            # Step 3.1: Download the archive
+            print "Retrieving", self.nightly_dir+"/Android/"+dirname+"/chrome-android.zip"
+            urllib.urlretrieve(self.nightly_dir+"/Android/"+dirname+"/chrome-android.zip", self.tmp_dir + "chrome-android.zip")
+
+            # Step 3.2: Unzip
+            self.unzip("chrome-android.zip")
+
+            # Step 3.3: Write the new revision
+            fp = open(self.tmp_dir + "/chrome-revision", 'w')
+            fp.write(self.cset)
+            fp.close()
+
+        # Step 4: Install on device
         print subprocess.check_output(["adb", "install", "-r", self.tmp_dir+"/chrome-android/apks/ChromeShell.apk"])
 
-        # Step 6: Save info
+        # Step 5: Save info
         self.updated = True
         
     def run(self, page):
