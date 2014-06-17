@@ -196,11 +196,11 @@ class MozillaInbound(Mozilla):
         self.modes = [
                 {
                     'mode': 'jmim',
-                    'args': ['--ion-parallel-compile=on', '--no-jm', '-W']
+                    'args': ['--ion-offthread-compile=on', '-W']
                 },
                 {
                     'mode': 'noasmjs',
-                    'args': ['--ion-parallel-compile=on', '--no-jm', '-W', '--no-asmjs']
+                    'args': ['--ion-offthread-compile=on', '-W', '--no-asmjs']
                 }
             ]
 
@@ -212,7 +212,7 @@ class MozillaInboundGGC(Mozilla):
         self.modes = [
                 {
                     'mode': 'ggc',
-                    'args': ['--ion-parallel-compile=on', '--no-jm', '-W']
+                    'args': ['--ion-offthread-compile=on', '--no-jm', '-W']
                 }
             ]
         
