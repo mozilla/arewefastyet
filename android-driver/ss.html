@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset=utf8>
+
+<!--
+ Copyright (C) 2007 Apple Inc.  All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
+ EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+-->
+
+<title>SunSpider 1.0.2 JavaScript Benchmark (sunspider-1.0.2 test suite - In Progress...)</title>
+</head>
+
+<body onload="start()">
+
+<h2><span id="logo">&#x2600;</span>SunSpider JavaScript Benchmark <small>(In Progress...)</small></h2>
+<h3>Content Version: sunspider-1.0.2</h3>
+
+<script src="/sunspider.js?tests=benchmarks/SunSpider/tests/sunspider-1.0.1"></script>
+<script>
+var html_start = "<!DOCTYPE html>\n\
+<head>\n\
+\n\
+<meta charset=utf8>\n\
+\n\
+<!--\n\
+ Copyright (C) 2007 Apple Inc.  All rights reserved.\n\
+\n\
+ Redistribution and use in source and binary forms, with or without\n\
+ modification, are permitted provided that the following conditions\n\
+ are met:\n\
+ 1. Redistributions of source code must retain the above copyright\n\
+    notice, this list of conditions and the following disclaimer.\n\
+ 2. Redistributions in binary form must reproduce the above copyright\n\
+    notice, this list of conditions and the following disclaimer in the\n\
+    documentation and/or other materials provided with the distribution.\n\
+\n\
+ THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY\n\
+ EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n\
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR\n\
+ PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR\n\
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,\n\
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,\n\
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR\n\
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY\n\
+ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n\
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n\
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. \n\
+-->\n\
+\n\
+<title>SunSpider test</title>\n\
+</head>\n\
+\n\
+<body>\n\
+<div id=\"console\">\n\
+</div>\n\
+<script>\n\
+function record(time) {\n\
+    document.getElementById(\"console\").innerHTML = time + \"ms\";\n\
+    if (window.parent) {\n\
+        parent.recordResult(time);\n\
+    }\n\
+}\n\
+\n\
+window.onerror = function(e) {\n\
+    console.log(\"test failed with error: \" + e);\n\
+    record(0 / 0);\n\
+}\n\
+\n\
+var _sunSpiderStartDate = new Date();\n"
+var html_end = "var _sunSpiderInterval = new Date() - _sunSpiderStartDate;\n\
+\n\
+record(_sunSpiderInterval);\n\
+</scr"+"ipt>\n\
+\n\
+\n\
+</body>\n\
+</html>\n"
+
+var testIndex = -1;
+var currentRepeat = -1;
+var repeatCount = 10;
+var warmupMS = 8;
+
+var output = [];
+output.length = repeatCount;
+for (var i = 0; i < output.length; i++) {
+    output[i] = {};
+}
+
+function warmup()
+{
+    for (var start = new Date; new Date - start < warmupMS; ) {
+        for (var i = 0; i < 100; ++i) {
+            if (Math.atan(Math.acos(Math.asin(Math.random()))) > 4) // Always false.
+                return;
+        }
+    }
+}
+
+function start() 
+{
+    window.setTimeout(next, 10000);
+}
+
+function next()
+{
+    document.getElementById("frameparent").innerHTML = "";
+    document.getElementById("frameparent").innerHTML = "<iframe id='testframe'>";
+    var testFrame = document.getElementById("testframe");
+    if (++testIndex < tests.length) {
+        // Warm up the CPU a little bit, in case power management clocked it down
+        // or put it to sleep. We're trying to strike a balance here: do enough
+        // work so that all browsers see the CPU at an equal clock rate, but
+        // not so much work that we hide performance problems caused by overly
+        // aggressive power management.
+        warmup();
+
+        testFrame.contentDocument.open();
+        testFrame.contentDocument.write(html_start + testContents[testIndex] + html_end);
+        testFrame.contentDocument.close();
+
+        window.setTimeout(next, 0);
+    } else if (++currentRepeat < repeatCount) { 
+        document.getElementById("countdown").innerHTML = repeatCount - currentRepeat;
+        testIndex = -1;
+
+        window.setTimeout(next, 128);
+    } else {
+        finish();
+    }
+}
+
+function recordResult(time)
+{
+    if (currentRepeat >= 0) // negative repeats are warmups
+        output[currentRepeat][tests[testIndex]] = time;
+}
+
+function finish()
+{
+    var total = 0;
+    var results = [];
+    for (var test in output[0]) {
+        var time = 0
+        for (var i = 0; i < output.length; i++) {
+            time += output[i][test];
+        }
+        total += time;
+        var pos = test.indexOf("-");
+        if (pos >= 0)
+            test = test.substring(pos + 1)
+        results[results.length] = {'name': test, 'time': time / output.length}
+    }
+    results[results.length] = {'name': "__total__", 'time': total / output.length}
+
+    location.href = "/submit?results="+encodeURIComponent(JSON.stringify(results))
+}
+
+</script>
+
+<h3 id="countdown">warmup</h3>
+<div id="frameparent"></div>
+
+</body>
+</html>
