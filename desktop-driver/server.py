@@ -62,7 +62,7 @@ HandlerClass = FakeHandler
 ServerClass  = BaseHTTPServer.HTTPServer
 Protocol     = "HTTP/1.0"
 Port = 8000
-ServerAddress = ('127.0.0.1', Port)
+ServerAddress = ('', Port)
 
 HandlerClass.protocol_version = Protocol
 httpd = ServerClass(ServerAddress, HandlerClass)
