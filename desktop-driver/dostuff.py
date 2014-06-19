@@ -7,8 +7,8 @@ import engine
 import sys
 import time
 from optparse import OptionParser
-from shell-benchmark import Benchmarks as ShellBenchmarks
-from browser-benchmark import Benchmarks as BrowserBenchmarks
+from shellbenchmark import Benchmarks as ShellBenchmarks
+from browserbenchmark import Benchmarks as BrowserBenchmarks
 
 sys.path.insert(1, '../driver')
 import submitter
@@ -26,7 +26,7 @@ parser.add_option("-c", "--config", dest="config_name", type="string", default="
 
 utils.InitConfig(options.config_name)
 
-KnownEngines = [engine.Mozilla(), engine.Chrome()]
+KnownEngines = [engine.Mozilla(), engine.MozillaShell(), engine.Chrome()]
 NumUpdated = 0
 
 # Update All engines

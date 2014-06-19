@@ -10,28 +10,23 @@ class Benchmark(object):
         self.version = suite+" "+version
         self.folder = folder
 
-    def run(self, submit, native, modes):
+    def run(self, engine, submit):
         with utils.chdir(os.path.join(utils.BenchmarkPath, self.folder)):
-            return self._run(submit, native, modes)
+            return self._run(engine, submit)
 
-    def omit(self, mode):
-        if mode.name == 'noasmjs':
-            return True
+    def _run(self, engine, submit):
 
-    def _run(self, submit, native, modes):
-        for mode in modes:
-            if self.omit(mode):
-                continue
+        for modInfo in engine.modes:
             try:
                 tests = None
-                print('Running ' + self.version + ' under ' + mode.shell + ' ' + ' '.join(mode.args))
-                tests = self.benchmark(mode.shell, mode.env, mode.args)
+                print('Running ' + self.version + ' under ' + engine.shell() + ' ' + ' '.join(engine.args))
+                tests = self.benchmark(engine.shell(), engine.env(), mode.args)
             except Exception as e:
                 print('Failed to run ' + self.version + '!')
                 print("Exception: " +  repr(e))
                 pass
             if tests:
-                submit.AddTests(tests, self.suite, self.version, mode.name)
+                submit.AddTests(tests, self.suite, self.version, modInfo.name)
 
 class Octane(Benchmark):
     def __init__(self):
