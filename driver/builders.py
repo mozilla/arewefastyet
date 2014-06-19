@@ -212,7 +212,7 @@ class MozillaInboundGGC(Mozilla):
         self.modes = [
                 {
                     'mode': 'ggc',
-                    'args': ['--ion-offthread-compile=on', '--no-jm', '-W']
+                    'args': ['--ion-offthread-compile=on', '-W']
                 }
             ]
         
