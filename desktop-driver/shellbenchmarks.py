@@ -3,6 +3,12 @@ import socket
 import os
 import time
 import json
+import sys
+import re
+
+sys.path.insert(1, '../driver')
+import submitter
+import utils
 
 class Benchmark(object):
     def __init__(self, suite, version, folder):
@@ -19,14 +25,14 @@ class Benchmark(object):
         for modInfo in engine.modes:
             try:
                 tests = None
-                print('Running ' + self.version + ' under ' + engine.shell() + ' ' + ' '.join(engine.args))
-                tests = self.benchmark(engine.shell(), engine.env(), mode.args)
+                print('Running ' + self.version + ' under ' + engine.shell() + ' ' + ' '.join(modInfo["args"]))
+                tests = self.benchmark(engine.shell(), engine.env(), modInfo["args"])
             except Exception as e:
                 print('Failed to run ' + self.version + '!')
                 print("Exception: " +  repr(e))
                 pass
             if tests:
-                submit.AddTests(tests, self.suite, self.version, modInfo.name)
+                submit.AddTests(tests, self.suite, self.version, modInfo["name"])
 
 class Octane(Benchmark):
     def __init__(self):

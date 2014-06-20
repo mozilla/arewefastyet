@@ -50,6 +50,7 @@ class Mozilla(Engine):
     def __init__(self):
         Engine.__init__(self)
         self.nightly_dir = utils.config.get('mozilla', 'nightlyDir')
+        self.isBrowser = True
         self.modes = [{
             'name': 'jmim'
         }]
@@ -98,10 +99,10 @@ class MozillaShell(Engine):
     def __init__(self):
         Engine.__init__(self)
         self.nightly_dir = utils.config.get('mozilla', 'nightlyDir')
-        self.shell = True
+        self.isShell = True
         self.modes = [{
             'name': 'mozshell',
-            'args': None
+            'args': []
         }]
 
     def update(self):
@@ -136,13 +137,17 @@ class MozillaShell(Engine):
         pass
 
     def shell(self):
-        return os.path.join('shell','js.exe')
+        return os.path.join(self.tmp_dir,'shell','js.exe')
+        
+    def env(self):
+        return {}
 
 class Chrome(Engine):
     def __init__(self):
         Engine.__init__(self)
         self.build_info_url = utils.config.get('chrome', 'buildInfoUrl')
         self.nightly_dir = utils.config.get('chrome', 'nightlyDir')
+        self.isBrowser = True
         self.modes = [{
             'name': 'v8'
         }]

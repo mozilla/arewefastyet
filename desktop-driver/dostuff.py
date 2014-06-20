@@ -7,8 +7,8 @@ import engine
 import sys
 import time
 from optparse import OptionParser
-from shellbenchmark import Benchmarks as ShellBenchmarks
-from browserbenchmark import Benchmarks as BrowserBenchmarks
+from shellbenchmarks import Benchmarks as ShellBenchmarks
+from browserbenchmarks import Benchmarks as BrowserBenchmarks
 
 sys.path.insert(1, '../driver')
 import submitter
@@ -55,13 +55,13 @@ for e in KnownEngines:
 # Run all browser benchmarks
 for benchmark in BrowserBenchmarks:
     for e in KnownEngines:
-        if hasattr(e, "browser") and e.browser:
+        if hasattr(e, "isBrowser") and e.isBrowser:
             benchmark.run(e, submit)
 
 # Run all shell benchmarks
 for benchmark in ShellBenchmarks:
     for e in KnownEngines:
-        if hasattr(e, "shell") and e.shell:
+        if hasattr(e, "isShell") and e.isShell:
             benchmark.run(e, submit)
 
 submit.Finish(1)
