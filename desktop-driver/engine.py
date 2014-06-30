@@ -92,7 +92,9 @@ class Mozilla(Engine):
         output = subprocess.check_output([self.tmp_dir + "firefox/firefox.exe", "-CreateProfile", "test "+self.tmp_dir+"profile"], stderr=subprocess.STDOUT)
 
         # Step 4: Start browser
-        self.subprocess = subprocess.Popen([self.tmp_dir + "firefox/firefox.exe", "-P", "test", page])
+        env = os.environ.copy()
+        env["JSGC_DISABLE_POISONING"] = "1";
+        self.subprocess = subprocess.Popen([self.tmp_dir + "firefox/firefox.exe", "-P", "test", page], env=env)
         self.pid = self.subprocess.pid
 
 class MozillaShell(Engine):
@@ -140,7 +142,7 @@ class MozillaShell(Engine):
         return os.path.join(self.tmp_dir,'shell','js.exe')
         
     def env(self):
-        return {}
+        return {"JSGC_DISABLE_POISONING": "1"}
 
 class Chrome(Engine):
     def __init__(self):
