@@ -30,10 +30,15 @@ KnownEngines = [engine.Mozilla(), engine.MozillaShell(), engine.Chrome()]
 NumUpdated = 0
 
 # Update All engines
+RunningEngines = []
 for e in KnownEngines:
-    e.update()
-    if e.updated:
-        NumUpdated += 1
+    try:
+        e.update()
+        if e.updated:
+            NumUpdated += 1
+        RunningEngines.append(e)
+    except:
+        pass
 
 class Slave:
     def __init__(self, machine):
@@ -48,19 +53,19 @@ if NumUpdated == 0 and not options.force:
 
 # Report all engines
 submit.Start()
-for e in KnownEngines:
+for e in RunningEngines:
     for modeInfo in e.modes:
         submit.AddEngine(modeInfo["name"], e.cset)
 
 # Run all browser benchmarks
 for benchmark in BrowserBenchmarks:
-    for e in KnownEngines:
+    for e in RunningEngines:
         if hasattr(e, "isBrowser") and e.isBrowser:
             benchmark.run(e, submit)
 
 # Run all shell benchmarks
 for benchmark in ShellBenchmarks:
-    for e in KnownEngines:
+    for e in RunningEngines:
         if hasattr(e, "isShell") and e.isShell:
             benchmark.run(e, submit)
 
