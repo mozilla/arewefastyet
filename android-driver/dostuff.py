@@ -30,9 +30,12 @@ NumUpdated = 0
 
 # Update All engines
 for e in KnownEngines:
-    e.update()
-    if e.updated:
-        NumUpdated += 1
+    try:
+        e.update()
+        if e.updated:
+            NumUpdated += 1
+    except:
+        pass
 
 class Slave:
     def __init__(self, machine):

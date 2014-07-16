@@ -100,8 +100,8 @@ class Mozilla(Engine):
 
         #TODO: remove profile
         print subprocess.check_output(["adb", "shell", "am", "start", "-a", "android.intent.action.VIEW",
-                                       "-n", "org.mozilla.fennec/.App", "-d", "--es", "env0",
-                                       "JSGC_DISABLE_POISONING=1", page])
+                                       "-n", "org.mozilla.fennec/.App", "-d", page, "--es", "env0",
+                                       "JSGC_DISABLE_POISONING=1"])
 
     def kill(self):
         print subprocess.check_output(["adb", "shell", "pm", "clear", "org.mozilla.fennec"]);
