@@ -88,6 +88,7 @@ class Nitro(Engine):
         # Hack 1: Remove reporting errors for warnings that currently are present.
         Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/JavaScriptCore/Configurations/Base.xcconfig"])
         Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/bmalloc/Configurations/Base.xcconfig"])
+        Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/WTF/Configurations/Base.xcconfig"])
         Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/Line.h"])
         Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/Page.h"])
 
@@ -106,6 +107,7 @@ class Nitro(Engine):
 
         Run(["svn","revert","Source/JavaScriptCore/Configurations/Base.xcconfig"])
         Run(["svn","revert","Source/bmalloc/Configurations/Base.xcconfig"])
+        Run(["svn","revert","Source/WTF/Configurations/Base.xcconfig"])
         Run(["svn","revert","Source/bmalloc/bmalloc/Line.h"])
         Run(["svn","revert","Source/bmalloc/bmalloc/Page.h"])
 
