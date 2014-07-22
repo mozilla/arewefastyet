@@ -156,22 +156,19 @@ class Chrome(Engine):
 
     def update(self):
         # Step 1: Get latest succesfull build revision
-        response = urllib2.urlopen(self.build_info_url)
-        html = response.read()
-        dirname =  re.findall('<td class="revision">([0-9]*)</td>\n    <td class="success">success</td>', html)[0]
-        revision =  re.findall('<td class="success">success</td>    <td><a href="([0-9a-zA-Z/.]*)">', html)[0]
+        response = urllib2.urlopen(self.nightly_dir+"/Win/LAST_CHANGE")
+        chromium_rev = response.read()
 
         # Step 2: Download the archive
-        print "Retrieving", self.nightly_dir+"/Win/"+dirname+"/chrome-win32.zip"
-        urllib.urlretrieve(self.nightly_dir+"/Win/"+dirname+"/chrome-win32.zip", self.tmp_dir + "chrome-win32.zip")
+        print "Retrieving", self.nightly_dir+"/Win/"+chromium_rev+"/chrome-win32.zip"
+        urllib.urlretrieve(self.nightly_dir+"/Win/"+chromium_rev+"/chrome-win32.zip", self.tmp_dir + "chrome-win32.zip")
 
         # Step 3: Unzip
         self.unzip("chrome-win32.zip")
 
         # Step 4: Get v8 revision
-        response = urllib2.urlopen(self.build_info_url + "/../"+ revision)
-        html = response.read()
-        self.cset = re.findall('<td class="left">got_v8_revision</td>\n    <td class="middle"><abbr title="\n              ([0-9]*)\n      ">', html)[0]
+        response = urllib2.urlopen(self.nightly_dir + "/Android/"+chromium_rev+"/REVISIONS")
+        self.cset = re.findall('"v8_revision":[a-z0-9]*', response.read())[0]
 
         # Step 5: Save info
         self.updated = True
