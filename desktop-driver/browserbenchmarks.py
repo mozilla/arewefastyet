@@ -9,8 +9,17 @@ class Benchmark:
         self.suite = suite
         self.version = suite+" "+version
         self.page = "http://localhost:8000/"+page
+        self.browser = True
 
     def run(self, engine, submit):
+        # Test if server is running and start server if needed.
+        s =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = s.connect_ex(("localhost", 8000))
+        s.close()
+        if result > 0:
+            subprocess.Popen(["python", "server.py"])
+
+        # Run tests.
         for modeInfo in engine.modes:
             if os.path.exists("results"):
                 os.unlink("results")
@@ -36,7 +45,7 @@ class Octane(Benchmark):
 
     def processResults(self, results):
         ret = []
-        for key in results: 
+        for key in results:
             if key == "total":
                 ret.append({'name': "__total__", 'time': results[key]})
             else:
@@ -57,9 +66,3 @@ class WebGLSamples(Benchmark):
 
 Benchmarks = [Octane(), SunSpider(), Kraken(), WebGLSamples()]
 
-# Test if server is running and start server if needed.
-s =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-result = s.connect_ex(("localhost", 8000))
-s.close()
-if result > 0:
-    subprocess.Popen(["python", "server.py"])

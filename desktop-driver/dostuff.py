@@ -7,7 +7,8 @@ import engine
 import sys
 import time
 from optparse import OptionParser
-from benchmark import Benchmarks
+from shellbenchmarks import Benchmarks as ShellBenchmarks
+from browserbenchmarks import Benchmarks as BrowserBenchmarks
 
 sys.path.insert(1, '../driver')
 import submitter
@@ -25,14 +26,19 @@ parser.add_option("-c", "--config", dest="config_name", type="string", default="
 
 utils.InitConfig(options.config_name)
 
-KnownEngines = [engine.Mozilla(), engine.Chrome()]
+KnownEngines = [engine.Mozilla(), engine.MozillaShell(), engine.Chrome()]
 NumUpdated = 0
 
 # Update All engines
+RunningEngines = []
 for e in KnownEngines:
-    e.update()
-    if e.updated:
-        NumUpdated += 1
+    try:
+        e.update()
+        if e.updated:
+            NumUpdated += 1
+        RunningEngines.append(e)
+    except:
+        pass
 
 class Slave:
     def __init__(self, machine):
@@ -47,13 +53,20 @@ if NumUpdated == 0 and not options.force:
 
 # Report all engines
 submit.Start()
-for e in KnownEngines:
+for e in RunningEngines:
     for modeInfo in e.modes:
         submit.AddEngine(modeInfo["name"], e.cset)
 
-# Run all benches
-for benchmark in Benchmarks:
-    for e in KnownEngines:
-        benchmark.run(e, submit)
+# Run all browser benchmarks
+for benchmark in BrowserBenchmarks:
+    for e in RunningEngines:
+        if hasattr(e, "isBrowser") and e.isBrowser:
+            benchmark.run(e, submit)
 
-submit.Finish(1)   
+# Run all shell benchmarks
+for benchmark in ShellBenchmarks:
+    for e in RunningEngines:
+        if hasattr(e, "isShell") and e.isShell:
+            benchmark.run(e, submit)
+
+submit.Finish(1)

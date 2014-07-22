@@ -33,10 +33,10 @@ class Engine:
             zip = zipfile.ZipFile(self.tmp_dir + name)
             zip.extractall(self.tmp_dir)
             zip.close()
-            
+
     def kill(self):
         self.subprocess.terminate()
-        
+
         for i in range(100):
             time.sleep(0.1)
             if self.subprocess.poll():
@@ -50,12 +50,13 @@ class Mozilla(Engine):
     def __init__(self):
         Engine.__init__(self)
         self.nightly_dir = utils.config.get('mozilla', 'nightlyDir')
+        self.isBrowser = True
         self.modes = [{
-            'name': 'jmim'            
+            'name': 'jmim'
         }]
 
     def update(self):
-        # Step 1: Get newest nightly folder 
+        # Step 1: Get newest nightly folder
         response = urllib2.urlopen(self.nightly_dir+"/?C=N;O=D")
         html = response.read()
         self.folder_id =  re.findall("[0-9]{5,}", html)[0]
@@ -91,16 +92,66 @@ class Mozilla(Engine):
         output = subprocess.check_output([self.tmp_dir + "firefox/firefox.exe", "-CreateProfile", "test "+self.tmp_dir+"profile"], stderr=subprocess.STDOUT)
 
         # Step 4: Start browser
-        self.subprocess = subprocess.Popen([self.tmp_dir + "firefox/firefox.exe", "-P", "test", page])
+        env = os.environ.copy()
+        env["JSGC_DISABLE_POISONING"] = "1";
+        self.subprocess = subprocess.Popen([self.tmp_dir + "firefox/firefox.exe", "-P", "test", page], env=env)
         self.pid = self.subprocess.pid
+
+class MozillaShell(Engine):
+    def __init__(self):
+        Engine.__init__(self)
+        self.nightly_dir = utils.config.get('mozilla', 'nightlyDir')
+        self.isShell = True
+        self.modes = [{
+            'name': 'mozshell',
+            'args': []
+        }]
+
+    def update(self):
+        # Step 1: Get newest nightly folder
+        response = urllib2.urlopen(self.nightly_dir+"/?C=N;O=D")
+        html = response.read()
+        self.folder_id =  re.findall("[0-9]{5,}", html)[0]
+
+        # Step 2: Find the correct file
+        response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id)
+        html = response.read()
+        exec_file = re.findall("jsshell-win32.zip", html)[0]
+        json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.json", html)[0]
+
+        # Step 3: Get build information
+        response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id+"/"+json_file)
+        html = response.read()
+        info = json.loads(html)
+
+        # Step 4: Fetch archive
+        print "Retrieving", self.nightly_dir+"/"+self.folder_id+"/"+exec_file
+        urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, self.tmp_dir + "shell.zip")
+
+        # Step 5: Unzip
+        self.unzip("shell.zip")
+
+        # Step 6: Save info
+        self.updated = True
+        self.cset = info["moz_source_stamp"]
+
+    def run(self, page):
+        pass
+
+    def shell(self):
+        return os.path.join(self.tmp_dir,'shell','js.exe')
+        
+    def env(self):
+        return {"JSGC_DISABLE_POISONING": "1"}
 
 class Chrome(Engine):
     def __init__(self):
         Engine.__init__(self)
         self.build_info_url = utils.config.get('chrome', 'buildInfoUrl')
         self.nightly_dir = utils.config.get('chrome', 'nightlyDir')
+        self.isBrowser = True
         self.modes = [{
-            'name': 'v8'            
+            'name': 'v8'
         }]
 
     def update(self):
@@ -116,7 +167,7 @@ class Chrome(Engine):
 
         # Step 3: Unzip
         self.unzip("chrome-win32.zip")
-        
+
         # Step 4: Get v8 revision
         response = urllib2.urlopen(self.build_info_url + "/../"+ revision)
         html = response.read()
@@ -124,7 +175,7 @@ class Chrome(Engine):
 
         # Step 5: Save info
         self.updated = True
-        
+
     def run(self, page):
         self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-win32/chrome.exe", page])
         self.pid = self.subprocess.pid
