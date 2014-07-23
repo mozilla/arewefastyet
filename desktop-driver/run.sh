@@ -3,5 +3,5 @@
 while :
 do
 	python dostuff.py
-	sleep 800
+	sleep 60
 done
