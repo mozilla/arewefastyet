@@ -121,3 +121,32 @@ h1 {
  font-weight: bold;
 }
 
+
+.axisLabel {
+	position: absolute;
+	text-align: center;
+	font-size: 0.9em;
+}
+
+.yaxisLabel {
+	top: 50%;
+	left: 2px;
+	margin: -25px;
+	transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg);
+	-moz-transform: rotate(-90deg);
+	-webkit-transform:  rotate(-90deg);
+	transform-origin: 0 0;
+	-o-transform-origin: 0 0;
+	-ms-transform-origin: 0 0;
+	-moz-transform-origin: 0 0;
+	-webkit-transform-origin: 0 0;
+}
+
+.ie7 .yaxisLabel, .ie8 .yaxisLabel {
+	top: 40%;
+	font-size: 1.1em;
+	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.0, M12=0.33, M21=-0.33, M22=0.0,sizingMethod='auto expand');
+}
+
