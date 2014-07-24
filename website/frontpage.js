@@ -307,6 +307,8 @@ Display.prototype.plotSelected = function (event, ranges) {
     var start = this.graph.timelist[from_x];
     var end = this.graph.timelist[to_x];
 
+    AWFY.trackZoom(start, end);
+
     var prev = this.zoomInfo.prev;
     if (prev && this.zoomInfo.level == 'month') {
         // Estimate the number of datapoints we had in the old range.
@@ -420,6 +422,8 @@ Display.prototype.unzoom = function () {
     this.plot.clearSelection();
     this.detachTips();
     this.zoomInfo.level = 'aggregate';
+
+    AWFY.trackZoom(null, null);
 }
 
 Display.prototype.detachTips = function () {
