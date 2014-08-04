@@ -45,20 +45,36 @@ class Vendor(object):
         self.rangeURL = rangeURL
 
 class Machine(object):
-    def __init__(self, id, os, cpu, description, active, frontpage):
+    def __init__(self, id, os, cpu, description, active, frontpage, pushed_separate):
         self.id = id
         self.os = os
         self.cpu = cpu
         self.description = description
         self.active = active
         self.frontpage = frontpage
+        self.pushed_separate = pushed_separate
+
+        self.suites = []
+        c = awfy.db.cursor()
+        c.execute("SELECT DISTINCT(suite_version_id) FROM fast_run                        \
+                   JOIN `awfy_score` ON fast_run.id = run_id                              \
+                   WHERE machine = %s", (id,))
+        ids = [str(row[0]) for row in c.fetchall()]
+	if len(ids) > 0:
+                c.execute("SELECT DISTINCT(awfy_suite.name) FROM awfy_suite                       \
+                           JOIN `awfy_suite_version` ON suite_id = awfy_suite.id                  \
+                           WHERE awfy_suite_version.id in ("+(",".join(ids))+")")
+                for row in c.fetchall():
+                    self.suites.append(row[0])
 
     def export(self):
         return { "id": self.id,
                  "os": self.os,
                  "cpu": self.cpu,
                  "description": self.description,
-                 "frontpage": self.frontpage
+                 "frontpage": self.frontpage,
+                 "pushed_separate": self.pushed_separate,
+                 "suites": self.suites
                }
 
 class Mode(object):
@@ -143,9 +159,9 @@ class Context(object):
 
         # Get a list of machines.
         self.machines = []
-        c.execute("SELECT id, os, cpu, description, active, frontpage FROM awfy_machine WHERE active >= 1")
+        c.execute("SELECT id, os, cpu, description, active, frontpage, pushed_separate FROM awfy_machine WHERE active >= 1")
         for row in c.fetchall():
-            m = Machine(row[0], row[1], row[2], row[3], row[4], row[5])
+            m = Machine(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
             self.machines.append(m)
 
     def exportModes(self):

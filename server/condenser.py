@@ -7,6 +7,7 @@ import re
 import os
 import sys
 import awfy, util
+import math
 from profiler import Profiler
 from datetime import datetime
 
@@ -172,25 +173,37 @@ def aggregate(graph):
             graph['earliest'] = graph['timelist'][0]
         return graph
 
+    recentRuns = 0
+    runs = []
+    for i in range(len(graph['lines'])):
+	runs.append(0)
+    for i in range(len(graph['timelist'])-1, -1, -1):
+    	for j in range(len(graph['lines'])):
+	    if graph['lines'] and i < len(graph['lines'][j]["data"]) and graph['lines'][j]["data"][i]:
+		runs[j] += 1
+	recentRuns += 1 
+	if max(runs) == 30:
+	    break
+
     # If the number of historical points is <= the number of recent points,
     # then the graph is about split so we don't have to do anything.
-    historical = len(graph['timelist']) - MaxRecentRuns
+    historical = len(graph['timelist']) - recentRuns
     if historical <= MaxRecentRuns:
         graph['earliest'] = graph['timelist'][historical]
         return graph
 
     # How big should each region be?
-    region_length = float(historical) / MaxRecentRuns
+    region_length = float(historical) / recentRuns
 
     pos = 0
     regions = []
-    for i in range(0, MaxRecentRuns):
+    for i in range(0, recentRuns):
         start = int(round(pos))
 
-        j = start
-        while j < pos + region_length and j < historical:
-            j = j + 1
-        regions.append((start, j))
+	end = min(int(math.floor(pos + region_length)), historical) - 1
+	if end < start:
+	    end = start
+        regions.append((start, end))
         pos += region_length
 
     new_graph = condense_graph(graph, regions)
