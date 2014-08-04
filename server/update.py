@@ -47,9 +47,9 @@ def delete_metadata(prefix, data):
 def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
     query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id, v.id                 \
              FROM awfy_breakdown s                                                  \
-             JOIN fast_run r ON s.run_id = r.id                                     \
+             JOIN awfy_run r ON s.run_id = r.id                                     \
              JOIN awfy_build b ON s.run_id = b.run_id AND s.mode_id = b.mode_id     \
-             JOIN awfy_suite_test t ON s.test_id = t.id                             \
+             JOIN awfy_suite_test t ON s.suite_test_id = t.id                       \
              JOIN awfy_suite_version v ON v.id = t.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \
              AND t.name = %s                                                        \
@@ -65,7 +65,7 @@ def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
 def fetch_suite_scores(machine_id, suite_id, earliest_run_id):
     query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id, v.id                 \
              FROM awfy_score s                                                      \
-             JOIN fast_run r ON s.run_id = r.id                                     \
+             JOIN awfy_run r ON s.run_id = r.id                                     \
              JOIN awfy_build b ON s.run_id = b.run_id AND s.mode_id = b.mode_id     \
              JOIN awfy_suite_version v ON v.id = s.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \
@@ -244,7 +244,7 @@ def perform_update(cx, machine, suite, prefix, fetch):
         # entire database every time if this benchmark is never run.
         c = awfy.db.cursor()
         c.execute("""
-                  select r.id from fast_run r
+                  select r.id from awfy_run r
                   where
                    r.machine = %s and
                    r.status = 1

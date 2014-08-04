@@ -13,7 +13,7 @@ init_database();
 if (isset($_GET['run']) && $_GET['run'] == 'yes') {
     $MACHINE = GET_int('MACHINE');
     $CSET = mysql_real_escape_string(GET_string('CSET'));
-    mysql_query("INSERT INTO fast_run (machine, stamp, cset)
+    mysql_query("INSERT INTO awfy_run (machine, stamp, cset)
                  VALUES
                  ($MACHINE, UNIX_TIMESTAMP(), '$CSET')")
         or die("ERROR: " . mysql_error());
@@ -30,7 +30,7 @@ if (isset($_GET['run']) && $_GET['run'] == 'finish') {
         $error = '\'' . mysql_real_escape_string(GET_string('error')) . '\'';
     else
         $error = 'NULL';
-    mysql_query("UPDATE fast_run
+    mysql_query("UPDATE awfy_run
                  SET status = $status,
                       error = $error
                  WHERE id = $runid")
@@ -78,7 +78,7 @@ if (GET_string('name') == '__total__') {
 } else {
     $test_id = find_or_add_test($suite_version_id, GET_string('name'));
     mysql_query("INSERT INTO awfy_breakdown
-                 (run_id, mode_id, score, test_id)
+                 (run_id, mode_id, score, suite_test_id)
                  VALUES
                  ($run, $mode_id, $time, $test_id)")
         or die("ERROR: " . mysql_error());

@@ -56,8 +56,8 @@ class Machine(object):
 
         self.suites = []
         c = awfy.db.cursor()
-        c.execute("SELECT DISTINCT(suite_version_id) FROM fast_run                        \
-                   JOIN `awfy_score` ON fast_run.id = run_id                              \
+        c.execute("SELECT DISTINCT(suite_version_id) FROM awfy_run                        \
+                   JOIN `awfy_score` ON awfy_run.id = run_id                              \
                    WHERE machine = %s", (id,))
         ids = [str(row[0]) for row in c.fetchall()]
 	if len(ids) > 0:
@@ -91,13 +91,13 @@ class Runs(object):
         self.runs = []
         self.map_ = {}
         c = awfy.db.cursor()
-        c.execute("SELECT fr.id, fr.stamp                   \
-                   FROM fast_run fr                         \
-                   JOIN awfy_score a ON fr.id = a.run_id    \
-                   WHERE fr.machine = %s                    \
-                   AND fr.status <> 0                       \
-                   GROUP BY fr.id                           \
-                   ORDER BY fr.stamp DESC                   \
+        c.execute("SELECT ar.id, ar.stamp                   \
+                   FROM awfy_run ar                         \
+                   JOIN awfy_score a ON ar.id = a.run_id    \
+                   WHERE ar.machine = %s                    \
+                   AND ar.status <> 0                       \
+                   GROUP BY ar.id                           \
+                   ORDER BY ar.stamp DESC                   \
                    LIMIT 30", [machine_id])
         for row in c.fetchall():
             t = (row[0], row[1])

@@ -30,7 +30,7 @@ for machine_row in machines:
     c.execute(
       """
         select stamp
-         from fast_run
+         from awfy_run
         where
          machine = %s and
          status = 1

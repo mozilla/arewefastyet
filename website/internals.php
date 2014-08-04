@@ -96,7 +96,7 @@ function awfy_query($query)
 function GET_run_id($name)
 {
     $runid = GET_int($name);
-    $results = mysql_query("SELECT id from fast_run WHERE id = $runid AND status = 0");
+    $results = mysql_query("SELECT id from awfy_run WHERE id = $runid AND status = 0");
     if (!$results || mysql_num_rows($results) < 1)
         return 0;
     return $runid;
