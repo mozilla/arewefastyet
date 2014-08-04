@@ -129,6 +129,10 @@ class V8(Engine):
                 {
                     'mode': 'v8',
                     'args': None
+                },
+                {
+                    'mode': 'v8-turbofan',
+                    'args': ['--turbo-filter=*']
                 }
             ]
 
