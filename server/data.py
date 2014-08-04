@@ -57,7 +57,8 @@ class Machine(object):
         self.suites = []
         c = awfy.db.cursor()
         c.execute("SELECT DISTINCT(suite_version_id) FROM awfy_run                        \
-                   JOIN `awfy_score` ON awfy_run.id = run_id                              \
+                   JOIN `awfy_build` ON awfy_run.id = run_id                              \
+                   JOIN `awfy_score` ON awfy_build.id = build_id                          \
                    WHERE machine = %s", (id,))
         ids = [str(row[0]) for row in c.fetchall()]
 	if len(ids) > 0:

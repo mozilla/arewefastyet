@@ -30,7 +30,7 @@ function find_vendor_of_mode_id($mode_id)
               WHERE id = $mode_id";
     $results = mysql_query($query);
     if (!$results || mysql_num_rows($results) < 1)
-        return 01;
+        return 0;
     $row = mysql_fetch_array($results);
     return intval($row[0]);
 }
@@ -42,6 +42,17 @@ function find_mode($mode)
     $results = mysql_query($query);
     if (!$results || mysql_num_rows($results) < 1)
         return -1;
+    $row = mysql_fetch_array($results);
+    return intval($row[0]);
+}
+
+function find_build($run_id, $mode_id)
+{
+    $query = "SELECT id FROM awfy_build
+              WHERE run_id = $run_id and mode_id = $mode_id";
+    $results = mysql_query($query);
+    if (!$results || mysql_num_rows($results) < 1)
+        return 0;
     $row = mysql_fetch_array($results);
     return intval($row[0]);
 }

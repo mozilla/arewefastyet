@@ -45,10 +45,10 @@ def delete_metadata(prefix, data):
         os.remove(name)
 
 def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
-    query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id, v.id                 \
+    query = "SELECT r.id, r.stamp, b.cset, s.score, b.mode_id, v.id                 \
              FROM awfy_breakdown s                                                  \
-             JOIN awfy_run r ON s.run_id = r.id                                     \
-             JOIN awfy_build b ON s.run_id = b.run_id AND s.mode_id = b.mode_id     \
+             JOIN awfy_build b ON s.build_id = b.id                                 \
+             JOIN awfy_run r ON b.run_id = r.id                                     \
              JOIN awfy_suite_test t ON s.suite_test_id = t.id                       \
              JOIN awfy_suite_version v ON v.id = t.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \
@@ -63,10 +63,10 @@ def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
     return c.fetchall()
 
 def fetch_suite_scores(machine_id, suite_id, earliest_run_id):
-    query = "SELECT r.id, r.stamp, b.cset, s.score, s.mode_id, v.id                 \
+    query = "SELECT r.id, r.stamp, b.cset, s.score, b.mode_id, v.id                 \
              FROM awfy_score s                                                      \
-             JOIN awfy_run r ON s.run_id = r.id                                     \
-             JOIN awfy_build b ON s.run_id = b.run_id AND s.mode_id = b.mode_id     \
+             JOIN awfy_build b ON s.build_id = b.id                                 \
+             JOIN awfy_run r ON b.run_id = r.id                                     \
              JOIN awfy_suite_version v ON v.id = s.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \
              AND r.id > %s                                                          \
