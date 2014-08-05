@@ -15,9 +15,6 @@ import condenser, json
 from profiler import Profiler
 from builder import Builder
 
-def timezone_offset():
-    return 0
-
 def export(name, j):
     path = os.path.join(awfy.path, name)
     if os.path.exists(path):
@@ -45,10 +42,10 @@ def delete_metadata(prefix, data):
         os.remove(name)
 
 def fetch_test_scores(machine_id, suite_id, name, last_stamp, current_stamp):
-    query = "SELECT r.id, r.stamp, b.cset, s.score, b.mode_id, v.id                 \
-             FROM awfy_breakdown s                                                  \
-             JOIN awfy_build b ON s.build_id = b.id                                 \
-             JOIN awfy_run r ON b.run_id = r.id                                     \
+    query = "SELECT STRAIGHT_JOIN r.id, r.stamp, b.cset, s.score, b.mode_id, v.id   \
+             FROM awfy_run r                                                        \
+             JOIN awfy_build b ON r.id = b.run_id                                   \
+             JOIN awfy_breakdown s ON s.build_id = b.id                             \
              JOIN awfy_suite_test t ON s.suite_test_id = t.id                       \
              JOIN awfy_suite_version v ON v.id = t.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \
@@ -64,10 +61,10 @@ def fetch_test_scores(machine_id, suite_id, name, last_stamp, current_stamp):
     return c.fetchall()
 
 def fetch_suite_scores(machine_id, suite_id, last_stamp, current_stamp):
-    query = "SELECT r.id, r.stamp, b.cset, s.score, b.mode_id, v.id                 \
-             FROM awfy_score s                                                      \
-             JOIN awfy_build b ON s.build_id = b.id                                 \
-             JOIN awfy_run r ON b.run_id = r.id                                     \
+    query = "SELECT STRAIGHT_JOIN r.id, r.stamp, b.cset, s.score, b.mode_id, v.id   \
+             FROM awfy_run r                                                        \
+             JOIN awfy_build b ON r.id = b.run_id                                   \
+             JOIN awfy_score s ON s.build_id = b.id                                 \
              JOIN awfy_suite_version v ON v.id = s.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \
              AND r.finish_stamp > %s                                                \
@@ -79,6 +76,9 @@ def fetch_suite_scores(machine_id, suite_id, last_stamp, current_stamp):
     c = awfy.db.cursor()
     c.execute(query, [suite_id, last_stamp, current_stamp, machine_id])
     return c.fetchall()
+
+def delete_cache(prefix):
+    os.remove(os.path.join(awfy.path, prefix + '.json'))
 
 def open_cache(suite, prefix):
     try:
@@ -127,7 +127,7 @@ def update_cache(cx, suite, prefix, when, rows):
             else:
                 cset = None
             builder.addPoint(points,
-                             int(row[1]) - timezone_offset(),
+                             int(row[1]),
                              cset,
                              None,
                              score,
@@ -147,12 +147,12 @@ def update_cache(cx, suite, prefix, when, rows):
     for i, oldline in enumerate(cache['lines']):
         cache_modes[int(oldline['modeid'])] = oldline
 
-    # Prune times which are before the last time in the cache.
+    # Updating fails if there are items before the last time in the cache.
     if len(cache['timelist']) and len(builder.timelist):
         last_time = cache['timelist'][-1]
         i = 0
         while i < len(builder.timelist) and builder.timelist[i] < last_time:
-            i = i + 1
+            return False
         if i:
             builder.timelist = builder.timelist[i:]
             for line in lines:
@@ -195,6 +195,41 @@ def update_cache(cx, suite, prefix, when, rows):
 
     # Now save the results.
     save_cache(prefix, cache)
+    return True
+
+def renew_cache(cx, suite, prefix, when, last_stamp, fetch):
+    delete_cache(prefix + '-' + str(when[0]) + '-' + str(when[1]));
+
+    # Delete corresponding condensed graph
+    if prefix[0:3] == "raw":
+        delete_cache("condensed" + prefix[3:] + '-' + str(when[0]) + '-' + str(when[1]));
+    else:
+        delete_cache("bk-condensed" + prefix[6:] + '-' + str(when[0]) + '-' + str(when[1]));
+
+    dt = datetime.datetime(year=when[0], month=when[1], day=1)
+    start_stamp = int(time.mktime(dt.timetuple()))
+
+    next_month = when[1] + 1
+    next_year = when[0]
+    if next_month == 13:
+        next_month = 1
+        next_year += 1
+    dt = datetime.datetime(year=next_year, month=next_month, day=1)
+    stop_stamp = int(time.mktime(dt.timetuple())) - 1
+    if last_stamp < stop_stamp:
+        stop_stamp = last_stamp
+
+    # Querying all information from this month.
+    sys.stdout.write('Querying ' + prefix + '... ')
+    sys.stdout.flush()
+    with Profiler() as p:
+        rows = fetch(machine, start_stamp, stop_stamp)
+        diff = p.time()
+    new_rows = len(rows)
+    print('found ' + str(new_rows) + ' rows in ' + diff)
+
+    name = prefix + '-' + str(when[0]) + '-' + str(when[1])
+    update_cache(cx, suite, name, when, new_rows) 
 
 def perform_update(cx, machine, suite, prefix, fetch):
     # Fetch the actual data.
@@ -216,7 +251,7 @@ def perform_update(cx, machine, suite, prefix, fetch):
     current = []
     months = []
     for row in rows:
-        stamp = int(row[1]) - timezone_offset()
+        stamp = int(row[1])
         t = time.gmtime(stamp)
         if t.tm_year != year or t.tm_mon != month:
             if year and len(current):
@@ -236,7 +271,8 @@ def perform_update(cx, machine, suite, prefix, fetch):
         sys.stdout.write('Updating cache for ' + name + '...')
         sys.stdout.flush()
         with Profiler() as p:
-            update_cache(cx, suite, name, when, data)
+            if not update_cache(cx, suite, name, when, data):
+                renew_cache(cx, suite, prefix, when, last_stamp, fetch)
             diff = p.time()
         print('took ' + diff)
 
