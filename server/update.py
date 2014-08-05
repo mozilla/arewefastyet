@@ -31,7 +31,7 @@ def load_metadata(prefix):
         with open(os.path.join(awfy.path, 'metadata-' + prefix + '.json'), 'r') as fp:
             cache = util.json_load(fp)
     except:
-        cache = { 'earliest_run_id': 0 }
+        cache = { 'last_stamp': 0 }
 
     return cache
 
@@ -44,7 +44,7 @@ def delete_metadata(prefix, data):
     if os.path.exists(name):
         os.remove(name)
 
-def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
+def fetch_test_scores(machine_id, suite_id, name, last_stamp, current_stamp):
     query = "SELECT r.id, r.stamp, b.cset, s.score, b.mode_id, v.id                 \
              FROM awfy_breakdown s                                                  \
              JOIN awfy_build b ON s.build_id = b.id                                 \
@@ -55,27 +55,29 @@ def fetch_test_scores(machine_id, suite_id, name, earliest_run_id):
              AND t.name = %s                                                        \
              AND r.status = 1                                                       \
              AND r.machine = %s                                                     \
-             AND r.id > %s                                                          \
+             AND r.finish_stamp > %s                                                \
+             AND r.finish_stamp <= %s                                               \
              ORDER BY r.stamp ASC                                                   \
              "
     c = awfy.db.cursor()
-    c.execute(query, [suite_id, name, machine_id, earliest_run_id])
+    c.execute(query, [suite_id, name, machine_id, last_stamp, current_stamp])
     return c.fetchall()
 
-def fetch_suite_scores(machine_id, suite_id, earliest_run_id):
+def fetch_suite_scores(machine_id, suite_id, last_stamp, current_stamp):
     query = "SELECT r.id, r.stamp, b.cset, s.score, b.mode_id, v.id                 \
              FROM awfy_score s                                                      \
              JOIN awfy_build b ON s.build_id = b.id                                 \
              JOIN awfy_run r ON b.run_id = r.id                                     \
              JOIN awfy_suite_version v ON v.id = s.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \
-             AND r.id > %s                                                          \
+             AND r.finish_stamp > %s                                                \
+             AND r.finish_stamp <= %s                                               \
              AND r.status = 1                                                       \
              AND r.machine = %s                                                     \
              ORDER BY r.stamp ASC                                                   \
              "
     c = awfy.db.cursor()
-    c.execute(query, [suite_id, earliest_run_id, machine_id])
+    c.execute(query, [suite_id, last_stamp, current_stamp, machine_id])
     return c.fetchall()
 
 def open_cache(suite, prefix):
@@ -197,12 +199,13 @@ def update_cache(cx, suite, prefix, when, rows):
 def perform_update(cx, machine, suite, prefix, fetch):
     # Fetch the actual data.
     metadata = load_metadata(prefix)
-    earliest_run_id = metadata['earliest_run_id']
+    last_stamp = metadata['last_stamp']
+    current_stamp = int(time.time())
 
     sys.stdout.write('Querying ' + prefix + '... ')
     sys.stdout.flush()
     with Profiler() as p:
-        rows = fetch(machine, earliest_run_id)
+        rows = fetch(machine, last_stamp, current_stamp)
         diff = p.time()
     new_rows = len(rows)
     print('found ' + str(new_rows) + ' new rows in ' + diff)
@@ -237,35 +240,15 @@ def perform_update(cx, machine, suite, prefix, fetch):
             diff = p.time()
         print('took ' + diff)
 
-    if len(rows):
-        earliest_run_id = rows[-1][0]
-    else:
-        # Find the latest runid for this machine, so we can avoid querying the
-        # entire database every time if this benchmark is never run.
-        c = awfy.db.cursor()
-        c.execute("""
-                  select r.id from awfy_run r
-                  where
-                   r.machine = %s and
-                   r.status = 1
-                  order by r.id desc
-                  limit 1""",
-                  (machine.id))
-        rows = c.fetchall()
-        if rows:
-            earliest_run_id = rows[0][0]
-        else:
-            earliest_run_id = 0
-
-    metadata['earliest_run_id'] = earliest_run_id
+    metadata['last_stamp'] = current_stamp
     save_metadata(prefix, metadata)
 
     return new_rows
 # Done
 
 def update(cx, machine, suite):
-    def fetch_aggregate(machine, earliest_run_id):
-        return fetch_suite_scores(machine.id, suite.id, earliest_run_id)
+    def fetch_aggregate(machine, last_stamp, current_stamp):
+        return fetch_suite_scores(machine.id, suite.id, last_stamp, current_stamp)
 
     prefix = 'raw-' + suite.name + '-' + str(machine.id)
     new_rows = perform_update(cx, machine, suite, prefix, fetch_aggregate)
@@ -276,8 +259,8 @@ def update(cx, machine, suite):
         return
 
     for test_name in suite.tests:
-        def fetch_test(machine, earliest_run_id):
-            return fetch_test_scores(machine.id, suite.id, test_name, earliest_run_id)
+        def fetch_test(machine, last_stamp, current_stamp):
+            return fetch_test_scores(machine.id, suite.id, test_name, last_stamp, current_stamp)
 
         prefix = 'bk-raw-' + suite.name + '-' + test_name + '-' + str(machine.id)
         perform_update(cx, machine, suite, prefix, fetch_test)
