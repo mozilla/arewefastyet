@@ -15,11 +15,11 @@ class Engine(object):
     def __init__(self):
         self.cpu = utils.config.get('main', 'cpu')
 
-    def updateAndBuild(self, update, forceRebuild):
+    def updateAndBuild(self, update=True, forceRebuild=False, rev=None):
         with utils.FolderChanger(os.path.join(utils.RepoPath, self.source)):
-            self._updateAndBuild(update, forceRebuild)
+            self._updateAndBuild(update, forceRebuild, rev=rev)
 
-    def _updateAndBuild(self, update, forceRebuild):
+    def _updateAndBuild(self, update, forceRebuild, rev=None):
         if self.puller == 'svn':
             scm = puller.SVN
         elif self.puller == 'hg':
@@ -32,7 +32,7 @@ class Engine(object):
             forceRebuild = True
     
         if update:
-            self.updated = scm.Update()
+            self.updated = scm.Update(rev)
         else:
             self.updated = False
     
@@ -129,10 +129,6 @@ class V8(Engine):
                 {
                     'mode': 'v8',
                     'args': None
-                },
-                {
-                    'mode': 'v8-turbofan',
-                    'args': ['--turbo-filter=*']
                 }
             ]
 
@@ -233,12 +229,12 @@ class NativeCompiler(Engine):
         output = Run([self.cxx, '--version'])
         self.signature = output.splitlines()[0].strip()
 
-def build(engines, updateRepo, forceBuild):
+def build(engines, updateRepo=True, forceBuild=False, rev=None):
     Engines = []
     NumUpdated = 0
     for engine in engines:
         try:
-            engine.updateAndBuild(updateRepo, forceBuild)
+            engine.updateAndBuild(updateRepo, forceBuild, rev)
         except Exception as err:
             print('Build failed!')
             print(err)
