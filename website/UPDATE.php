@@ -7,14 +7,28 @@ require_once("internals.php");
 
 init_database();
 
+if (isset($_GET['requests'])) {
+    $MACHINE = GET_int('MACHINE');
+    $query = mysql_query("SELECT * FROM awfy_request
+                          WHERE finished = 0
+                          AND machine = $MACHINE");
+    $data = Array();
+    while ($output = mysql_fetch_assoc($query)) {
+        $data[] = $output;
+    }
+    echo json_encode($data);
+    die();
+}
+
 // Start a full benchmark run. Request a token/number used to report/group
 // benchmark scores.
-// (Note: cset is not used anymore. It is saved in awfy_build now)
 if (isset($_GET['run']) && $_GET['run'] == 'yes') {
     $MACHINE = GET_int('MACHINE');
+    $stamp = GET_int('stamp');
+    $stamp = ($stamp != 0) ? $stamp : "UNIX_TIMESTAMP()";
     mysql_query("INSERT INTO awfy_run (machine, stamp)
                  VALUES
-                 ($MACHINE, UNIX_TIMESTAMP())")
+                 ($MACHINE, $stamp)")
         or die("ERROR: " . mysql_error());
     print("id=" . mysql_insert_id());
     die();
@@ -31,8 +45,17 @@ if (isset($_GET['run']) && $_GET['run'] == 'finish') {
         $error = 'NULL';
     mysql_query("UPDATE awfy_run
                  SET status = $status,
-                      error = $error
+                     error = $error,
+                     finish_stamp = UNIX_TIMESTAMP()
                  WHERE id = $runid")
+        or die("ERROR: " . mysql_error());
+
+    mysql_query("UPDATE awfy_request as request
+                 JOIN awfy_build as build ON request.cset = build.cset
+                 JOIN  awfy_run as run ON run.id = build.run_id
+                                   AND run.machine = request.machine
+                 SET finished = 1
+                 WHERE run.id = $runid")
         or die("ERROR: " . mysql_error());
     die();
 }
