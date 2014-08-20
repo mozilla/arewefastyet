@@ -9,6 +9,8 @@ import os
 import shutil
 import signal
 import time
+import socket
+socket.setdefaulttimeout(120)
 
 sys.path.insert(1, '../driver')
 import utils
