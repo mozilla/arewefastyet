@@ -7,6 +7,7 @@ import re
 import utils
 import urllib
 import urllib2
+import json
 
 class Submitter:
     def __init__(self, slave):
@@ -16,6 +17,19 @@ class Submitter:
         for i in range(len(self.urls)):
             self.urls[i] = self.urls[i].strip()
             self.runIds.append(0)
+
+    def RequestedRevs(self):
+        data = []
+        for i in range(len(self.urls)):
+            try:
+                url = self.urls[i]
+                url += '?requests=1'
+                url += '&MACHINE=' + str(self.machine)
+                url = urllib2.urlopen(url)
+                data += json.loads(url.read())
+            except urllib2.URLError:
+                pass
+        return data
 
     def Awake(self):
         for i in range(len(self.urls)):
@@ -27,12 +41,14 @@ class Submitter:
             except urllib2.URLError:
                 pass
 
-    def Start(self):
+    def Start(self, timestamp=None):
         for i in range(len(self.urls)):
             try:
                 url = self.urls[i]
                 url += '?run=yes'
                 url += '&MACHINE=' + str(self.machine)
+                if timestamp:
+                    url += "&stamp=" + str(timestamp)
                 url = urllib2.urlopen(url)
                 contents = url.read()
                 m = re.search('id=(\d+)', contents)

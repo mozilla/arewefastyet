@@ -45,20 +45,37 @@ class Vendor(object):
         self.rangeURL = rangeURL
 
 class Machine(object):
-    def __init__(self, id, os, cpu, description, active, frontpage):
+    def __init__(self, id, os, cpu, description, active, frontpage, pushed_separate):
         self.id = id
         self.os = os
         self.cpu = cpu
         self.description = description
         self.active = active
         self.frontpage = frontpage
+        self.pushed_separate = pushed_separate
+
+        self.suites = []
+        c = awfy.db.cursor()
+        c.execute("SELECT DISTINCT(suite_version_id) FROM awfy_run                        \
+                   JOIN `awfy_build` ON awfy_run.id = run_id                              \
+                   JOIN `awfy_score` ON awfy_build.id = build_id                          \
+                   WHERE machine = %s", (id,))
+        ids = [str(row[0]) for row in c.fetchall()]
+	if len(ids) > 0:
+                c.execute("SELECT DISTINCT(awfy_suite.name) FROM awfy_suite                       \
+                           JOIN `awfy_suite_version` ON suite_id = awfy_suite.id                  \
+                           WHERE awfy_suite_version.id in ("+(",".join(ids))+")")
+                for row in c.fetchall():
+                    self.suites.append(row[0])
 
     def export(self):
         return { "id": self.id,
                  "os": self.os,
                  "cpu": self.cpu,
                  "description": self.description,
-                 "frontpage": self.frontpage
+                 "frontpage": self.frontpage,
+                 "pushed_separate": self.pushed_separate,
+                 "suites": self.suites
                }
 
 class Mode(object):
@@ -75,13 +92,13 @@ class Runs(object):
         self.runs = []
         self.map_ = {}
         c = awfy.db.cursor()
-        c.execute("SELECT fr.id, fr.stamp                   \
-                   FROM fast_run fr                         \
-                   JOIN awfy_score a ON fr.id = a.run_id    \
-                   WHERE fr.machine = %s                    \
-                   AND fr.status <> 0                       \
-                   GROUP BY fr.id                           \
-                   ORDER BY fr.stamp DESC                   \
+        c.execute("SELECT ar.id, ar.stamp                   \
+                   FROM awfy_run ar                         \
+                   JOIN awfy_score a ON ar.id = a.run_id    \
+                   WHERE ar.machine = %s                    \
+                   AND ar.status <> 0                       \
+                   GROUP BY ar.id                           \
+                   ORDER BY ar.stamp DESC                   \
                    LIMIT 30", [machine_id])
         for row in c.fetchall():
             t = (row[0], row[1])
@@ -143,9 +160,9 @@ class Context(object):
 
         # Get a list of machines.
         self.machines = []
-        c.execute("SELECT id, os, cpu, description, active, frontpage FROM awfy_machine WHERE active >= 1")
+        c.execute("SELECT id, os, cpu, description, active, frontpage, pushed_separate FROM awfy_machine WHERE active >= 1")
         for row in c.fetchall():
-            m = Machine(row[0], row[1], row[2], row[3], row[4], row[5])
+            m = Machine(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
             self.machines.append(m)
 
     def exportModes(self):

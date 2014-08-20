@@ -218,7 +218,7 @@ Display.prototype.draw = function () {
     options.borderWidth = 1.5;
     options.borderColor = "#BEBEBE";
     options.legend = { show: false };
-    options.xaxis = { };
+    options.xaxis = {  };
     options.yaxis = { };
     options.grid = { hoverable: true, clickable: true };
     options.selection = { mode: 'x' }
@@ -228,15 +228,11 @@ Display.prototype.draw = function () {
         options.yaxis.min = 0;
 
     if (this.graph.direction == 1) {
-		options.yaxis.transform = function (v) {
+	options.yaxis.transform = function (v) {
             return -v;
         };
-		options.yaxis.inverseTransform = function (v) {
+	options.yaxis.inverseTransform = function (v) {
             return -v;
-        };
-    } else {
-        options.yaxis.tickFormatter = function (v, axis) {
-            return v + 'ms';
         };
     }
 
@@ -280,6 +276,17 @@ Display.prototype.draw = function () {
     }
 
     this.plot = $.plot(this.elt, this.graph.lines, options);
+
+    if (this.graph.direction == 1) {
+        var yaxisLabel = $("<div class='axisLabel yaxisLabel'></div>")
+                                                        .text("Score")
+                                                  .appendTo(this.elt);
+    } else {
+        var yaxisLabel = $("<div class='axisLabel yaxisLabel'></div>")
+                                          .text("Execution Time (ms)")
+                                                  .appendTo(this.elt);
+    }
+    yaxisLabel.css("margin-top", yaxisLabel.width() / 2 - 20);
 }
 
 Display.prototype.plotSelected = function (event, ranges) {
@@ -299,6 +306,8 @@ Display.prototype.plotSelected = function (event, ranges) {
 
     var start = this.graph.timelist[from_x];
     var end = this.graph.timelist[to_x];
+
+    AWFY.trackZoom(start, end);
 
     var prev = this.zoomInfo.prev;
     if (prev && this.zoomInfo.level == 'month') {
@@ -413,6 +422,8 @@ Display.prototype.unzoom = function () {
     this.plot.clearSelection();
     this.detachTips();
     this.zoomInfo.level = 'aggregate';
+
+    AWFY.trackZoom(null, null);
 }
 
 Display.prototype.detachTips = function () {

@@ -15,6 +15,7 @@ AWFY.aggregate = null;
 AWFY.xhr = [];
 AWFY.view = 'none';
 AWFY.suiteName = null;
+AWFY.subtest = null;
 AWFY.lastHash = null;
 AWFY.lastRefresh = 0;
 
@@ -57,6 +58,15 @@ AWFY.pushState = function () {
     if (this.view == 'breakdown') {
         vars.push('view=breakdown');
         vars.push('suite=' + this.suiteName);
+    }
+    if (this.view == 'single') {
+        vars.push('view=single');
+        vars.push('suite=' + this.suiteName);
+        vars.push('subtest=' + this.subtest);
+        if (this.start && this.end) {
+            vars.push('start='+this.start);
+            vars.push('end='+this.end);
+        }
     }
 
     if ($('#about').is(':visible'))
@@ -126,6 +136,10 @@ AWFY.displayNewGraph = function (name, graph) {
         display.draw();
     }
     this.aggregate[name] = graph;
+    if (this.start && this.end) {
+        AWFY.requestZoom(display, "condensed", this.start, this.end)
+        display.zoomInfo.level = 'month';
+    }
 }
 
 AWFY.drawLegend = function () {
@@ -424,7 +438,9 @@ AWFY.trim = function (graph, start, end) {
     return { lines: lines,
              info: infos,
              timelist: timelist,
-             direction: graph.direction
+             direction: graph.direction,
+             start: start,
+             end: end
            };
 }
 
@@ -476,7 +492,7 @@ AWFY.requestZoom = function (display, kind, start_t, end_t) {
                        this.machineId + '-' +
                        year + '-' +
                        month;
-            if (this.view == 'breakdown')
+            if (this.view == 'breakdown' || this.view == 'single')
                 name = 'bk-' + name;
             files.push(name);
         }
@@ -489,6 +505,16 @@ AWFY.requestZoom = function (display, kind, start_t, end_t) {
     this.request(files, zoom.bind(this));
 }
 
+AWFY.trackZoom = function (start, end) {
+    // Only track in single modus
+    if (this.view != 'single')
+        return;
+
+    this.start = start;
+    this.end = end;
+    this.pushState();
+}
+
 AWFY.showOverview = function () {
     this.reset('overview');
 
@@ -498,6 +524,9 @@ AWFY.showOverview = function () {
     $('.graph-container').show();
 
     this.suiteName = null;
+    this.subtest = null
+    this.start = null
+    this.end = null
     this.panes = [$('#ss-graph'),
                   $('#kraken-graph'),
                   $('#octane-graph')
@@ -518,6 +547,9 @@ AWFY.showBreakdown = function (name) {
     breakdown.show();
 
     this.suiteName = name;
+    this.start = null
+    this.end = null
+    this.subtest = null;
     this.panes = [];
 
     var total = 0;
@@ -527,10 +559,19 @@ AWFY.showBreakdown = function (name) {
     for (var i = 0; i < suite.tests.length; i++) {
         var test = suite.tests[i];
         var id = name + '-' + test;
-        $('<div></div>').html('<b>' + id + '</b>').appendTo(breakdown);
+        ( function (name, test) {
+            $('<div></div>').click(
+                (function (event) {
+                    this.showSingle(name, test, null, null);
+                    this.pushState();
+                    return false;
+                 }).bind(this))
+            .html('<b><a href="#">' + id + '</a></b>')
+            .appendTo(breakdown);
+        }.bind(this)  )(name, test)
         var div = $('<div id="' + id + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
-	div.hide();
+        div.hide();
         $('<br><br>').appendTo(breakdown);
 
         this.panes.push(div);
@@ -551,20 +592,70 @@ AWFY.showBreakdown = function (name) {
     this.lastRefresh = Date.now();
 }
 
+AWFY.showSingle = function (name, subtest, start, end) {
+    this.reset('single');
+
+    // Clear the breakdown view.
+    var breakdown = $('#breakdown');
+    breakdown.empty()
+
+    $('.graph-container').hide();
+    breakdown.show();
+
+    this.suiteName = name;
+    this.subtest = subtest;
+    this.start = start;
+    this.end = end;
+    this.panes = [];
+
+    var total = 0;
+
+    // Create a div for each sub-test.
+    var suite = AWFYMaster.suites[name];
+    for (var i = 0; i < suite.tests.length; i++) {
+        var test = suite.tests[i];
+        if (subtest != test)
+            continue;
+        var id = name + '-' + test;
+        $('<div></div>').html('<b>' + id + '</b>').appendTo(breakdown);
+        var div = $('<div id="' + id + '-graph" class="graph"></div>');
+        div.appendTo(breakdown);
+        div.hide();
+        $('<br><br>').appendTo(breakdown);
+
+        this.panes.push(div);
+
+        var callback = (function (id) {
+            return (function (received) {
+                if (received[0])
+                    this.computeBreakdown(received[0], id);
+                this.drawLegend();
+            }).bind(this);
+        }).bind(this)(id);
+
+        // Fire off an XHR request for each test.
+        var file = 'bk-aggregate-' + id + '-' + this.machineId;
+        this.request([file], callback);
+    }
+    this.lastRefresh = Date.now();
+}
+
 AWFY.requestRedraw = function () {
     if (this.view == 'overview') {
         this.request(['aggregate-' + this.machineId],
                    this.computeAggregate.bind(this));
-    } else if (this.view == 'breakdown') {
+    } else if (this.view == 'breakdown' || this.view == 'single') {
         var suite = AWFYMaster.suites[this.suiteName];
         var total = 0;
         for (var i = 0; i < suite.tests.length; i++) {
             var id = this.suiteName + '-' + suite.tests[i];
+            if (this.view == 'single' && suite.tests[i] != this.subtest)
+                continue;
             var callback = (function (id) {
                 return (function (received) {
                     if (received[0])
                         this.computeBreakdown(received[0], id);
-                    if (++total == suite.tests.length)
+                    if (++total == suite.tests.length || this.view == 'single')
                         this.drawLegend();
                 }).bind(this);
             }).bind(this)(id);
@@ -639,18 +730,39 @@ AWFY.parseURL = function () {
         machineId = this.DEFAULT_MACHINE_ID;
 
     var view = this.queryParams['view'];
-    if (!view || (view != 'overview' && view != 'breakdown'))
+    if (!view || (view != 'overview' && view != 'breakdown' && view != 'single'))
         view = 'overview';
-    if (view == 'breakdown') {
+    if (view == 'breakdown' || view == 'single') {
         var suiteName = this.queryParams['suite'];
         if (!suiteName || !AWFYMaster.suites[suiteName])
             view = 'overview';
+    }
+    var start = null;
+    var end = null;
+    if (view == 'single') {
+        var subtest = this.queryParams['subtest'];
+        var suite = AWFYMaster.suites[suiteName];
+        var found = false;
+        for (var i = 0; i < suite.tests.length; i++) {
+            var test = suite.tests[i];
+            if (subtest != test)
+                continue;
+            found = true;
+            break;
+        }
+        if (!subtest || !found) {
+            view = 'breakdown';
+        } else {
+            start = (this.queryParams['start'])?parseInt(this.queryParams['start']):null;
+            end = (this.queryParams['end'])?parseInt(this.queryParams['end']):null;
+        }
     }
 
     // Make sure the menus are up to date.
     if (this.view != 'none') {
         if (this.machineId != machineId) {
             this.updateMachineList(machineId);
+            this.updateSuiteList(machineId);
         }
         $('#breakdownlist .clicked').removeClass('clicked');
         if (view == 'overview')
@@ -666,7 +778,7 @@ AWFY.parseURL = function () {
                 this.changeMachine(machineId);
             this.lastHash = window.location.hash;
             return;
-        } else if (view == 'breakdown') {
+        } else if (view == 'breakdown' || view == 'single') {
             if (suiteName == this.suiteName) {
                 if (machineId != this.machineId) 
                     this.changeMachine(machineId);
@@ -683,6 +795,8 @@ AWFY.parseURL = function () {
         this.showOverview();
     else if (view == 'breakdown')
         this.showBreakdown(suiteName);
+    else if (view == 'single')
+        this.showSingle(suiteName, subtest, start, end);
 
     this.lastHash = window.location.hash;
 }
@@ -702,6 +816,7 @@ AWFY.updateMachineList = function (machineId) {
         a.click((function (id) {
             return (function (event) {
                 this.updateMachineList(parseInt(id));
+                this.updateSuiteList(parseInt(id));
                 this.changeMachine(parseInt(id));
                 this.pushState();
                 return false;
@@ -712,6 +827,56 @@ AWFY.updateMachineList = function (machineId) {
         a.html(machine.description);
         a.appendTo(li);
         li.appendTo(menu);
+    }
+}
+
+AWFY.updateSuiteList = function (machineId) {
+    var breakdown = $('#breakdownlist');
+    breakdown.empty(); 
+
+    var home = $('<a href="#" id="suite-overview"></a>').click(
+        (function (event) {
+            $('#breakdownlist .clicked').removeClass('clicked');
+            $(event.target).addClass('clicked');
+            this.showOverview();
+            this.pushState();
+            return false;
+         }).bind(this))
+    .html('Overview')
+    .appendTo($('<li></li>').appendTo(breakdown));
+    if (this.view == 'overview')
+        home.addClass('clicked');
+
+    var suites = [];
+    for (var i=0; i < AWFYMaster.machines[machineId].suites.length; i++) {
+        var name = AWFYMaster.machines[machineId].suites[i];
+        if (AWFYMaster.suites[name])
+	    suites.push([name, AWFYMaster.suites[name]]);
+    }
+
+    suites.sort(function (a, b) {
+        return a[1].sort_order - b[1].sort_order;
+    });
+
+    for (var i = 0; i < suites.length; i++) {
+        var name = suites[i][0];
+        var suite = suites[i][1];
+        var li = $('<li></li>');
+        var a = $('<a href="#" id="suite-' + name + '"></a>');
+        a.click((function (name) {
+            return (function(event) {
+                $('#breakdownlist .clicked').removeClass('clicked');
+                $(event.target).addClass('clicked');
+                this.showBreakdown(name);
+                this.pushState();
+                return false;
+            }).bind(this);
+        }).bind(this)(name));
+        if ((this.view == 'breakdown' || this.view == 'single') && this.suiteName == name)
+            a.addClass('clicked');
+        a.html(suite.description);
+        a.appendTo(li);
+        li.appendTo(breakdown);
     }
 }
 
@@ -737,49 +902,11 @@ AWFY.startup = function () {
     }).bind(this));
     menu.hide();
 
+    // Add suite information to menu
     var breakdown = $('#breakdownlist');
+    this.updateSuiteList(this.machineId);
 
-    var home = $('<a href="#" id="suite-overview"></a>').click(
-        (function (event) {
-            $('#breakdownlist .clicked').removeClass('clicked');
-            $(event.target).addClass('clicked');
-            this.showOverview();
-            this.pushState();
-            return false;
-         }).bind(this))
-    .html('Overview')
-    .appendTo($('<li></li>').appendTo(breakdown));
-    if (this.view == 'overview')
-        home.addClass('clicked');
-
-    var suites = [];
-    for (var name in AWFYMaster.suites)
-        suites.push([name, AWFYMaster.suites[name]]);
-
-    suites.sort(function (a, b) {
-        return a[1].sort_order - b[1].sort_order;
-    });
-
-    for (var i = 0; i < suites.length; i++) {
-        var name = suites[i][0];
-        var suite = suites[i][1];
-        var li = $('<li></li>');
-        var a = $('<a href="#" id="suite-' + name + '"></a>');
-        a.click((function (name) {
-            return (function(event) {
-                $('#breakdownlist .clicked').removeClass('clicked');
-                $(event.target).addClass('clicked');
-                this.showBreakdown(name);
-                this.pushState();
-                return false;
-            }).bind(this);
-        }).bind(this)(name));
-        if (this.view == 'breakdown' && this.suiteName == name)
-            a.addClass('clicked');
-        a.html(suite.description);
-        a.appendTo(li);
-        li.appendTo(breakdown);
-    }
+    // Hide it by default.
     $('#bkdrop').click((function (event) {
         if (!breakdown.is(':visible') && !$('#about').is(':visible')) {
             breakdown.show();

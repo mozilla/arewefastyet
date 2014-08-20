@@ -169,15 +169,12 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 CREATE TABLE `awfy_breakdown` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `run_id` int(11) DEFAULT NULL,
-  `mode_id` int(11) DEFAULT NULL,
+  `build_id` int(11) DEFAULT NULL,
+  `suite_test_id` int(10) DEFAULT NULL,
   `score` varchar(45) DEFAULT NULL,
-  `test_id` int(10) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `run_id` (`run_id`),
-  KEY `mode_id` (`mode_id`),
-  KEY `test_id` (`test_id`),
-  KEY `run_test` (`run_id`, `test_id`)
+  KEY `build_id` (`build_id`),
+  KEY `suite_test_id` (`suite_test_id`),
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -222,28 +219,24 @@ CREATE TABLE `awfy_machine` (
 
 CREATE TABLE `awfy_score` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `run_id` int(11) DEFAULT NULL,
+  `build_id` int(11) DEFAULT NULL,
   `suite_version_id` int(11) DEFAULT NULL,
-  `mode_id` int(11) DEFAULT NULL,
   `score` double DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `run_id_2` (`run_id`,`suite_version_id`,`mode_id`),
-  KEY `run_id` (`run_id`),
-  KEY `mode_id` (`mode_id`),
+  KEY `build_id` (`build_id`),
   KEY `suite_id` (`suite_version_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `fast_run`
+-- Table structure for table `awfy_run`
 --
 
-CREATE TABLE `fast_run` (
+CREATE TABLE `awfy_run` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `machine` int(10) unsigned NOT NULL,
   `stamp` int(10) unsigned NOT NULL,
-  `cset` varchar(160) NOT NULL,
   `status` int(11) NOT NULL,
   `error` mediumtext NOT NULL,
   PRIMARY KEY (`id`),

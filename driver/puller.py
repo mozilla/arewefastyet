@@ -11,9 +11,15 @@ from utils import Run
 
 class HG:
     @staticmethod
-    def Update():
+    def Update(rev = None):
         output = Run(['hg', 'pull', '-u'])
-        return re.search("no changes found", output) == None
+        succeeded = re.search("no changes found", output) == None
+        if not rev:
+            return succeeded
+        output = Run(['hg', 'update', '-r', rev])
+        if re.search("unknown revision", output) != None:
+            raise Exception('unknown revision: ' + output)
+        return True
 
     @staticmethod
     def Identify():
@@ -25,9 +31,15 @@ class HG:
 
 class SVN:
     @staticmethod
-    def Update():
+    def Update(rev = None):
         output = Run(['svn', 'update'])
-        return re.search("At revision", output) == None
+        succeeded = re.search("At revision", output) == None
+        if not rev:
+            return succeeded
+        output = Run(['svn', 'update', '-r', rev])
+        if re.search("No such revision", output) != None:
+            raise Exception('unknown revision: ' + output)
+        return True
 
     @staticmethod
     def Identify():
@@ -39,7 +51,8 @@ class SVN:
 
 class GIT:
     @staticmethod
-    def Update():
+    def Update(rev = None):
+        assert rev == None
         output = Run(['git', 'pull'])
         return re.search("Already up-to-date", output) == None
 

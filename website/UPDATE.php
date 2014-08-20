@@ -7,15 +7,28 @@ require_once("internals.php");
 
 init_database();
 
+if (isset($_GET['requests'])) {
+    $MACHINE = GET_int('MACHINE');
+    $query = mysql_query("SELECT * FROM awfy_request
+                          WHERE finished = 0
+                          AND machine = $MACHINE");
+    $data = Array();
+    while ($output = mysql_fetch_assoc($query)) {
+        $data[] = $output;
+    }
+    echo json_encode($data);
+    die();
+}
+
 // Start a full benchmark run. Request a token/number used to report/group
 // benchmark scores.
-// (Note: cset is not used anymore. It is saved in awfy_build now)
 if (isset($_GET['run']) && $_GET['run'] == 'yes') {
     $MACHINE = GET_int('MACHINE');
-    $CSET = mysql_real_escape_string(GET_string('CSET'));
-    mysql_query("INSERT INTO fast_run (machine, stamp, cset)
+    $stamp = GET_int('stamp');
+    $stamp = ($stamp != 0) ? $stamp : "UNIX_TIMESTAMP()";
+    mysql_query("INSERT INTO awfy_run (machine, stamp)
                  VALUES
-                 ($MACHINE, UNIX_TIMESTAMP(), '$CSET')")
+                 ($MACHINE, $stamp)")
         or die("ERROR: " . mysql_error());
     print("id=" . mysql_insert_id());
     die();
@@ -30,10 +43,19 @@ if (isset($_GET['run']) && $_GET['run'] == 'finish') {
         $error = '\'' . mysql_real_escape_string(GET_string('error')) . '\'';
     else
         $error = 'NULL';
-    mysql_query("UPDATE fast_run
+    mysql_query("UPDATE awfy_run
                  SET status = $status,
-                      error = $error
+                     error = $error,
+                     finish_stamp = UNIX_TIMESTAMP()
                  WHERE id = $runid")
+        or die("ERROR: " . mysql_error());
+
+    mysql_query("UPDATE awfy_request as request
+                 JOIN awfy_build as build ON request.cset = build.cset
+                 JOIN  awfy_run as run ON run.id = build.run_id
+                                   AND run.machine = request.machine
+                 SET finished = 1
+                 WHERE run.id = $runid")
         or die("ERROR: " . mysql_error());
     die();
 }
@@ -66,20 +88,21 @@ $time = mysql_real_escape_string(GET_string('time'));
 $mode_id = find_mode(GET_string('mode'));
 $run = GET_run_id('run');
 $version = GET_string('suite');
+$build = find_build($run, $mode_id);
 if (isset($_GET['version']))
     $version = GET_string('version');
 $suite_version_id = find_or_add_suite_version(GET_string('suite'), $version);
 if (GET_string('name') == '__total__') {
     mysql_query("INSERT INTO awfy_score
-                 (run_id, suite_version_id, mode_id, score)
+                 (build_id, suite_version_id, score)
                  VALUES
-                 ($run, $suite_version_id, $mode_id, $time)")
+                 ($build, $suite_version_id, $time)")
         or die("ERROR: " . mysql_error());
 } else {
     $test_id = find_or_add_test($suite_version_id, GET_string('name'));
     mysql_query("INSERT INTO awfy_breakdown
-                 (run_id, mode_id, score, test_id)
+                 (build_id, suite_test_id, score)
                  VALUES
-                 ($run, $mode_id, $time, $test_id)")
+                 ($build, $test_id, $time)")
         or die("ERROR: " . mysql_error());
 }
