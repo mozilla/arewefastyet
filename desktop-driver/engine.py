@@ -141,7 +141,7 @@ class MozillaShell(Engine):
         pass
 
     def shell(self):
-        return os.path.join(self.tmp_dir,'shell','js.exe')
+        return os.path.join(self.tmp_dir,'js.exe')
         
     def env(self):
         return {"JSGC_DISABLE_POISONING": "1"}
