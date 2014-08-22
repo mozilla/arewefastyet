@@ -119,8 +119,14 @@ class V8(Engine):
         super(V8, self).__init__()
         self.puller = 'svn'
         self.source = utils.config.get('v8', 'source')
-        self.CXX = utils.config_get_default('v8', 'CXX', None)
-        self.LINK = utils.config_get_default('v8', 'LINK', None)
+        self.cxx = utils.config_get_default('v8', 'cxx', None)
+        self.cc = utils.config_get_default('v8', 'cc', None)
+        self.cpp = utils.config_get_default('v8', 'cpp', None)
+        self.link = utils.config_get_default('v8', 'link', None)
+        self.cxx_host = utils.config_get_default('v8', 'cxx_host', None)
+        self.cc_host = utils.config_get_default('v8', 'cc_host', None)
+        self.cpp_host = utils.config_get_default('v8', 'cpp_host', None)
+        self.link_host = utils.config_get_default('v8', 'link_host', None)
         self.args = ['--expose-gc']
         self.important = True
         self.hardfp = (utils.config.has_option('main', 'flags')) and \
@@ -134,12 +140,25 @@ class V8(Engine):
 
     def build(self):
         env = os.environ.copy()
-        if self.CXX is not None:
-            env['CXX'] = self.CXX
-        if self.LINK is not None:
-            env['LINK'] = self.LINK
+        if self.cxx is not None:
+            env['CXX'] = self.cxx
+        if self.cc is not None:
+            env['CC'] = self.cc
+        if self.cpp is not None:
+            env['CPP'] = self.cpp
+        if self.link is not None:
+            env['LINK'] = self.link
+        if self.cxx_host is not None:
+            env['CXX_host'] = self.cxx_host
+        if self.cc_host is not None:
+            env['CC_host'] = self.cc_host
+        if self.cpp_host is not None:
+            env['CPP_host'] = self.cpp_host
+        if self.link_host is not None:
+            env['LINK_host'] = self.link_host
+        env["GYP_DEFINES"] = "clang=1"
 
-        Run(['make', 'dependencies', '-j3'], env)
+        Run(['make', 'builddeps', '-j3'], env)
         if self.cpu == 'x64':
             Run(['make', 'x64.release', '-j3'], env)
         elif self.cpu == 'arm':
