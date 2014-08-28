@@ -26,7 +26,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 new BenchmarkSuite('zlib', [152815148], [
-  new Benchmark('zlib', false, true, 
+  new Benchmark('zlib', false, true, 10,
     runZlib, undefined, tearDownZlib, null, 3)]);
 
 // Fix for jsc

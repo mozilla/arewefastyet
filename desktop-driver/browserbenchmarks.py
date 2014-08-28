@@ -41,7 +41,7 @@ class Benchmark:
 
 class Octane(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "octane", "2.0", "desktop-driver/octane.html")
+        Benchmark.__init__(self, "octane", "2.0.1", "desktop-driver/octane.html")
 
     def processResults(self, results):
         ret = []

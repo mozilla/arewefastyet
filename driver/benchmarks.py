@@ -99,7 +99,7 @@ class AsmJSApps(AsmJS):
 
 class Octane(Benchmark):
     def __init__(self):
-        super(Octane, self).__init__('octane', '2.0', 'octane')
+        super(Octane, self).__init__('octane', '2.0.1', 'octane')
 
     def benchmark(self, shell, env, args):
         full_args = [shell]
