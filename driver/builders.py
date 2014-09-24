@@ -117,7 +117,7 @@ class Nitro(Engine):
 class V8(Engine):
     def __init__(self):
         super(V8, self).__init__()
-        self.puller = 'svn'
+        self.puller = 'git'
         self.source = utils.config.get('v8', 'source')
         self.cxx = utils.config_get_default('v8', 'cxx', None)
         self.cc = utils.config_get_default('v8', 'cc', None)
