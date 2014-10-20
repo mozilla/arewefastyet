@@ -173,6 +173,7 @@ def aggregate(graph):
             graph['earliest'] = graph['timelist'][0]
         return graph
 
+    # Show MacRecentRuns of atleast one line.
     recentRuns = 0
     runs = []
     for i in range(len(graph['lines'])):
@@ -182,7 +183,7 @@ def aggregate(graph):
 	    if graph['lines'] and i < len(graph['lines'][j]["data"]) and graph['lines'][j]["data"][i]:
 		runs[j] += 1
 	recentRuns += 1 
-	if max(runs) == 30:
+	if max(runs) == MaxRecentRuns:
 	    break
 
     # If the number of historical points is <= the number of recent points,
@@ -193,11 +194,11 @@ def aggregate(graph):
         return graph
 
     # How big should each region be?
-    region_length = float(historical) / recentRuns
+    region_length = float(historical) / MaxRecentRuns
 
     pos = 0
     regions = []
-    for i in range(0, recentRuns):
+    for i in range(0, MaxRecentRuns):
         start = int(round(pos))
 
 	end = min(int(math.floor(pos + region_length)), historical) - 1

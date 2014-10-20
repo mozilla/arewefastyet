@@ -89,8 +89,20 @@ AWFY.loadAggregateGraph = function (blobgraph) {
         var blobline = blobgraph.lines[i];
 
         var points = [];
+        var k = 0;
         for (var j = 0; j < blobline.data.length; j++) {
             var point = blobline.data[j];
+            // When there is no point, we normally just push a null point.
+            // This results in a line stop. Now e.g. firefox OS has 4 different
+            // engines reporting on different times. So every point has a gap.
+            // To counteract this we still draw a line (by not giving null points),
+            // if there has been less than the amount of lines (*1.5).
+            if (!point) {
+                if (k++ < blobgraph.lines.length*1.5)
+                    continue
+            } else {
+                k = 0;
+            }
             var score = point && point[0]
                         ? point[0]
                         : null;
