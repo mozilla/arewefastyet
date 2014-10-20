@@ -93,14 +93,14 @@ class Mozilla(Engine):
             shutil.rmtree(self.tmp_dir + "profile")
 
         # Step 3: Create new profile
-        output = subprocess.check_output([self.tmp_dir + self.folder + "/firefox.exe",
+        output = subprocess.check_output([self.tmp_dir + self.folder + "/firefox/firefox.exe",
                                           "-CreateProfile", "test "+self.tmp_dir+"profile"],
                                          stderr=subprocess.STDOUT)
 
         # Step 4: Start browser
         env = os.environ.copy()
         env["JSGC_DISABLE_POISONING"] = "1";
-        self.subprocess = subprocess.Popen([self.tmp_dir + self.folder + "/firefox.exe",
+        self.subprocess = subprocess.Popen([self.tmp_dir + self.folder + "/firefox/firefox.exe",
                                             "-P", "test", page], env=env)
         self.pid = self.subprocess.pid
 
