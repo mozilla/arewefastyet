@@ -8,6 +8,7 @@ updateURL = http://www.arewefastyet.com/???
 
 [mozilla]
 nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux/
+pgoDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux-pgo/
 
 [chrome]
 buildInfoUrl = http://build.chromium.org/p/chromium.lkgr/builders/Win
