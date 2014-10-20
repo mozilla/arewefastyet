@@ -33,7 +33,7 @@ Clone the AWFY repo and check out each vendor's source code. Typically this look
        cd repos
 
        # Get V8
-       svn checkout http://v8.googlecode.com/svn/branches/bleeding_edge/ v8
+       git clone https://chromium.googlesource.com/v8/v8.git v8
 
        # Get Mozilla
        hg clone http://hg.mozilla.org/integration/mozilla-inbound
