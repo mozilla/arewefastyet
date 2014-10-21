@@ -98,10 +98,15 @@ class Mozilla(Engine):
         # To be sure.
         self.kill()
 
-        #TODO: remove profile
-        print subprocess.check_output(["adb", "shell", "am", "start", "-a", "android.intent.action.VIEW",
-                                       "-n", "org.mozilla.fennec/.App", "-d", page, "--es", "env0",
-                                       "JSGC_DISABLE_POISONING=1"])
+        # Remove profile
+        print subprocess.check_output(["adb", "shell", "rm -rf /storage/emulated/legacy/awfy"])
+
+        # Create profile and disable slow script dialog
+        print subprocess.check_output(["adb", "shell", "mkdir /storage/emulated/legacy/awfy"])
+        print subprocess.check_output(["adb", "shell", "echo 'user_pref(\"dom.max_script_run_time\", 0);' > /storage/emulated/legacy/awfy/prefs.js"])
+
+        # Start browser
+        print subprocess.check_output(["adb", "shell", "am start -a android.intent.action.VIEW -n org.mozilla.fennec/.App -d "+page+" --es env0 JSGC_DISABLE_POISONING=1 --es args \"--profile /storage/emulated/legacy/awfy\""])
 
     def kill(self):
         print subprocess.check_output(["adb", "shell", "pm", "clear", "org.mozilla.fennec"]);

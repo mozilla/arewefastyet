@@ -21,7 +21,7 @@ class Benchmark:
                 os.unlink("results")
 
             engine.run(utils.config.get('main', 'serverURL')+self.page)
-            timeout = 60*15
+            timeout = 60*3
             while not os.path.exists("results") and timeout > 0:
                 time.sleep(10)
                 timeout -= 10
