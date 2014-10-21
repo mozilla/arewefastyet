@@ -64,5 +64,9 @@ class WebGLSamples(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "webglsamples", "0.1", "desktop-driver/webglsamples.html")
 
-Benchmarks = [Octane(), SunSpider(), Kraken(), WebGLSamples()]
+class Dromaeo(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "dromaeo", "1.0", "desktop-driver/dromaeo.html")
+
+Benchmarks = [Octane(), SunSpider(), Kraken(), Dromaeo(), WebGLSamples()]
 
