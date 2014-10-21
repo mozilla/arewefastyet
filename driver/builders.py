@@ -133,7 +133,7 @@ class V8(Engine):
                        ("hardfp" in utils.config.get('main', 'flags'))
         self.modes = [
                 {
-                    'mode': 'v8',
+                    'mode': 'v8git',
                     'args': None
                 }
             ]
