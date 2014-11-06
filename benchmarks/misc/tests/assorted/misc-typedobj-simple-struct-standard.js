@@ -8,14 +8,14 @@ function do_test() {
         arr2[i] = {a:2,b:1};
     }
 
-    for (var i = 0; i < 1000; i++) {
+    for (var i = 0; i < 100; i++) {
         for (var j = 0; j < arr1.length; j++) {
-            var a = arr1[i].a;
-            var b = arr1[i].b;
-            arr1[i].a = arr2[i].b;
-            arr1[i].b = arr2[i].a;
-            arr2[i].a = a;
-            arr2[i].b = b;
+            var a = arr1[j].a;
+            var b = arr1[j].b;
+            arr1[j].a = arr2[j].b;
+            arr1[j].b = arr2[j].a;
+            arr2[j].a = a;
+            arr2[j].b = b;
         }
     }
 }
