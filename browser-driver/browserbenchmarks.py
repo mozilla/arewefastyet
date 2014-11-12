@@ -71,9 +71,21 @@ class WebGLSamples(Benchmark):
 
 class Dromaeo(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "dromaeo", "1.0", "browser-driver/dromaeo.html")
+        Benchmark.__init__(self, "dromaeo", "1.0", "desktop-driver/dromaeo.html")
+        
+    def processResults(self, results):
+        ret = []
+        for key in results:
+            if key == "total":
+                ret.append({'name': "__total__", 'time': results[key]})
+            else:
+                ret.append({'name': key, 'time': results[key]})
+        return ret
 
-Benchmarks = [Octane(), SunSpider(), Kraken(), Dromaeo(), WebGLSamples()]
+if utils.config.get('main', 'slaveType') is "android":
+    Benchmarks = [Octane(), SunSpider(), Kraken(), WebGLSamples()]
+else:
+    Benchmarks = [Octane(), SunSpider(), Kraken(), Dromaeo(), WebGLSamples()]
 
 # Test if server is running and start server if needed.
 s =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)

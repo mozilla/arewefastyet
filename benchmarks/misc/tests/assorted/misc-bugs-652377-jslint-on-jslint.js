@@ -2842,7 +2842,7 @@ loop:   for (;;) {
         x.thru = 1;
         x.line = 0;
         x.edge = true;
-        s.value = s;
+        //s.value = s;
         return postscript(x);
     }
 

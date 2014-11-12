@@ -21,7 +21,7 @@ class Benchmark:
                 os.unlink("results")
 
             engine.run(utils.config.get('main', 'serverURL')+self.page)
-            timeout = 60*3
+            timeout = 60*10
             while not os.path.exists("results") and timeout > 0:
                 time.sleep(10)
                 timeout -= 10
@@ -71,6 +71,15 @@ class WebGLSamples(Benchmark):
 class Dromaeo(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "dromaeo", "1.0", "desktop-driver/dromaeo.html")
+
+    def processResults(self, results):
+        ret = []
+        for key in results:
+            if key == "total":
+                ret.append({'name': "__total__", 'time': results[key]})
+            else:
+                ret.append({'name': key, 'time': results[key]})
+        return ret
 
 Benchmarks = [Octane(), SunSpider(), Kraken(), WebGLSamples()]
 

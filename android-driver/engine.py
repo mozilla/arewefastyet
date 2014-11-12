@@ -127,7 +127,7 @@ class Chrome(Engine):
 
         # Step 2: Get v8 revision
         response = urllib2.urlopen(self.nightly_dir + "/Android/"+chromium_rev+"/REVISIONS")
-        self.cset = re.findall('"v8_revision": ([a-z0-9]*),', response.read())[0]
+        self.cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
 
         # Step 3: Test if there is a new revision
         old_revision = ""
