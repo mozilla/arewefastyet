@@ -184,7 +184,7 @@ class Chrome(Engine):
 
         # Step 4: Get v8 revision
         response = urllib2.urlopen(self.nightly_dir + "/Win/"+chromium_rev+"/REVISIONS")
-        self.cset = re.findall('"v8_revision": ([a-z0-9]*),', response.read())[0]
+        self.cset = re.findall('"v8_revision_git": ([a-z0-9]*),', response.read())[0]
 
         # Step 5: Save info
         self.updated = True
