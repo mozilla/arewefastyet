@@ -26,14 +26,14 @@ class Engine:
         self.updated = False
         self.tmp_dir = utils.config.get('main', 'tmpDir')
 
-    def unzip(self, name):
+    def unzip(self, directory, name):
         if "tar.bz2" in name:
-            tar = tarfile.open(self.tmp_dir + name)
-            tar.extractall(self.tmp_dir)
+            tar = tarfile.open(self.tmp_dir + directory + "/" + name)
+            tar.extractall(self.tmp_dir + directory + "/")
             tar.close()
         else:
-            zip = zipfile.ZipFile(self.tmp_dir + name)
-            zip.extractall(self.tmp_dir)
+            zip = zipfile.ZipFile(self.tmp_dir + directory + "/" + name)
+            zip.extractall(self.tmp_dir + directory + "/")
             zip.close()
 
     def kill(self):
@@ -56,6 +56,7 @@ class Mozilla(Engine):
         self.modes = [{
             'name': 'jmim'
         }]
+        self.folder = "firefox"
 
     def update(self):
         # Step 1: Get newest nightly folder
@@ -76,10 +77,11 @@ class Mozilla(Engine):
 
         # Step 4: Fetch archive
         print "Retrieving", self.nightly_dir+"/"+self.folder_id+"/"+exec_file
-        urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, self.tmp_dir + "firefox.zip")
+        urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file,
+                           self.tmp_dir + self.folder + "/firefox.zip")
 
         # Step 5: Unzip
-        self.unzip("firefox.zip")
+        self.unzip(self.folder, "firefox.zip")
 
         # Step 6: Save info
         self.updated = True
@@ -91,13 +93,25 @@ class Mozilla(Engine):
             shutil.rmtree(self.tmp_dir + "profile")
 
         # Step 3: Create new profile
-        output = subprocess.check_output([self.tmp_dir + "firefox/firefox.exe", "-CreateProfile", "test "+self.tmp_dir+"profile"], stderr=subprocess.STDOUT)
+        output = subprocess.check_output([self.tmp_dir + self.folder + "/firefox/firefox.exe",
+                                          "-CreateProfile", "test "+self.tmp_dir+"profile"],
+                                         stderr=subprocess.STDOUT)
 
         # Step 4: Start browser
         env = os.environ.copy()
         env["JSGC_DISABLE_POISONING"] = "1";
-        self.subprocess = subprocess.Popen([self.tmp_dir + "firefox/firefox.exe", "-P", "test", page], env=env)
+        self.subprocess = subprocess.Popen([self.tmp_dir + self.folder + "/firefox/firefox.exe",
+                                            "-P", "test", page], env=env)
         self.pid = self.subprocess.pid
+
+class MozillaPGO(Mozilla):
+    def __init__(self):
+        Mozilla.__init__(self)
+        self.nightly_dir = utils.config.get('mozilla', 'pgoDir')
+        self.modes = [{
+            'name': 'pgo'
+        }]
+        self.folder = "firefox-pgo"
 
 class MozillaShell(Engine):
     def __init__(self):
@@ -131,7 +145,7 @@ class MozillaShell(Engine):
         urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, self.tmp_dir + "shell.zip")
 
         # Step 5: Unzip
-        self.unzip("shell.zip")
+        self.unzip(".","shell.zip")
 
         # Step 6: Save info
         self.updated = True
@@ -166,11 +180,11 @@ class Chrome(Engine):
         urllib.urlretrieve(self.nightly_dir+"/Win/"+chromium_rev+"/chrome-win32.zip", self.tmp_dir + "chrome-win32.zip")
 
         # Step 3: Unzip
-        self.unzip("chrome-win32.zip")
+        self.unzip(".", "chrome-win32.zip")
 
         # Step 4: Get v8 revision
         response = urllib2.urlopen(self.nightly_dir + "/Win/"+chromium_rev+"/REVISIONS")
-        self.cset = re.findall('"v8_revision": ([a-z0-9]*),', response.read())[0]
+        self.cset = re.findall('"v8_revision_git": ([a-z0-9]*),', response.read())[0]
 
         # Step 5: Save info
         self.updated = True

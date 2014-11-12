@@ -24,3 +24,5 @@ misc-typedobj-utf8array-typedobj
 misc-typedobj-utf8array-standard
 misc-typedobj-write-struct-field-typedobj
 misc-typedobj-write-struct-field-standard
+misc-typedobj-simple-struct-typedobj
+misc-typedobj-simple-struct-standard
