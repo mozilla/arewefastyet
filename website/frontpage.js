@@ -256,6 +256,18 @@ Display.prototype.draw = function () {
         }).bind(this);
 
         options.xaxis.ticks = this.aggregateTicks();
+        options.xaxis.transform = (function (v) {
+            if (v < 30)
+                return v;
+            var total = this.graph.timelist.length - 30;
+            return 30 + (v - 30)/total * 30;
+        }).bind(this);
+        options.xaxis.inverseTransform = (function (v) {
+            if (v < 30)
+                return v;
+            var total = this.graph.timelist.length - 30;
+            return 30 + (v - 30)/30 * total;
+        }).bind(this);
     }
 
     options.yaxis.tickFormatter = function  (v, axis) {

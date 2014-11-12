@@ -45,7 +45,7 @@ class Vendor(object):
         self.rangeURL = rangeURL
 
 class Machine(object):
-    def __init__(self, id, os, cpu, description, active, frontpage, pushed_separate):
+    def __init__(self, id, os, cpu, description, active, frontpage, pushed_separate, message):
         self.id = id
         self.os = os
         self.cpu = cpu
@@ -53,6 +53,7 @@ class Machine(object):
         self.active = active
         self.frontpage = frontpage
         self.pushed_separate = pushed_separate
+        self.message = message
 
         self.suites = []
         c = awfy.db.cursor()
@@ -75,6 +76,7 @@ class Machine(object):
                  "description": self.description,
                  "frontpage": self.frontpage,
                  "pushed_separate": self.pushed_separate,
+                 "message": self.message,
                  "suites": self.suites
                }
 
@@ -160,9 +162,9 @@ class Context(object):
 
         # Get a list of machines.
         self.machines = []
-        c.execute("SELECT id, os, cpu, description, active, frontpage, pushed_separate FROM awfy_machine WHERE active >= 1")
+        c.execute("SELECT id, os, cpu, description, active, frontpage, pushed_separate, message FROM awfy_machine WHERE active >= 1")
         for row in c.fetchall():
-            m = Machine(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
+            m = Machine(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
             self.machines.append(m)
 
     def exportModes(self):

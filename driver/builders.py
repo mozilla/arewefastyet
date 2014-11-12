@@ -131,12 +131,13 @@ class V8(Engine):
         self.important = True
         self.hardfp = (utils.config.has_option('main', 'flags')) and \
                        ("hardfp" in utils.config.get('main', 'flags'))
-        self.modes = [
-                {
-                    'mode': 'v8',
-                    'args': None
-                }
-            ]
+        self.modes = [{
+                        'mode': 'v8',
+                        'args': None
+                      }, {
+                        'mode': 'v8-turbofan',
+                        'args': ['--turbo-filter=*', '--turbo-asm'] 
+                      }]
 
     def build(self):
         env = os.environ.copy()

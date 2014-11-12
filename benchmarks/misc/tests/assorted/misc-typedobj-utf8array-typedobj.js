@@ -16,5 +16,6 @@ function do_test() {
     }
   }
 }
-do_test();
+if (typeof TypedObject != "undefined")
+  do_test();
 
