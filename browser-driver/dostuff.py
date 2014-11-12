@@ -38,7 +38,6 @@ NumUpdated = 0
 RunningEngines = []
 for e in KnownEngines:
     try:
-        print "trying update"
         e.update()
         if e.updated:
             NumUpdated += 1
