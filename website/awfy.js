@@ -840,6 +840,7 @@ AWFY.updateMachineList = function (machineId) {
         a.appendTo(li);
         li.appendTo(menu);
     }
+    $('#message').html(AWFYMaster.machines[machineId].message+"<br />&nbsp;");
 }
 
 AWFY.updateSuiteList = function (machineId) {
