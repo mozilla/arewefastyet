@@ -25,8 +25,12 @@ parser.add_option("-c", "--config", dest="config_name", type="string", default="
 (options, args) = parser.parse_args()
 
 utils.InitConfig(options.config_name)
+slaveType = utils.config.get('main', 'slaveType')
 
-KnownEngines = [engine.Mozilla(), engine.MozillaPGO(), engine.MozillaShell(), engine.Chrome()]
+if slaveType is "android":
+    KnownEngines = [engine.Mozilla(), engine.Chrome()]
+else:
+    KnownEngines = [engine.Mozilla(), engine.MozillaPGO(), engine.MozillaShell(), engine.Chrome()]
 NumUpdated = 0
 
 # Update All engines
@@ -57,16 +61,21 @@ for e in RunningEngines:
     for modeInfo in e.modes:
         submit.AddEngine(modeInfo["name"], e.cset)
 
+ranBenchmark = False
+
 # Run all browser benchmarks
 for benchmark in BrowserBenchmarks:
     for e in RunningEngines:
         if hasattr(e, "isBrowser") and e.isBrowser:
-            benchmark.run(e, submit)
+            if benchmark.run(e, submit):
+                ranBenchmark = True
 
 # Run all shell benchmarks
 for benchmark in ShellBenchmarks:
     for e in RunningEngines:
         if hasattr(e, "isShell") and e.isShell:
-            benchmark.run(e, submit)
+            if benchmark.run(e, submit):
+                ranBenchmark = True
 
-submit.Finish(1)
+if ranBenchmark:
+    submit.Finish(1)

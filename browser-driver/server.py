@@ -15,7 +15,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
         if self.path[:7] == "/submit":
             parsedParams = urlparse.urlparse(self.path)
             queryParsed = urlparse.parse_qs(parsedParams.query)
-            fp = open("desktop-driver/results", "w");
+            fp = open("browser-driver/results", "w");
             fp.write(queryParsed["results"][0]);
             fp.close()
         elif self.path[:13] == "/sunspider.js":
