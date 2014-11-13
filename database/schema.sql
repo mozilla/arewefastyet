@@ -205,9 +205,11 @@ CREATE TABLE `awfy_machine` (
   `description` varchar(255) NOT NULL,
   `active` tinyint(1) NOT NULL,
   `frontpage` tinyint(1) NOT NULL DEFAULT '1',
+  `pushed_separate` tinyint(1) NOT NULL,
   `last_checked` int(10) unsigned NOT NULL,
   `timeout` int(11) unsigned NOT NULL,
   `contact` mediumtext NOT NULL,
+  `message` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 

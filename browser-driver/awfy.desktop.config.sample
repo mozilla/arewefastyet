@@ -1,7 +1,10 @@
 [main]
+slaveType = desktop
 repos = /Users/mozilla/awfy/repos
 benchmarks = /Users/mozilla/awfy/benchmarks
 tmpDir= C:\Users\mozilla\Desktop\tmp\
+timeout = 20 ; in minutes
+serverURL = http://localhost:8000/
 
 machine = 16
 updateURL = http://www.arewefastyet.com/???
@@ -12,4 +15,4 @@ pgoDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla
 
 [chrome]
 buildInfoUrl = http://build.chromium.org/p/chromium.lkgr/builders/Win
-nightlyDir = http://commondatastorage.googleapis.com/chromium-browser-continuous
+nightlyDir = http://commondatastorage.googleapis.com/chromium-browser-continuous/Win/

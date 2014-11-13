@@ -121,6 +121,9 @@ h1 {
  font-weight: bold;
 }
 
+#message {
+  font-style: italic;
+}
 
 .axisLabel {
 	position: absolute;
