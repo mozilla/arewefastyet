@@ -3,9 +3,7 @@ if (typeof TypedObject != "undefined") {
   var T = TypedObject;
   
   var ThreeVector = T.float64.array(3);
-  var ThreeVectorArray = ThreeVector.array();
   var DisplaceResult = new T.StructType({pos: ThreeVector, nor: ThreeVector});
-  var DisplaceResultArray = DisplaceResult.array();
   
   function write(out, v0) {
     out.pos[0] = v0[0];
