@@ -26,3 +26,6 @@ misc-typedobj-write-struct-field-typedobj
 misc-typedobj-write-struct-field-standard
 misc-typedobj-simple-struct-typedobj
 misc-typedobj-simple-struct-standard
+misc-forEach-baseline
+misc-forEach-custom
+misc-forEach-library
