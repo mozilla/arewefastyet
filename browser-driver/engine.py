@@ -25,7 +25,7 @@ class Engine:
     def __init__(self):
         self.updated = False
         self.tmp_dir = utils.config.get('main', 'tmpDir')
-        self.slaveType = utils.configt.get('main', 'slaveType')
+        self.slaveType = utils.config.get('main', 'slaveType')
 
     def unzip(self, directory, name):
         if "tar.bz2" in name:
@@ -58,10 +58,6 @@ class Mozilla(Engine):
             'name': 'jmim'
         }]
         self.folder = "firefox"
-        if self.slaveType is "android":
-            self.filename = "fennec"
-        else:
-            self.filename = "firefox"
 
     def update(self):
         # Step 1: Get newest nightly folder
@@ -72,8 +68,12 @@ class Mozilla(Engine):
         # Step 2: Find the correct file
         response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id)
         html = response.read()
-        exec_file = re.findall(self.filename + "-[a-zA-Z0-9.]*.en-US.win32.zip", html)[0]
-        json_file = re.findall(self.filename + "-[a-zA-Z0-9.]*.en-US.win32.json", html)[0]
+        if self.slaveType == "android":
+            exec_file = re.findall("fennec-[a-zA-Z0-9.]*.en-US.android-arm.apk", html)[0]
+            json_file = re.findall("fennec-[a-zA-Z0-9.]*.en-US.android-arm.json", html)[0]
+        else:
+            exec_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.zip", html)[0]
+            json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.json", html)[0]
 
         # Step 3: Get build information
         response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id+"/"+json_file)
@@ -83,14 +83,14 @@ class Mozilla(Engine):
         # Step 4: Test if there is a new revision
         old_revision = ""
         if os.path.isfile(self.tmp_dir + self.folder + "/mozilla-revision"):
-            fp = open(self.tmp_dir + self.folder + "mozilla-revision", 'r')
+            fp = open(self.tmp_dir + self.folder + "/mozilla-revision", 'r')
             old_revision = fp.read()
             fp.close()
         if info["moz_source_stamp"] != old_revision:
 
             # Step 4.1: Fetch archive
             print "Retrieving", self.nightly_dir+"/"+self.folder_id+"/"+exec_file
-            if self.slaveType is "android"
+            if self.slaveType == "android":
                 output = self.tmp_dir + self.folder + "/fennec.apk"
             else:
                 output = self.tmp_dir + self.folder + "/firefox.zip"
@@ -102,8 +102,8 @@ class Mozilla(Engine):
             fp.close()
 
         # Step 5: Prepare to run
-        if self.slaveType is "android":
-            print subprocess.check_output(["adb", "install", "-r " + self.tmp_dir + self.folder + "/fennec.apk"])
+        if self.slaveType == "android":
+            print subprocess.check_output(["adb", "install", "-r", self.tmp_dir + self.folder + "/fennec.apk"])
         else:
             self.unzip(self.folder, "firefox.zip")
 
@@ -143,13 +143,13 @@ class Mozilla(Engine):
         self.pid = self.subprocess.pid
 
     def run(self, page):
-        if self.slaveType is "android":
+        if self.slaveType == "android":
             self.runAndroid(page)
-        else
+        else:
             self.run(page)
 
     def kill(self):
-        if self.slaveType is "android":
+        if self.slaveType == "android":
             print subprocess.check_output(["adb", "shell", "pm", "clear", "org.mozilla.fennec"]);
         else:
             Engine.kill(self)
@@ -219,7 +219,7 @@ class Chrome(Engine):
         self.modes = [{
             'name': 'v8'
         }]
-        if self.slaveType is "android":
+        if self.slaveType == "android":
             self.filename = "chrome-android.zip"
         else:
             self.filename = "chrome-win32.zip"
@@ -231,7 +231,7 @@ class Chrome(Engine):
 
         # Step 3: Get v8 revision
         response = urllib2.urlopen(self.nightly_dir + chromium_rev + "/REVISIONS")
-        self.cset = re.findall('"v8_revision": "([a-z0-9]*)",', response.read())[0]
+        self.cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
 
         # Step 3: Test if there is a new revision
         old_revision = ""
@@ -257,14 +257,14 @@ class Chrome(Engine):
             fp.close()
 
         # Step 4: Install on device
-        if self.slaveType is "android":
+        if self.slaveType == "android":
             print subprocess.check_output(["adb", "install", "-r", self.tmp_dir+"/chrome-android/apks/ChromeShell.apk"])
 
         # Step 5: Save info
         self.updated = True
 
     def run(self, page):
-        if self.slaveType is "android":
+        if self.slaveType == "android":
             self.kill()
             print subprocess.check_output(["adb", "shell", "am start -a android.intent.action.VIEW -n org.chromium.chrome.shell/org.chromium.chrome.shell.ChromeShellActivity -d", page])
         else:
@@ -272,7 +272,7 @@ class Chrome(Engine):
             self.pid = self.subprocess.pid
 
     def kill(self):
-        if self.slaveType is "android":
+        if self.slaveType == "android":
             print subprocess.check_output(["adb", "shell", "pm clear org.chromium.chrome.shell"]);
         else:
             Engine.kill(self)

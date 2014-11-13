@@ -3,7 +3,7 @@ slaveType = android
 repos = /Users/mozilla/awfy/repos
 benchmarks = /Users/mozilla/awfy/benchmarks
 tmpDir= /tmp/
-timeout = 3 # in minutes
+timeout = 3 ; in minutes
 serverURL = http://192.168.0.212:8000/
 
 machine = 27

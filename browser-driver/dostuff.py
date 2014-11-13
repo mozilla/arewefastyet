@@ -7,8 +7,6 @@ import engine
 import sys
 import time
 from optparse import OptionParser
-from shellbenchmarks import Benchmarks as ShellBenchmarks
-from browserbenchmarks import Benchmarks as BrowserBenchmarks
 
 sys.path.insert(1, '../driver')
 import submitter
@@ -25,9 +23,12 @@ parser.add_option("-c", "--config", dest="config_name", type="string", default="
 (options, args) = parser.parse_args()
 
 utils.InitConfig(options.config_name)
-slaveType = utils.config.get('main', 'slaveType')
 
-if slaveType is "android":
+from shellbenchmarks import Benchmarks as ShellBenchmarks
+from browserbenchmarks import Benchmarks as BrowserBenchmarks
+
+slaveType = utils.config.get('main', 'slaveType')
+if slaveType == "android":
     KnownEngines = [engine.Mozilla(), engine.Chrome()]
 else:
     KnownEngines = [engine.Mozilla(), engine.MozillaPGO(), engine.MozillaShell(), engine.Chrome()]
@@ -37,6 +38,7 @@ NumUpdated = 0
 RunningEngines = []
 for e in KnownEngines:
     try:
+        print "trying update"
         e.update()
         if e.updated:
             NumUpdated += 1

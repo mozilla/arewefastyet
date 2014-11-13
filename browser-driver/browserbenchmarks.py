@@ -3,6 +3,7 @@ import socket
 import os
 import time
 import json
+import sys
 
 sys.path.insert(1, '../driver')
 import utils
@@ -21,7 +22,7 @@ class Benchmark:
                 os.unlink("results")
 
             engine.run(utils.config.get('main', 'serverURL')+self.page)
-            timeout = utils.config.get('main', 'timeout') * 60
+            timeout = int(utils.config.get('main', 'timeout')) * 60
             while not os.path.exists("results") and timeout > 0:
                 time.sleep(10)
                 timeout -= 10
@@ -82,7 +83,7 @@ class Dromaeo(Benchmark):
                 ret.append({'name': key, 'time': results[key]})
         return ret
 
-if utils.config.get('main', 'slaveType') is "android":
+if utils.config.get('main', 'slaveType') == "android":
     Benchmarks = [Octane(), SunSpider(), Kraken(), WebGLSamples()]
 else:
     Benchmarks = [Octane(), SunSpider(), Kraken(), Dromaeo(), WebGLSamples()]
