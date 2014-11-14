@@ -459,7 +459,7 @@ Display.prototype.createToolTip = function (item, extended) {
 
     // Show suite version.
     if (line.data[x][3]) {
-        var suiteVersion = AWFYMaster.suiteversions[line.data[x][3]];
+        var suiteVersion = AWFYMaster.suiteversions[line.data[x][3]]["name"];
         text += so + 'suite: ' + sc + suiteVersion + '<br>';
     }
 

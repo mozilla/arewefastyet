@@ -156,9 +156,10 @@ class Context(object):
 
         # Get a list of suite versions
         self.suiteversions = []
-        c.execute("SELECT id, name FROM awfy_suite_version")
+        c.execute("SELECT id, name, suite_id FROM awfy_suite_version")
         for row in c.fetchall():
-            self.suiteversions.append([row[0], row[1]])
+			if row[2] in self.suitemap:
+				self.suiteversions.append([row[0], row[1], self.suitemap[row[2]].name])
 
         # Get a list of machines.
         self.machines = []
@@ -202,6 +203,8 @@ class Context(object):
     def exportSuiteVersions(self):
         o = { }
         for v in self.suiteversions:
-            o[v[0]] = v[1]
+            o[v[0]] = { "name": v[1],
+                        "suite": v[2]
+					  }
         return o
 
