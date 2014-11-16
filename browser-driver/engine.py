@@ -6,6 +6,7 @@ import re
 import tarfile
 import subprocess
 import os
+import stat
 import shutil
 import signal
 import time
@@ -58,12 +59,17 @@ class Mozilla(Engine):
             'name': 'jmim'
         }]
         self.folder = "firefox"
+        if not os.path.isdir(self.tmp_dir + self.folder):
+            os.mkdir(self.tmp_dir + self.folder)
 
     def update(self):
         # Step 1: Get newest nightly folder
-        response = urllib2.urlopen(self.nightly_dir+"/?C=N;O=D")
-        html = response.read()
-        self.folder_id =  re.findall("[0-9]{5,}", html)[0]
+        if "latest" in self.nightly_dir:
+            self.folder_id = "."
+        else:
+            response = urllib2.urlopen(self.nightly_dir+"/?C=N;O=D")
+            html = response.read()
+            self.folder_id =  re.findall("[0-9]{5,}", html)[0]
 
         # Step 2: Find the correct file
         response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id)
@@ -71,6 +77,12 @@ class Mozilla(Engine):
         if self.slaveType == "android":
             exec_file = re.findall("fennec-[a-zA-Z0-9.]*.en-US.android-arm.apk", html)[0]
             json_file = re.findall("fennec-[a-zA-Z0-9.]*.en-US.android-arm.json", html)[0]
+        elif self.slaveType == "mac-desktop":
+            exec_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.mac.dmg", html)[0]
+            json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.mac.json", html)[0]
+        elif self.slaveType == "linux-desktop":
+            exec_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.linux-i686.tar.bz2", html)[0]
+            json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.linux-i686.json", html)[0]
         else:
             exec_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.zip", html)[0]
             json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.json", html)[0]
@@ -92,6 +104,10 @@ class Mozilla(Engine):
             print "Retrieving", self.nightly_dir+"/"+self.folder_id+"/"+exec_file
             if self.slaveType == "android":
                 output = self.tmp_dir + self.folder + "/fennec.apk"
+            elif self.slaveType == "mac-desktop":
+                output = self.tmp_dir + self.folder + "/firefox.dmg"
+            elif self.slaveType == "linux-desktop":
+                output = self.tmp_dir + self.folder + "/firefox.tar.bz2"
             else:
                 output = self.tmp_dir + self.folder + "/firefox.zip"
             urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, output)
@@ -104,6 +120,10 @@ class Mozilla(Engine):
         # Step 5: Prepare to run
         if self.slaveType == "android":
             print subprocess.check_output(["adb", "install", "-r", self.tmp_dir + self.folder + "/fennec.apk"])
+        elif self.slaveType == "mac-desktop":
+            assert False
+        elif self.slaveType == "linux-desktop":
+            self.unzip(self.folder, "firefox.tar.bz2")
         else:
             self.unzip(self.folder, "firefox.zip")
 
@@ -126,19 +146,27 @@ class Mozilla(Engine):
         print subprocess.check_output(["adb", "shell", "am start -a android.intent.action.VIEW -n org.mozilla.fennec/.App -d "+page+" --es env0 JSGC_DISABLE_POISONING=1 --es args \"--profile /storage/emulated/legacy/awfy\""])
 
     def runDesktop(self, page):
+        print page
+        if self.slaveType == "mac-desktop":
+            assert False
+        elif self.slaveType == "linux-desktop":
+            executable = self.tmp_dir + self.folder + "/firefox/firefox"
+        else:
+            executable = self.tmp_dir + self.folder + "/firefox/firefox.exe"
+        
         # Step 2: Delete profile
         if os.path.exists(self.tmp_dir + "profile"):
             shutil.rmtree(self.tmp_dir + "profile")
 
         # Step 3: Create new profile
-        output = subprocess.check_output([self.tmp_dir + self.folder + "/firefox/firefox.exe",
+        output = subprocess.check_output([executable,
                                           "-CreateProfile", "test "+self.tmp_dir+"profile"],
                                          stderr=subprocess.STDOUT)
 
         # Step 4: Start browser
         env = os.environ.copy()
         env["JSGC_DISABLE_POISONING"] = "1";
-        self.subprocess = subprocess.Popen([self.tmp_dir + self.folder + "/firefox/firefox.exe",
+        self.subprocess = subprocess.Popen([executable,
                                             "-P", "test", page], env=env)
         self.pid = self.subprocess.pid
 
@@ -146,7 +174,7 @@ class Mozilla(Engine):
         if self.slaveType == "android":
             self.runAndroid(page)
         else:
-            self.run(page)
+            self.runDesktop(page)
 
     def kill(self):
         if self.slaveType == "android":
@@ -221,6 +249,10 @@ class Chrome(Engine):
         }]
         if self.slaveType == "android":
             self.filename = "chrome-android.zip"
+        if self.slaveType == "mac-desktop":
+            assert False
+        elif self.slaveType == "linux-desktop":
+            self.filename = "chrome-linux.zip"
         else:
             self.filename = "chrome-win32.zip"
 
@@ -267,6 +299,13 @@ class Chrome(Engine):
         if self.slaveType == "android":
             self.kill()
             print subprocess.check_output(["adb", "shell", "am start -a android.intent.action.VIEW -n org.chromium.chrome.shell/org.chromium.chrome.shell.ChromeShellActivity -d", page])
+        elif self.slaveType == "mac-desktop":
+            assert False
+        elif self.slaveType == "linux-desktop":
+            st = os.stat(self.tmp_dir + "chrome-linux/chrome")
+            os.chmod(self.tmp_dir + "chrome-linux/chrome", st.st_mode | stat.S_IEXEC)
+            self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-linux/chrome", page])
+            self.pid = self.subprocess.pid
         else:
             self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-win32/chrome.exe", page])
             self.pid = self.subprocess.pid
