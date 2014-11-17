@@ -39,7 +39,7 @@ if slaveType == "android":
                        shellbenchmarks.Kraken(),
                        shellbenchmarks.Octane()]
 elif slaveType == "mac-desktop":
-    KnownEngines = [engine.Mozilla(), engine.Chrome()]
+    KnownEngines = [engine.Mozilla(), engine.Chrome(), engine.WebKit()]
     BrowserBenchmarks = [fullbrowserbenchmarks.Octane(),
                          fullbrowserbenchmarks.Massive(),
                          fullbrowserbenchmarks.JetStream()]

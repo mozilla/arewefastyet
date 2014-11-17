@@ -67,7 +67,7 @@ class Engine:
                 return
             time.sleep(0.1)
 
-	try:
+        try:
             os.kill(int(self.pid), signal.SIGTERM)
         except:
             pass
@@ -124,7 +124,7 @@ class Mozilla(Engine):
             output = self.tmp_dir + self.folder + "/firefox.tar.bz2"
         else:
             output = self.tmp_dir + self.folder + "/firefox.zip"
-	self.getOrDownload("mozilla", info["moz_source_stamp"],
+        self.getOrDownload("mozilla", info["moz_source_stamp"],
                            self.nightly_dir + "/" + self.folder_id + "/" + exec_file,
                            output)
 
@@ -295,14 +295,13 @@ class Chrome(Engine):
         self.updated = True
 
     def run(self, page):
-	print page
         if self.slaveType == "android":
             self.kill()
             print subprocess.check_output(["adb", "shell", "am start -a android.intent.action.VIEW -n org.chromium.chrome.shell/org.chromium.chrome.shell.ChromeShellActivity -d", page])
         elif self.slaveType == "mac-desktop":
             execs = subprocess.check_output(["find", self.tmp_dir + "chrome-mac", "-type", "f"])
             for i in execs.split("\n"):
-		if "/Contents/MacOS/" in i:
+                if "/Contents/MacOS/" in i:
                     self.chmodx(i)
             self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-mac/Chromium.app/Contents/MacOS/Chromium", page])
             self.pid = self.subprocess.pid
@@ -319,3 +318,38 @@ class Chrome(Engine):
             print subprocess.check_output(["adb", "shell", "pm clear org.chromium.chrome.shell"]);
         else:
             Engine.kill(self)
+
+class WebKit(Engine):
+    def __init__(self):
+        Engine.__init__(self)
+        self.build_info_url = utils.config.get('webkit', 'buildInfoUrl')
+        self.nightly_dir = utils.config.get('webkit', 'nightlyDir')
+        self.isBrowser = True
+        self.modes = [{
+            'name': 'jsc'
+        }]
+
+    def update(self):
+        # Step 1: Get latest succesfull build revision
+        response = urllib2.urlopen(self.build_info_url)
+        self.cset = re.findall('WebKit r([0-9]*)<', response.read())[0]
+
+        # Step 2: Download the latest installation
+        self.getOrDownload("webkit", self.cset,
+                           self.nightly_dir + "WebKit-SVN-" + self.cset + ".dmg",
+                           self.tmp_dir + "WebKit.dmg")
+
+        # Step 3: Prepare running
+        if os.path.exists("/Volumes/WebKit"):
+            print subprocess.check_output(["hdiutil", "detach", "/Volumes/WebKit"])
+        print subprocess.check_output(["hdiutil", "attach", self.tmp_dir + "/WebKit.dmg"])
+
+        # Step 4: Save info
+        self.updated = True
+
+    def run(self, page):
+        self.subprocess = subprocess.Popen(["/Volumes/WebKit/WebKit.app/Contents/MacOS/WebKit", page])
+        self.pid = self.subprocess.pid
+
+    def kill(self):
+        Engine.kill(self)

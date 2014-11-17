@@ -2,7 +2,7 @@
 slaveType = mac-desktop
 repos = /Users/mozilla/awfy/repos
 benchmarks = /Users/mozilla/awfy/benchmarks
-tmpDir= C:\Users\mozilla\Desktop\tmp\
+tmpDir= /tmp/
 timeout = 20 ; in minutes
 serverURL = http://localhost:8000/
 
@@ -10,8 +10,12 @@ machine = 16
 updateURL = http://www.arewefastyet.com/???
 
 [mozilla]
-nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux-pgo/
+nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/b2g-inbound-macosx64/
 
 [chrome]
-buildInfoUrl = http://build.chromium.org/p/chromium.lkgr/builders/Win
-nightlyDir = http://commondatastorage.googleapis.com/chromium-browser-continuous/Win/
+buildInfoUrl = http://build.chromium.org/p/chromium.lkgr/builders/Mac
+nightlyDir = http://commondatastorage.googleapis.com/chromium-browser-continuous/Mac/
+
+[webkit]
+buildInfoUrl = http://nightly.webkit.org/
+nightlyDir = http://builds.nightly.webkit.org/files/trunk/mac/
