@@ -20,7 +20,7 @@ class Benchmark:
             if os.path.exists("results"):
                 os.unlink("results")
 
-            engine.run(self.suite + ".localhost:8000")
+            engine.run('http://' + self.suite + ".localhost:8000")
             timeout = int(utils.config.get('main', 'timeout')) * 60
             while not os.path.exists("results") and timeout > 0:
                 time.sleep(10)

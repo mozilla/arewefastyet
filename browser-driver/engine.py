@@ -38,6 +38,26 @@ class Engine:
             zip.extractall(self.tmp_dir + directory + "/")
             zip.close()
 
+    def chmodx(self, file):
+        st = os.stat(file)
+        os.chmod(file, st.st_mode | stat.S_IEXEC)
+
+    def getOrDownload(self, prefix, revision, file, output): 
+        rev_file = self.tmp_dir + "/" + prefix + "-revision"
+        old_revision = ""
+        if os.path.isfile(rev_file):
+            fp = open(rev_file, 'r')
+            old_revision = fp.read()
+            fp.close()
+
+        if revision != old_revision:
+            print "Retrieving", file
+            urllib.urlretrieve(file, output)
+
+            fp = open(rev_file, 'w')
+            fp.write(revision)
+            fp.close()
+
     def kill(self):
         self.subprocess.terminate()
 
@@ -47,7 +67,10 @@ class Engine:
                 return
             time.sleep(0.1)
 
-        os.kill(int(self.pid), signal.SIGTERM)
+	try:
+            os.kill(int(self.pid), signal.SIGTERM)
+        except:
+            pass
 
 
 class Mozilla(Engine):
@@ -93,35 +116,25 @@ class Mozilla(Engine):
         info = json.loads(html)
 
         # Step 4: Test if there is a new revision
-        old_revision = ""
-        if os.path.isfile(self.tmp_dir + self.folder + "/mozilla-revision"):
-            fp = open(self.tmp_dir + self.folder + "/mozilla-revision", 'r')
-            old_revision = fp.read()
-            fp.close()
-        if info["moz_source_stamp"] != old_revision:
-
-            # Step 4.1: Fetch archive
-            print "Retrieving", self.nightly_dir+"/"+self.folder_id+"/"+exec_file
-            if self.slaveType == "android":
-                output = self.tmp_dir + self.folder + "/fennec.apk"
-            elif self.slaveType == "mac-desktop":
-                output = self.tmp_dir + self.folder + "/firefox.dmg"
-            elif self.slaveType == "linux-desktop":
-                output = self.tmp_dir + self.folder + "/firefox.tar.bz2"
-            else:
-                output = self.tmp_dir + self.folder + "/firefox.zip"
-            urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, output)
-
-            # Step 4.2: Write the new revision
-            fp = open(self.tmp_dir + self.folder + "/mozilla-revision", 'w')
-            fp.write(info["moz_source_stamp"])
-            fp.close()
+        if self.slaveType == "android":
+            output = self.tmp_dir + self.folder + "/fennec.apk"
+        elif self.slaveType == "mac-desktop":
+            output = self.tmp_dir + self.folder + "/firefox.dmg"
+        elif self.slaveType == "linux-desktop":
+            output = self.tmp_dir + self.folder + "/firefox.tar.bz2"
+        else:
+            output = self.tmp_dir + self.folder + "/firefox.zip"
+	self.getOrDownload("mozilla", info["moz_source_stamp"],
+                           self.nightly_dir + "/" + self.folder_id + "/" + exec_file,
+                           output)
 
         # Step 5: Prepare to run
         if self.slaveType == "android":
             print subprocess.check_output(["adb", "install", "-r", self.tmp_dir + self.folder + "/fennec.apk"])
         elif self.slaveType == "mac-desktop":
-            assert False
+            if os.path.exists("/Volumes/Nightly"):
+                print subprocess.check_output(["hdiutil", "detach", "/Volumes/Nightly"])
+            print subprocess.check_output(["hdiutil", "attach", self.tmp_dir + self.folder + "/firefox.dmg"])
         elif self.slaveType == "linux-desktop":
             self.unzip(self.folder, "firefox.tar.bz2")
         else:
@@ -146,9 +159,8 @@ class Mozilla(Engine):
         print subprocess.check_output(["adb", "shell", "am start -a android.intent.action.VIEW -n org.mozilla.fennec/.App -d "+page+" --es env0 JSGC_DISABLE_POISONING=1 --es args \"--profile /storage/emulated/legacy/awfy\""])
 
     def runDesktop(self, page):
-        print page
         if self.slaveType == "mac-desktop":
-            assert False
+            executable = "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox"
         elif self.slaveType == "linux-desktop":
             executable = self.tmp_dir + self.folder + "/firefox/firefox"
         else:
@@ -159,15 +171,15 @@ class Mozilla(Engine):
             shutil.rmtree(self.tmp_dir + "profile")
 
         # Step 3: Create new profile
-        output = subprocess.check_output([executable,
-                                          "-CreateProfile", "test "+self.tmp_dir+"profile"],
+        output = subprocess.check_output([executable, 
+                                         "-CreateProfile", "test "+self.tmp_dir+"profile"],
                                          stderr=subprocess.STDOUT)
 
         # Step 4: Start browser
         env = os.environ.copy()
         env["JSGC_DISABLE_POISONING"] = "1";
-        self.subprocess = subprocess.Popen([executable,
-                                            "-P", "test", page], env=env)
+        self.subprocess = subprocess.Popen([executable, 
+                                           "-P", "test", page], env=env)
         self.pid = self.subprocess.pid
 
     def run(self, page):
@@ -250,7 +262,7 @@ class Chrome(Engine):
         if self.slaveType == "android":
             self.filename = "chrome-android.zip"
         if self.slaveType == "mac-desktop":
-            assert False
+            self.filename = "chrome-mac.zip"
         elif self.slaveType == "linux-desktop":
             self.filename = "chrome-linux.zip"
         else:
@@ -266,44 +278,36 @@ class Chrome(Engine):
         self.cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
 
         # Step 3: Test if there is a new revision
-        old_revision = ""
-        if os.path.isfile(self.tmp_dir + "chrome-revision"):
-            fp = open(self.tmp_dir + "chrome-revision", 'r')
-            old_revision = fp.read()
-            fp.close()
-        if self.cset != old_revision:
-            # Step 3.1: Download the archive
-            print "Retrieving", self.nightly_dir + chromium_rev + "/" + self.filename
-            urllib.urlretrieve(self.nightly_dir + chromium_rev + "/" + self.filename,
-                               self.tmp_dir + self.filename)
+        self.getOrDownload("chrome", self.cset,
+                           self.nightly_dir + chromium_rev + "/" + self.filename,
+                           self.tmp_dir + self.filename)
+        # Step 4: Unzip
+        try:
+            self.unzip(".", self.filename)
+        except zipfile.BadZipfile:
+            return
 
-            # Step 3.2: Unzip
-            try:
-                self.unzip(".", self.filename)
-            except zipfile.BadZipfile:
-                return
-
-            # Step 3.3: Write the new revision
-            fp = open(self.tmp_dir + "/chrome-revision", 'w')
-            fp.write(self.cset)
-            fp.close()
-
-        # Step 4: Install on device
+        # Step 5: Install on device
         if self.slaveType == "android":
             print subprocess.check_output(["adb", "install", "-r", self.tmp_dir+"/chrome-android/apks/ChromeShell.apk"])
 
-        # Step 5: Save info
+        # Step 6: Save info
         self.updated = True
 
     def run(self, page):
+	print page
         if self.slaveType == "android":
             self.kill()
             print subprocess.check_output(["adb", "shell", "am start -a android.intent.action.VIEW -n org.chromium.chrome.shell/org.chromium.chrome.shell.ChromeShellActivity -d", page])
         elif self.slaveType == "mac-desktop":
-            assert False
+            execs = subprocess.check_output(["find", self.tmp_dir + "chrome-mac", "-type", "f"])
+            for i in execs.split("\n"):
+		if "/Contents/MacOS/" in i:
+                    self.chmodx(i)
+            self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-mac/Chromium.app/Contents/MacOS/Chromium", page])
+            self.pid = self.subprocess.pid
         elif self.slaveType == "linux-desktop":
-            st = os.stat(self.tmp_dir + "chrome-linux/chrome")
-            os.chmod(self.tmp_dir + "chrome-linux/chrome", st.st_mode | stat.S_IEXEC)
+            self.chmodx(self.tmp_dir + "chrome-linux/chrome")
             self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-linux/chrome", page])
             self.pid = self.subprocess.pid
         else:

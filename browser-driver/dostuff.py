@@ -6,6 +6,7 @@ import subprocess
 import engine
 import sys
 import time
+import traceback
 from optparse import OptionParser
 import shellbenchmarks
 import browserbenchmarks
@@ -39,13 +40,10 @@ if slaveType == "android":
                        shellbenchmarks.Octane()]
 elif slaveType == "mac-desktop":
     KnownEngines = [engine.Mozilla(), engine.Chrome()]
-    BrowserBenchmarks = [browserbenchmarks.Octane(),
-                         browserbenchmarks.SunSpider(),
-                         browserbenchmarks.Kraken(),
-                         browserbenchmarks.WebGLSamples()]
-    ShellBenchmarks = [shellbenchmarks.SunSpider(),
-                       shellbenchmarks.Kraken(),
-                       shellbenchmarks.Octane()]
+    BrowserBenchmarks = [fullbrowserbenchmarks.Octane(),
+                         fullbrowserbenchmarks.Massive(),
+                         fullbrowserbenchmarks.JetStream()]
+    ShellBenchmarks = []
 elif slaveType == "linux-desktop":
     KnownEngines = [engine.Mozilla()]
     BrowserBenchmarks = [fullbrowserbenchmarks.Octane(),
