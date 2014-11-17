@@ -118,7 +118,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
                     headers[i] = ("Location", "http://" + host + location[4])
         self.send_response(status)
         for name, header in headers:
-            if name == "content-length" or name == "accept-ranges" or name == "connection":
+            if name == "content-length" or name == "accept-ranges" or name == "connection" or name == "transfer-encoding":
                 pass
             else:
                 self.send_header(name, header)

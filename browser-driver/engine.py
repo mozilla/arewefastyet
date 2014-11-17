@@ -336,11 +336,12 @@ class WebKit(Engine):
 
         # Step 2: Download the latest installation
         self.getOrDownload("webkit", self.cset,
-                           self.nightly_dir + "WebKit-SVN-" + self.cset + ".dmg",
+                           self.nightly_dir + "WebKit-SVN-r" + self.cset + ".dmg",
                            self.tmp_dir + "WebKit.dmg")
 
         # Step 3: Prepare running
         if os.path.exists("/Volumes/WebKit"):
+            self.kill()
             print subprocess.check_output(["hdiutil", "detach", "/Volumes/WebKit"])
         print subprocess.check_output(["hdiutil", "attach", self.tmp_dir + "/WebKit.dmg"])
 
@@ -348,8 +349,12 @@ class WebKit(Engine):
         self.updated = True
 
     def run(self, page):
-        self.subprocess = subprocess.Popen(["/Volumes/WebKit/WebKit.app/Contents/MacOS/WebKit", page])
+        self.subprocess = subprocess.Popen(["open", "-F", "-a", "/Volumes/WebKit/WebKit.app/Contents/MacOS/WebKit", page])
         self.pid = self.subprocess.pid
 
     def kill(self):
-        Engine.kill(self)
+        subprocess.check_output("kill $(ps aux | grep '/[V]olumes/WebKit/' | awk '{print $2}')", shell=True)
+        try:
+            subprocess.check_output("rm -Rf ~/Library/Saved\ Application\ State/com.apple.Safari.savedState", shell=True)
+        except:
+            pass
