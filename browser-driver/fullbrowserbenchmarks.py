@@ -12,6 +12,7 @@ class Benchmark:
     def __init__(self, suite, version):
         self.suite = suite
         self.version = suite+" "+version
+        self.url = 'http://' + self.suite + ".localhost:8000"
 
     def run(self, engine, submit):
         # Run tests.
@@ -20,7 +21,7 @@ class Benchmark:
             if os.path.exists("results"):
                 os.unlink("results")
 
-            engine.run('http://' + self.suite + ".localhost:8000")
+            engine.run(self.url)
             timeout = int(utils.config.get('main', 'timeout')) * 60
             while not os.path.exists("results") and timeout > 0:
                 time.sleep(10)
@@ -57,22 +58,10 @@ class Octane(Benchmark):
                 ret.append({'name': key, 'time': results[key]})
         return ret
 
-class SunSpider(Benchmark):
-    def __init__(self):
-        Benchmark.__init__(self, "ss", "1.0.1")
-
-class Kraken(Benchmark):
-    def __init__(self):
-        Benchmark.__init__(self, "kraken", "1.1")
-
-class WebGLSamples(Benchmark):
-    def __init__(self):
-        Benchmark.__init__(self, "webglsamples", "0.1")
-
 class Dromaeo(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "dromaeo", "1.0")
-        
+
     def processResults(self, results):
         ret = []
         for key in results:
@@ -85,7 +74,7 @@ class Dromaeo(Benchmark):
 class Massive(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "massive", "1.0")
-        
+
     def processResults(self, results):
         ret = []
         for item in results:
@@ -100,7 +89,7 @@ class Massive(Benchmark):
 class JetStream(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "jetstream", "1.0")
-        
+
     def processResults(self, results):
         ret = []
         for item in results:
@@ -108,6 +97,68 @@ class JetStream(Benchmark):
                 ret.append({'name': "__total__", 'time': results[item]["statistics"]["mean"]})
             else:
                 ret.append({'name': item, 'time': results[item]["statistics"]["mean"]})
+        return ret
+
+class Speedometer(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "speedometer", "1.0")
+
+class Kraken(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "kraken", "1.1")
+
+    def processResults(self, results):
+        ret = []
+        total = 0
+        for item in results:
+            if item == "v":
+                continue
+
+            avg = 0.0
+            for score in results[item]:
+                avg += score
+
+            avg = avg / len(results[item])
+            total += avg
+            ret.append({'name': item, 'time': avg })
+
+        ret.append({'name': "__total__", 'time': total })
+        return ret
+
+class SunSpider(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "sunspider", "1.0.2")
+
+    def processResults(self, results):
+        ret = []
+        total = 0
+        for item in results:
+            if item == "v":
+                continue
+
+            avg = 0.0
+            for score in results[item]:
+                avg += score
+
+            avg = avg / len(results[item])
+            total += avg
+            ret.append({'name': item, 'time': avg })
+
+        ret.append({'name': "__total__", 'time': total })
+        return ret
+
+class Browsermark(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "browsermark", "2.1")
+        self.url = "http://browsermark.local/"
+
+    def processResults(self, results):
+        ret = []
+        for item in results["data"]:
+            if item[0] == "Overall":
+                ret.append({'name': "__total__", 'time': item[1]})
+            else:
+                ret.append({'name': item[0], 'time': item[1]})
         return ret
 
 # Test if server is running and start server if needed.

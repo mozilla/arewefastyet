@@ -35,6 +35,10 @@ class FakeHandler(SimpleHTTPRequestHandler):
                 fp = open("browser-driver/results", "w");
                 fp.write(post_body);
                 fp.close()
+        else:
+            length = int(self.headers.getheader('content-length'))
+            data = self.rfile.read(length)
+            return self.forwardUrl(data)
 
     def captureResults(self):
         parsedParams = urlparse.urlparse(self.path)
@@ -55,7 +59,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
         if test_list[-1].strip() == "":
             test_list = test_list[:-1]
         fp.close()
-        
+
         output = "var tests = " + json.dumps(test_list)+";\n"
 
         test_content = []
@@ -98,24 +102,39 @@ class FakeHandler(SimpleHTTPRequestHandler):
             if path == "" or path == "/":
                 path = "/Speedometer/"
             return "browserbench.org", path
+        elif host.startswith("kraken."):
+            if path == "" or path == "/":
+                path = "/kraken-1.1/driver.html"
+            return "krakenbenchmark.mozilla.org", path
+        elif host.startswith("sunspider."):
+            if path == "" or path == "/":
+                path = "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html"
+            return "www.webkit.org", path
+        elif host.startswith("browsermark."):
+            return "browsermark.local", path
 
-    def forwardUrl(self):
+    def forwardUrl(self, data=None):
         host = self.headers.get("Host", "")
         url, path = self.translatePath(host, self.path)
         if self.path != path:
             self.send_response(301)
             self.send_header('Location', 'http://' + host + path)
-            self.end_headers() 
+            self.end_headers()
             return
 
-        status, headers, data = self.retrieve(url, path)
+        status, headers, data = self.retrieve(url, path, data)
         data = self.injectData(host, path, data)
 
-        if status == 301:
+        if status == 301 or status == 302:
             for i in range(len(headers)):
                 if headers[i][0] == "Location" or headers[i][0] == "location":
                     location = headers[i][1].split("/", 4)
-                    headers[i] = ("Location", "http://" + host + location[4])
+                    if len(location) == 3:
+                        location = "/"
+                    else:
+                        location = location[4]
+                    print location
+                    headers[i] = ("Location", "http://" + host + location)
         self.send_response(status)
         for name, header in headers:
             if name == "content-length" or name == "accept-ranges" or name == "connection" or name == "transfer-encoding":
@@ -127,7 +146,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(bytes(data))
 
-    def retrieve(self, host, path):
+    def retrieve(self, host, path, data):
         hash_object = hashlib.sha1(host+path)
         hex_dig = hash_object.hexdigest()
         if os.path.exists("cache/"+hex_dig):
@@ -135,7 +154,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
             status, headers, data = pickle.load(fp)
             fp.close()
         else:
-            status, headers, data = self.retrieveOnline(host, path)
+            status, headers, data = self.retrieveOnline(host, path, data)
 
             if not os.path.exists("cache"):
                 os.mkdir("cache")
@@ -145,17 +164,23 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
         return status, headers, data
 
-    def retrieveOnline(self, host, path):
+    def retrieveOnline(self, host, path, data):
         conn = httplib.HTTPConnection(host)
-        conn.request("GET", path, headers = {
-            "Cache-Control": self.headers.get("Cache-Control", ""),
-            "Accept": self.headers.get("Accept", ""),
-            "User-Agent": self.headers.get("User-Agent", ""),
-            # TODO: accept encoding
-            #"Accept-Encoding": self.headers.get("Accept-Encoding", ""),
-            "Accept-Language": self.headers.get("Accept-Language", ""),
-            #"If-Modified-Since": self.headers.get("If-Modified-Since", "")
-        })
+        if not data:
+            conn.request("GET", path, headers = {
+                "Cache-Control": self.headers.get("Cache-Control", ""),
+                "Accept": self.headers.get("Accept", ""),
+                "User-Agent": self.headers.get("User-Agent", ""),
+                "Accept-Language": self.headers.get("Accept-Language", ""),
+            })
+        else:
+            conn.request("POST", path, data, headers = {
+                "Cache-Control": self.headers.get("Cache-Control", ""),
+                "Accept": self.headers.get("Accept", ""),
+                "User-Agent": self.headers.get("User-Agent", ""),
+                "Content-Length": len(data),
+                "Accept-Language": self.headers.get("Accept-Language", ""),
+            })
         response = conn.getresponse()
         headers = response.getheaders()
 
@@ -176,11 +201,11 @@ class FakeHandler(SimpleHTTPRequestHandler):
                                     "      results['total'] = score;"
                                     "      location.href = 'http://localhost:8000/submit?results=' + "
                                     "                          encodeURIComponent(JSON.stringify(results))"
-                                    "   };" 
+                                    "   };"
                                     "   AddResult = function(name, result) {"
                                     "      results[name] = result;"
                                     "      oldAddResult(name, result);"
-                                    "   };" 
+                                    "   };"
                                     "</script>"
                                     "</body>");
         if host.startswith("jetstream."):
@@ -196,22 +221,30 @@ class FakeHandler(SimpleHTTPRequestHandler):
                                     "{"
                                     "      location.href = 'http://localhost:8000/submit?results=' + "
                                     "                          encodeURIComponent(JSON.stringify(computeRawResults()))"
-                                    "} " 
+                                    "} "
                                     "function foo()");
         if host.startswith("speedometer."):
             if path == "/Speedometer/":
                 return data.replace("</body>",
-                                    "<script>"
-                                    "   window.setTimeout(function() {startTest()}, 10000);"
-                                    "   var prev = window.BenchmarkClient.didFinishLastIteration;"
-                                    "   window.BenchmarkClient.didFinishLastIteration = function() {"
-                                    ""
-                                    ""
-                                    "   }"
-                                    "</script>"
-                                    "</body>");
-        return data
-        
+                                    """
+                                    <script defer>
+                                       window.setTimeout(function() {
+                                           startTest()
+                                           benchmarkClient._updateGaugeNeedle = function (rpm) {
+                                              location.href = 'http://localhost:8000/submit?results=' +
+                                                                  encodeURIComponent(JSON.stringify([{'name': '__total__', 'time': rpm}]));
+                                           };
+                                       }, 10000);
+                                    </script>
+                                    </body>""");
+        if host.startswith("kraken."):
+            if path == "/kraken-1.1/driver.html":
+                return data.replace('location = "results.html?" + encodeURI(outputString);',
+                                    'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
+        if host.startswith("sunspider."):
+            if path == "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html":
+                return data.replace('location = "results.html?" + encodeURI(outputString);',
+                                    'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
 
 class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
     pass
