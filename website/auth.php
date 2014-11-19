@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 // Demo site using Auth_BrowserID for authentication
 

@@ -46,6 +46,16 @@ if (!$results || mysql_num_rows($results) < 1)
     die();
 $suiteIds = Array();
 while($row = mysql_fetch_array($results)) {
+	if (!has_permissions()) {
+		$query = "SELECT awfy_suite.id FROM `awfy_suite`
+				  LEFT JOIN awfy_suite_version on suite_id = awfy_suite.id
+				  WHERE awfy_suite_version.id = ".$row[0]." AND
+						awfy_suite.visible = 1
+				  LIMIT 1";
+		$perm = mysql_query($query);
+		if (!$perm || mysql_num_rows($perm) != 1)
+			continue;
+	}
     $suiteIds[] = $row[0];
 }
 

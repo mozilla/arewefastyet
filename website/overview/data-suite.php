@@ -26,7 +26,7 @@ $overview["stamp"] = $row[1];
 $overview["suiteVersion"] = $suiteVersion;
 
 if (!has_permissions()) {
-	$query = "SELECT id FROM `awfy_suite`
+	$query = "SELECT awfy_suite.id FROM `awfy_suite`
               LEFT JOIN awfy_suite_version on suite_id = awfy_suite.id
               WHERE awfy_suite_version.id = $suiteVersion AND
 				    visible = 1
