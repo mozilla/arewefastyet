@@ -70,4 +70,6 @@ There is also a `monitor.py` script provided in the server folder. You can run t
 
 Website
 -------
-Nothing special needed, just place the static files somewhere. Don't forget to replace the default machine number in website/awfy.js, which is the one that will show up in the first place. Note that AWFY's flot is slightly modified, so it might not work to just replace it with upstream flot. There must be a 'data' folder that contains the json/js files dumped by `update.py`. It can be a symlink.
+Put the files somewhere. Currently php is needed for data.php, which pulls the data from the correct location. You need to update that file to refer the 'data' folder that contains the json/js files dumped by update.py.
+
+Don't forget to replace the default machine number in website/awfy.js, which is the one that will show up in the first place. Note that AWFY's flot is slightly modified, so it might not work to just replace it with upstream flot.

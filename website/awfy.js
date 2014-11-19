@@ -24,7 +24,7 @@ AWFY.request = function (files, callback) {
               window.location.host;
     if (url[url.length - 1] != '/')
         url += '/';
-    url += 'data/';
+    url += 'data.php?file=';
 
     var count = 0;
     var received = new Array(files.length);
@@ -863,8 +863,8 @@ AWFY.updateSuiteList = function (machineId) {
     var suites = [];
     for (var i=0; i < AWFYMaster.machines[machineId].suites.length; i++) {
         var name = AWFYMaster.machines[machineId].suites[i];
-        if (AWFYMaster.suites[name])
-	    suites.push([name, AWFYMaster.suites[name]]);
+        if (AWFYMaster.suites[name] && AWFYMaster.suites[name].visible == 1)
+            suites.push([name, AWFYMaster.suites[name]]);
     }
 
     suites.sort(function (a, b) {

@@ -10,6 +10,20 @@ function init_database()
     mysql_select_db("dvander") or die("ERROR: " . mysql_error());
 }
 
+function has_permissions()
+{
+	if (!isset($_SESSION['persona']))
+		return false;
+
+	# Test here which persons have permission to see all benchmarks
+	if ($_SESSION['persona'] == "hv1989@gmail.com")
+		return true;
+	if ($_SESSION['persona'] == "hverschore@mozilla.com")
+		return true;
+
+	return false;
+}
+
 function GET_int($name)
 {
     if (isset($_GET[$name]))
