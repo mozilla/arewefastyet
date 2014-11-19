@@ -115,11 +115,6 @@ class Assorted(SunSpiderBased):
     def __init__(self):
         super(Assorted, self).__init__('misc', '0.1', 'misc', 3)
 
-Benchmarks = [SunSpider(),
-              Kraken(),
-              Octane(),
-             ]
-
 def run(submit, native, modes):
     for benchmark in Benchmarks:
         benchmark.run(submit, native, modes)
