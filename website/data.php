@@ -2,6 +2,8 @@
 
 $datafolder = "/home/h4writer/data/";
 
+include "internals.php";
+
 function fault() {
 	exit();
 }
@@ -9,18 +11,18 @@ function fault() {
 if (!isset($_GET["file"]))
 	fault();
 
-$file = $_GET["file"];
-if (substr($file, 0, 4) == "auth")
+$name = $_GET["file"];
+if (substr($name, 0, 4) == "auth")
 	fault();
-if (!preg_match("/^[a-zA-Z0-9-.]*$/i", $file))
+if (!preg_match("/^[a-zA-Z0-9-. ]*$/i", $name))
 	fault();
 
-$file = $datafolder.$file;
+$file = $datafolder.$name;
 if (!file_exists($file)) {
 	if (!has_permissions())
 		fault();
 
-	$file = $datafolder."auth-".$file;
+	$file = $datafolder."auth-".$name;
 	if (!file_exists($file))
 		fault();
 }
