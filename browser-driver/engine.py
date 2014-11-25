@@ -175,7 +175,12 @@ class Mozilla(Engine):
                                          "-CreateProfile", "test "+self.tmp_dir+"profile"],
                                          stderr=subprocess.STDOUT)
 
-        # Step 4: Start browser
+        # Step 4: Disable slow script dialog
+        fp = open(self.tmp_dir + "profile/prefs.js", 'w')
+        fp.write('user_pref("dom.max_script_run_time", 0);');
+        fp.close()
+        
+        # Step 5: Start browser
         env = os.environ.copy()
         env["JSGC_DISABLE_POISONING"] = "1";
         self.subprocess = subprocess.Popen([executable, 
