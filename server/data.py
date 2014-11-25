@@ -7,12 +7,13 @@ import awfy
 import time
 
 class Benchmark(object):
-    def __init__(self, suite_id, name, description, direction, sort_order):
+    def __init__(self, suite_id, name, description, direction, sort_order, visible):
         self.id = suite_id
         self.name =  name
         self.description = description
         self.direction = direction
         self.sort_order = sort_order
+        self.visible = visible
 
         # Get a list of individual tests
         self.tests = []
@@ -32,7 +33,8 @@ class Benchmark(object):
                  "description": self.description,
                  "direction": self.direction,
                  "tests": self.tests,
-                 "sort_order": self.sort_order
+                 "sort_order": self.sort_order,
+                 "visible": self.visible
                }
 
 class Vendor(object):
@@ -62,7 +64,7 @@ class Machine(object):
                    JOIN `awfy_score` ON awfy_build.id = build_id                          \
                    WHERE machine = %s", (id,))
         ids = [str(row[0]) for row in c.fetchall()]
-	if len(ids) > 0:
+        if len(ids) > 0:
                 c.execute("SELECT DISTINCT(awfy_suite.name) FROM awfy_suite                       \
                            JOIN `awfy_suite_version` ON suite_id = awfy_suite.id                  \
                            WHERE awfy_suite_version.id in ("+(",".join(ids))+")")
@@ -148,9 +150,9 @@ class Context(object):
         # Get a list of benchmark suites.
         self.suitemap = {}
         self.benchmarks = []
-        c.execute("SELECT id, name, description, better_direction, sort_order FROM awfy_suite WHERE sort_order > 0")
+        c.execute("SELECT id, name, description, better_direction, sort_order, visible FROM awfy_suite WHERE visible > 0")
         for row in c.fetchall():
-            b = Benchmark(row[0], row[1], row[2], row[3], row[4])
+            b = Benchmark(row[0], row[1], row[2], row[3], row[4], row[5])
             self.suitemap[row[0]] = b
             self.benchmarks.append(b)
 
@@ -158,8 +160,8 @@ class Context(object):
         self.suiteversions = []
         c.execute("SELECT id, name, suite_id FROM awfy_suite_version")
         for row in c.fetchall():
-			if row[2] in self.suitemap:
-				self.suiteversions.append([row[0], row[1], self.suitemap[row[2]].name])
+            if row[2] in self.suitemap:
+                self.suiteversions.append([row[0], row[1], self.suitemap[row[2]].name])
 
         # Get a list of machines.
         self.machines = []
@@ -205,6 +207,6 @@ class Context(object):
         for v in self.suiteversions:
             o[v[0]] = { "name": v[1],
                         "suite": v[2]
-					  }
+                      }
         return o
 

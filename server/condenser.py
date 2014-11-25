@@ -177,14 +177,14 @@ def aggregate(graph):
     recentRuns = 0
     runs = []
     for i in range(len(graph['lines'])):
-	runs.append(0)
+        runs.append(0)
     for i in range(len(graph['timelist'])-1, -1, -1):
-    	for j in range(len(graph['lines'])):
-	    if graph['lines'] and i < len(graph['lines'][j]["data"]) and graph['lines'][j]["data"][i]:
-		runs[j] += 1
-	recentRuns += 1 
-	if max(runs) == MaxRecentRuns:
-	    break
+        for j in range(len(graph['lines'])):
+            if graph['lines'] and i < len(graph['lines'][j]["data"]) and graph['lines'][j]["data"][i]:
+                runs[j] += 1
+        recentRuns += 1 
+        if max(runs) == MaxRecentRuns:
+            break
 
     # If the number of historical points is <= the number of recent points,
     # then the graph is about split so we don't have to do anything.
@@ -201,9 +201,9 @@ def aggregate(graph):
     for i in range(0, MaxRecentRuns):
         start = int(round(pos))
 
-	end = min(int(math.floor(pos + region_length)), historical) - 1
-	if end < start:
-	    end = start
+        end = min(int(math.floor(pos + region_length)), historical) - 1
+        if end < start:
+            end = start
         regions.append((start, end))
         pos += region_length
 
@@ -261,18 +261,21 @@ def condense(cx, suite, prefix, name):
 
 def condense_suite(cx, machine, suite):
     name = suite.name + '-' + str(machine.id)
+    prefix = ""
+    if suite.visible == 2:
+        prefix = "auth-"
 
     # We don't build individual aggregate json for each suite, so just pass
     # the combine graph back to our caller.
-    suite_aggregate = condense(cx, suite, '', name)
+    suite_aggregate = condense(cx, suite, prefix, name)
 
     for test_name in suite.tests:
         test_path = suite.name + '-' + test_name + '-' + str(machine.id)
-        test_aggregate = condense(cx, suite, 'bk-', test_path)
+        test_aggregate = condense(cx, suite, prefix + 'bk-', test_path)
         j = { 'version': awfy.version,
               'graph': test_aggregate
             }
-        export('bk-aggregate-' + test_path + '.json', j)
+        export(prefix + 'bk-aggregate-' + test_path + '.json', j)
 
     return suite_aggregate
 
@@ -288,6 +291,8 @@ def condense_all(cx):
                 continue
             suite_aggregate = condense_suite(cx, machine, suite)
             if suite.name == 'misc':
+                continue
+            if suite.visible == 2:
                 continue
             aggregates[suite.name] = suite_aggregate
 
