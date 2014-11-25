@@ -353,7 +353,10 @@ class WebKit(Engine):
         self.pid = self.subprocess.pid
 
     def kill(self):
-        subprocess.check_output("kill $(ps aux | grep '/[V]olumes/WebKit/' | awk '{print $2}')", shell=True)
+        try:
+            subprocess.check_output("kill $(ps aux | grep '/[V]olumes/WebKit/' | awk '{print $2}')", shell=True)
+        except:
+            pass
         try:
             subprocess.check_output("rm -Rf ~/Library/Saved\ Application\ State/com.apple.Safari.savedState", shell=True)
         except:

@@ -42,13 +42,21 @@ elif slaveType == "mac-desktop":
     KnownEngines = [engine.Mozilla(), engine.Chrome(), engine.WebKit()]
     BrowserBenchmarks = [fullbrowserbenchmarks.Octane(),
                          fullbrowserbenchmarks.Massive(),
-                         fullbrowserbenchmarks.JetStream()]
+                         fullbrowserbenchmarks.JetStream(),
+                         fullbrowserbenchmarks.Speedometer(),
+                         fullbrowserbenchmarks.Kraken(),
+                         fullbrowserbenchmarks.SunSpider(),
+                         fullbrowserbenchmarks.Browsermark()]
     ShellBenchmarks = []
 elif slaveType == "linux-desktop":
     KnownEngines = [engine.Mozilla()]
     BrowserBenchmarks = [fullbrowserbenchmarks.Octane(),
                          fullbrowserbenchmarks.Massive(),
-                         fullbrowserbenchmarks.JetStream()]
+                         fullbrowserbenchmarks.JetStream(),
+                         fullbrowserbenchmarks.Speedometer(),
+                         fullbrowserbenchmarks.Kraken(),
+                         fullbrowserbenchmarks.SunSpider(),
+                         fullbrowserbenchmarks.Browsermark()]
     ShellBenchmarks = []
 else:
     KnownEngines = [engine.Mozilla(), engine.MozillaPGO(), engine.MozillaShell(), engine.Chrome()]
