@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 $machine = 30;
 $suiteVersion = 0;
 if (isset($_GET["machine"]))
@@ -78,7 +80,11 @@ for (var i = 0; i < AWFYOverview["data"].length; i++) {
 <?php } ?>
 
 <script>
-    var url = "http://www.arewefastyet.com/auth.php";
+	var url;
+	if ((window.location + "").substr(0, 10) == "http://www")
+	    url = "http://www.arewefastyet.com/auth.php";
+	else
+	    url = "http://arewefastyet.com/auth.php";
 
     // Listen on Persona events
     var request = false;
@@ -89,19 +95,28 @@ for (var i = 0; i < AWFYOverview["data"].length; i++) {
         if(request) {
           window.location = url + "?persona=1&assertion=" + assertion;
         } else {
-          document.getElementById("personaLogout").style.display = "block";
-          document.getElementById("personaLogin").style.display = "none";
+          //document.getElementById("personaLogout").style.display = "block";
+          //document.getElementById("personaLogin").style.display = "none";
         }
       },
       onlogout: function () {
         if(request) {
           window.location = url + "?persona=1&logout=1";
         } else {
-          document.getElementById("personaLogout").style.display = "none";
-          document.getElementById("personaLogin").style.display = "block";
+          //document.getElementById("personaLogout").style.display = "none";
+          //document.getElementById("personaLogin").style.display = "block";
         }
       }
     });
+
+<?php
+	if (isset($_SESSION["persona"])) {
+?>
+		document.getElementById("personaLogout").style.display = "block";
+		document.getElementById("personaLogin").style.display = "none";
+<?php
+	}
+?>
     
     // Do login in
     var doLogin = function() {

@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 $datafolder = "/home/h4writer/data/";
 
