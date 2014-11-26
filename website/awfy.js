@@ -571,6 +571,7 @@ AWFY.showBreakdown = function (name) {
     for (var i = 0; i < suite.tests.length; i++) {
         var test = suite.tests[i];
         var id = name + '-' + test;
+		var domid = id.replace(/ /g,'-').replace(/\./g, '-');
         ( function (name, test) {
             $('<div></div>').click(
                 (function (event) {
@@ -581,7 +582,7 @@ AWFY.showBreakdown = function (name) {
             .html('<b><a href="#">' + id + '</a></b>')
             .appendTo(breakdown);
         }.bind(this)  )(name, test)
-        var div = $('<div id="' + id + '-graph" class="graph"></div>');
+        var div = $('<div id="' + domid + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
         div.hide();
         $('<br><br>').appendTo(breakdown);
@@ -595,7 +596,7 @@ AWFY.showBreakdown = function (name) {
                 if (++total == suite.tests.length)
                     this.drawLegend();
             }).bind(this);
-        }).bind(this)(id);
+        }).bind(this)(domid);
 
         // Fire off an XHR request for each test.
         var file = 'bk-aggregate-' + id + '-' + this.machineId;
@@ -630,7 +631,8 @@ AWFY.showSingle = function (name, subtest, start, end) {
             continue;
         var id = name + '-' + test;
         $('<div></div>').html('<b>' + id + '</b>').appendTo(breakdown);
-        var div = $('<div id="' + id + '-graph" class="graph"></div>');
+		var domid = id.replace(/ /g,'-').replace(/\./g, '-');
+        var div = $('<div id="' + domid + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
         div.hide();
         $('<br><br>').appendTo(breakdown);
@@ -643,7 +645,7 @@ AWFY.showSingle = function (name, subtest, start, end) {
                     this.computeBreakdown(received[0], id);
                 this.drawLegend();
             }).bind(this);
-        }).bind(this)(id);
+        }).bind(this)(domid);
 
         // Fire off an XHR request for each test.
         var file = 'bk-aggregate-' + id + '-' + this.machineId;
