@@ -1,0 +1,75 @@
+/**********************************************************************/
+/* Introduce some associative array functionality to SASS             */
+/*   so you can define:                                               */
+/*     $var: key1 "value1", key2 "value2";                            */
+/* And use following functions:                                       */
+/*   get($var, key1);                     // will return "value1"     */
+/*   get($var, key2);                     // will return "value2"     */
+/*   $var: set($var, key1, "newValue");                               */
+/*   get($var, key1);                     // will return "newValue"   */
+/*                                                                    */
+/* Tips and source from:                                              */
+/* http://hugogiraudel.com/2013/08/12/sass-functions/#mapping         */
+/**********************************************************************/
+
+@function get($haystack, $needle) {
+  @each $item in $haystack {
+    $index: index($item, $needle);
+    @if $index { 
+      $return: if($index == 1, 2, $index);
+      @return nth($item, $return); 
+    }
+  }
+  @return false;
+}
+
+@function set($haystack, $needle, $value) {
+  @each $item in $haystack {
+    $index: index($item, $needle);
+    @if $index { 
+      $return: if($index == 1, 2, $index);
+      @return insert-nth($haystack, $return, $needle $value );
+    }
+  }
+  $return: append($haystack, $needle $value);
+  @return $return;
+}
+
+
+@function insert-nth($list, $index, $value) {
+  $result: null;
+      
+  @if type-of($index) != number {
+    @warn "$index: #{quote($index)} is not a number for `insert-nth`.";
+  }
+
+  @else if $index < 1 {
+    @warn "List index 0 must be a non-zero integer for `insert-nth`";
+  }
+
+  @else if $index > length($list) {
+    @warn "List index is #{$index} but list is only #{length($list)} item long for `insert-nth'.";
+  }
+
+  @else {
+    $result: ();
+        
+    @for $i from 1 through length($list) {
+      @if $i == $index {
+        $result: append($result, $value);
+      }
+
+      $result: append($result, nth($list, $i));
+    }
+  }
+
+  @return $result;
+}
+
+@function keys($haystack) {
+  $return: ();
+  @each $item in $haystack {
+    $return: append($return, nth($item, 1));
+  }
+  @return $return;
+}
