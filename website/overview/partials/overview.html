@@ -1,0 +1,54 @@
+<div ng-controller="overviewCtrl">
+  <div class='subheader'>
+    <div class='button' ng-repeat="software in softwares">
+      <div class='title'>{{software.name}}</div>
+      <div class='result'>Base</div>
+    </div>
+    <!--<div class='button'>
+      <div class='title'>v8</div>
+      <div class='result good'>20.2%</div>
+    </div>
+    <div class='button'>
+      <div class='title'>jsc</div>
+      <div class='result bad'>82.0%</div>
+    </div>-->
+    <div class='button' ng-if='hasSuite'>
+      <a class='up' ng-href='#/machine/{{machineId}}'></a>
+    </div>
+    <div class='button' ng-if='!hasSuite'>
+      <a class='history' ng-href='../?machine={{machineId}}'>History</a>
+    </div>
+    <div class='button' ng-if='hasSuite'>
+      <a class='history' ng-href='../?machine={{machineId}}&view=breakdown&suite={{code}}'>History</a>
+    </div>
+  </div>
+
+  <h2 ng-if='!hasSuite'>
+    Overview
+  </h2>
+
+  <h2 ng-if='hasSuite'>
+    <a class='overview' ng-href='#/machine/{{machineId}}'>Overview</a> > {{name}}
+  </h2>
+
+  <div>
+    <div class='box' ng-repeat="testsuite in testsuites">
+      <div class='header'>{{testsuite.name}}</div>
+      <div class='content'>
+        <div ng-repeat="machine in testsuite.machines">
+          <h3 ng-if="testsuite.machines.length != 1">{{machine.name}}</h3>
+          <div ng-repeat="test in machine.tests">
+            <div class='score'>{{test.score}}</div>
+            <div class='title'>{{test.name}}</div>
+            <progress ng-value='{{test.score}}' ng-attr-max='{{testsuite.maxScore}}' ng-attr-class="{{test.ff}}"></progress>
+          </div>
+        </div>
+      </div>
+      <div class='footer' ng-if='!hasSuite'>
+        <a class='subtests' ng-href='#/machine/{{machineId}}/suite/{{testsuite.id}}'>Subtests</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div ng-controller="ffIconCtrl"></div>
