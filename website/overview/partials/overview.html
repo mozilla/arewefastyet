@@ -15,12 +15,12 @@
     <div class='button' ng-if='hasSuite'>
       <a class='up' ng-href='#/machine/{{machineId}}'></a>
     </div>
-    <div class='button' ng-if='!hasSuite'>
+    <!--<div class='button' ng-if='!hasSuite'>
       <a class='history' ng-href='../?machine={{machineId}}'>History</a>
     </div>
     <div class='button' ng-if='hasSuite'>
       <a class='history' ng-href='../?machine={{machineId}}&view=breakdown&suite={{code}}'>History</a>
-    </div>
+    </div>-->
   </div>
 
   <h2 ng-if='!hasSuite'>
@@ -36,7 +36,7 @@
       <div class='header'>{{testsuite.name}}</div>
       <div class='content'>
         <div ng-repeat="machine in testsuite.machines">
-          <h3 ng-if="testsuite.machines.length != 1">{{machine.name}}</h3>
+          <h3 ng-if="numMachines != 1">{{machine.name}}</h3>
           <div ng-repeat="test in machine.tests">
             <div class='score'>{{test.score}}</div>
             <div class='title'>{{test.name}}</div>
@@ -46,6 +46,10 @@
       </div>
       <div class='footer' ng-if='!hasSuite'>
         <a class='subtests' ng-href='#/machine/{{machineId}}/suite/{{testsuite.id}}'>Subtests</a>
+        <a class='history' ng-href='../#machine={{machineId}}&view=single&suite={{testsuite.name}}'>History</a>
+      </div>
+      <div class='footer' ng-if='hasSuite'>
+        <a class='history' ng-href='../#machine={{machineId}}&view=single&suite={{testsuite.name}}&subtest={{testsuite.name}}'>History</a>
       </div>
     </div>
   </div>

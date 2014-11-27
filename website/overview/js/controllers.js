@@ -48,13 +48,16 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
         machine = JSON.parse(machine); 
         machines.push(machine);
       }
-console.log(machines);
-$scope.$parent.date = machines[0].stamp*1000;
+
+      // Show date
+      $scope.$parent.date = machines[0].stamp*1000;
 
       if($routeParams.suite) {
         $scope.name = master["suiteversions"][$routeParams.suite]["name"];
         $scope.code = master["suiteversions"][$routeParams.suite]["suite"];
       }
+
+      $scope.numMachines = data.length-1;
 
       // Get all testsuites ids
       var testsuites = {};
@@ -140,7 +143,7 @@ $scope.$parent.date = machines[0].stamp*1000;
 
               machine.tests.push({
                 name: master["modes"][test["modeid"]]["name"],
-                score: test["score"],
+                score: Math.round(test["score"], 2),
                 ff: isFF(master["modes"][test["modeid"]]["name"]) ? "ff" : "",
               });
 
@@ -156,45 +159,6 @@ $scope.$parent.date = machines[0].stamp*1000;
 
 
       return;
-
-      // Create testsuites
-      for(key in overview["data"]) {
-        var suite = overview["data"][key]
-        
-        if(!$routeParams.suite && suite["suiteversionid"] == -1)
-          continue;
-
-        var name;
-        if(!$routeParams.suite) {
-          name = master["suiteversions"][suite["suiteversionid"]]["name"];
-        } else {
-          name = suite["suitetest"];
-        }
-
-        var testsuite = {
-          name: name,
-          tests: [],
-          maxScore: 0,
-        };
-
-        if(!$routeParams.suite) {
-          testsuite.id = suite["suiteversionid"];
-        }
-
-        for(key in suite["scores"]) {
-          var test = suite["scores"][key];
-
-          testsuite.tests.push({
-            name: master["modes"][test["modeid"]]["name"],
-            score: test["score"],
-            ff: isFF(master["modes"][test["modeid"]]["name"]) ? "ff" : "",
-          });
-
-          testsuite.maxScore = Math.max(testsuite.maxScore, test["score"]*1);
-        }
-
-        $scope.testsuites.push(testsuite);
-      }
     });
 
     $scope.machineId = $routeParams.machine;
