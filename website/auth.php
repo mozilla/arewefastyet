@@ -8,10 +8,7 @@ if(isset($_GET['persona'])) {
   
   // Login
   if(isset($_GET['assertion'])) {
-	if ($_SERVER['HTTP_HOST'] == "www.arewefastyet.com")
-		$verifier = new Auth_BrowserID('http://www.arewefastyet.com');
-	else
-		$verifier = new Auth_BrowserID('http://arewefastyet.com');
+		$verifier = new Auth_BrowserID("http://".$_SERVER['HTTP_HOST']);
     $result = $verifier->verifyAssertion($_GET['assertion']);
 
     if ($result->status === 'okay') {

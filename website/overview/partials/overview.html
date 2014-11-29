@@ -43,13 +43,15 @@
             <progress ng-value='{{test.score}}' ng-attr-max='{{testsuite.maxScore}}' ng-attr-class="{{test.ff}}"></progress>
           </div>
         </div>
+        <div class='legend' ng-if="testsuite.order==1">Higher is better</div>
+        <div class='legend' ng-if="testsuite.order==-1">Lower is better</div>
       </div>
       <div class='footer' ng-if='!hasSuite'>
         <a class='subtests' ng-href='#/machine/{{machineId}}/suite/{{testsuite.id}}'>Subtests</a>
-        <a class='history' ng-href='../#machine={{machineId}}&view=single&suite={{testsuite.name}}'>History</a>
+        <a class='history' ng-href='../#machine={{machineId}}&view=single&suite={{testsuite.suite}}'>History</a>
       </div>
       <div class='footer' ng-if='hasSuite'>
-        <a class='history' ng-href='../#machine={{machineId}}&view=single&suite={{testsuite.name}}&subtest={{testsuite.name}}'>History</a>
+        <a class='history' ng-href='../#machine={{machineId}}&view=single&suite={{testsuite.suite}}&subtest={{testsuite.name}}'>History</a>
       </div>
     </div>
   </div>
