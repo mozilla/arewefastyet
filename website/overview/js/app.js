@@ -40,20 +40,12 @@ awfyApp.controller('pageCtrl', ['$scope', '$http', '$q', '$location',
         }
       }
 
-      // Put select in proper format
-      var path = $location.path().split("/");
-      if(path[2].indexOf(",") == -1) {
-        $scope.selectedMachine = master["machines"][path[2]];
-      } else {
-        $scope.machines.push({
-          id: path[2],
-          description: "Multipe machines",
-        });
-        $scope.selectedMachine = $scope.machines[$scope.machines.length-1];
-      }
-
       // Watch for changes of selection
-      $scope.$watch('selectedMachine', function (machine) {
+      $scope.$watch('selectedMachine', function (machine) { 
+        if(!machine) {
+          return;
+        }
+
         var path = $location.path().split("/");
         path[2] = machine.id;
 

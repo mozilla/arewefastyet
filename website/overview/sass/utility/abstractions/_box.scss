@@ -36,6 +36,14 @@
     color: $_accent;
   }
 
+  .legend {
+    text-align: right;
+    font-size: $unit*1.5;
+    text-transform: uppercase;
+    margin-top: $unit*3;
+    color: #AAAAAA;
+  }
+
   .score {
     float: right;
     font-size: 1.4em;

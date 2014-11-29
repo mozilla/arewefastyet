@@ -13,6 +13,8 @@
   <script type="text/javascript" src="../jquery/jquery-1.8.3.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular-route.js"></script>
+  <script src="https://login.persona.org/include.js"></script>
+  <script src="js/persona.js"></script>
   <script src="js/app.js"></script>
   <script src="js/controllers.js"></script>
 
@@ -32,8 +34,8 @@
         </div>
       </div>
       <div class='userMenu'>
-        <a id='personaLogin' href="javascript:doLogin()"><span>Login</span></a>
-        <a id='personaLogout' href="javascript:doLogout()" style='display: none;'><span>Logout</span></a>
+        <a id='personaLogin' href="javascript:doPersonaLogin()"><span>Login</span></a>
+        <a id='personaLogout' href="javascript:doPersonaLogout()" style='display: none;'><span>Logout</span></a>
       </div>
     </div>
   </div>

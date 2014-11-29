@@ -49,6 +49,17 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
         machines.push(machine);
       }
 
+      // Update selection
+      if($routeParams.machine.indexOf(",") == -1) {
+        $scope.$parent.selectedMachine = master["machines"][$routeParams.machine];
+      } else {
+        $scope.$parent.machines.push({
+          id: $routeParams.machine,
+          description: "Multipe machines",
+        });
+        $scope.$parent.selectedMachine = $scope.$parent.machines[$scope.$parent.machines.length-1];
+      }
+
       // Show date
       $scope.$parent.date = machines[0].stamp*1000;
 
@@ -101,16 +112,20 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
       
       // Create 
       for(i in testsuites) {
-        var name;
+        var name, suite;
         if(!$routeParams.suite) {
           name = master["suiteversions"][i]["name"];
+          suite = master["suiteversions"][i]["suite"];
         } else {
           name = i;
+          suite = master["suiteversions"][$routeParams.suite]["suite"];
         }
 
         var testsuite = {
           id: i,
           name: name,
+          suite: suite,
+          order: master["suites"][suite]["direction"],
           machines: [],
           maxScore: 0,
         };
@@ -140,10 +155,15 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
 
             for(var k in machines[j]["data"][key]["scores"]) {
               var test = machines[j]["data"][key]["scores"][k];
+              var score = Math.round(test["score"]*100)/100;
+
+              if(testsuite.order == -1) {
+                score += "ms";
+              }
 
               machine.tests.push({
                 name: master["modes"][test["modeid"]]["name"],
-                score: Math.round(test["score"], 2),
+                score: score,
                 ff: isFF(master["modes"][test["modeid"]]["name"]) ? "ff" : "",
               });
 
