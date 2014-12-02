@@ -39,7 +39,7 @@
           <h3 ng-if="numMachines != 1">{{machine.name}}</h3>
           <div ng-repeat="test in machine.tests">
             <div class='score'>{{test.scoreLabel}}</div>
-            <div class='title'>{{test.name}}</div>
+            <div class='title'>{{test.name}}<span class='stamp' ng-if='test.stamp'>{{test.stamp | date:'dd MMM yy HH:mm'}}</span></div>
             <progress ng-value='{{test.score}}' ng-attr-max='{{testsuite.maxScore}}' ng-attr-class="{{test.ff}}"></progress>
           </div>
         </div>

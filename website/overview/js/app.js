@@ -92,7 +92,6 @@ awfyApp.controller('pageCtrl', ['$scope', '$http', '$q', '$location',
         var path = $location.path().split("/");
         if(machine != path[2]) { 
           path[2] = machine;
-          console.log(machine);
           $location.path(path.join("/"));
         }
       });
