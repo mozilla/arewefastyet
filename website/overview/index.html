@@ -27,7 +27,7 @@
     <div class='rightSide'>
       <div class='query'>
         <div id='machines'>
-          <select ng-model="selectedMachine" ng-options="machine.description for machine in machines track by machine.id"></select>
+          <select ng-model="selectedMachine" ng-options="machine.id as machine.description for machine in machines track by machine.id"></select>
         </div>
         <div id='dates'>
           <div>tested on {{date | date:'dd MMM yy HH:mm'}}</div>

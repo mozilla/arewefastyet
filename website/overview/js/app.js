@@ -33,23 +33,66 @@ awfyApp.controller('pageCtrl', ['$scope', '$http', '$q', '$location',
       master = JSON.parse(master);
 
       // Add all machines (remove key)
-      $scope.machines = [];
-      for(var i in master["machines"]) {
-        if(master["machines"][i]["frontpage"]) {
-          $scope.machines.push(master["machines"][i]);
+      var createMachines = function(frontpage) {
+        $scope.machines = [];
+        for(var i in master["machines"]) {
+          if(!frontpage || master["machines"][i]["frontpage"]) {
+            master["machines"][i]["id"] += "";
+            $scope.machines.push(master["machines"][i]);
+          }
         }
       }
+      createMachines(true);  
 
+      // Watch on location change
+      var locationChangeSuccess = function(event) {
+        var path = $location.path().split("/");
+        if(!$scope.selectedMachine || path[2] != $scope.selectedMachine.id) {
+          if(path[2].indexOf(",") == -1) {
+            // Check if machine is in full set or in frontpage set
+            createMachines(master["machines"][parseInt(path[2])]["frontpage"]);
+
+          } else {
+
+            // Check if "multiple machine" has already been made
+            var has = false;
+            for(var i in $scope.machines) {
+              if($scope.machines[i].id == path[2]) {
+                has = true;
+              }
+            }
+
+            // Create "multiple machine"
+            if(!has) {
+              $scope.machines.push({
+                id: path[2],
+                description: "Multipe machines",
+              });
+            }
+          }
+
+          $scope.selectedMachine = {id: path[2]};
+        }
+      };
+      $scope.$on('$locationChangeSuccess', locationChangeSuccess);
+      locationChangeSuccess();
+
+      
       // Watch for changes of selection
-      $scope.$watch('selectedMachine', function (machine) { 
+      $scope.$watch('selectedMachine', function (machine, id) { 
         if(!machine) {
           return;
         }
 
-        var path = $location.path().split("/");
-        path[2] = machine.id;
+        if(machine.id) {
+          machine = machine.id;
+        }
 
-        if($location.path() != path) {
+        // Update location
+        var path = $location.path().split("/");
+        if(machine != path[2]) { 
+          path[2] = machine;
+          console.log(machine);
           $location.path(path.join("/"));
         }
       });

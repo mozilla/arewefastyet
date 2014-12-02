@@ -49,17 +49,6 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
         machines.push(machine);
       }
 
-      // Update selection
-      if($routeParams.machine.indexOf(",") == -1) {
-        $scope.$parent.selectedMachine = master["machines"][$routeParams.machine];
-      } else {
-        $scope.$parent.machines.push({
-          id: $routeParams.machine,
-          description: "Multipe machines",
-        });
-        $scope.$parent.selectedMachine = $scope.$parent.machines[$scope.$parent.machines.length-1];
-      }
-
       // Show date
       $scope.$parent.date = machines[0].stamp*1000;
 
@@ -155,15 +144,16 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
 
             for(var k in machines[j]["data"][key]["scores"]) {
               var test = machines[j]["data"][key]["scores"][k];
-              var score = Math.round(test["score"]*100)/100;
+              var scoreLabel = Math.round(test["score"]*100)/100;
 
               if(testsuite.order == -1) {
-                score += "ms";
+                scoreLabel += "ms";
               }
 
               machine.tests.push({
                 name: master["modes"][test["modeid"]]["name"],
-                score: score,
+                score: Math.round(test["score"]*100)/100,
+                scoreLabel: scoreLabel,
                 ff: isFF(master["modes"][test["modeid"]]["name"]) ? "ff" : "",
               });
 
@@ -191,7 +181,7 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
 awfyCtrl.controller('ffIconCtrl', function ($scope) {
   var times = 0;
   $("body").on("keypress", function(e) {
-    if(e.key) {
+    if(e.key == "f") {
       times++;
 
       setTimeout(function() {
