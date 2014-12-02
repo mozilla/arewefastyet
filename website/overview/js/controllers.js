@@ -150,11 +150,17 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
                 scoreLabel += "ms";
               }
 
+              var stamp = false;
+              if(test["stamp"]*1000 != $scope.$parent.date) {
+                stamp = test["stamp"]*1000;
+              }
+
               machine.tests.push({
                 name: master["modes"][test["modeid"]]["name"],
                 score: Math.round(test["score"]*100)/100,
                 scoreLabel: scoreLabel,
                 ff: isFF(master["modes"][test["modeid"]]["name"]) ? "ff" : "",
+                stamp: stamp,
               });
 
               testsuite.maxScore = Math.max(testsuite.maxScore, test["score"]*1);

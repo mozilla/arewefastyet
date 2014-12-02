@@ -55,6 +55,11 @@
     margin-top: 0.4em;
   }
 
+  .stamp {
+    display: block;
+    font-size: $unit*2;
+  }
+
   progress {
     width: 100%;
     height: $unit;
