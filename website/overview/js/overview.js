@@ -1,3 +1,5 @@
+
+
 function createGraph(div, titel, scores) {
 	nv.addGraph(function() {
 		div.append("h2").text(titel)

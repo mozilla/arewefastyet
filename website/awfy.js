@@ -62,7 +62,8 @@ AWFY.pushState = function () {
     if (this.view == 'single') {
         vars.push('view=single');
         vars.push('suite=' + this.suiteName);
-        vars.push('subtest=' + this.subtest);
+        if (this.subtest)
+            vars.push('subtest=' + this.subtest);
         if (this.start && this.end) {
             vars.push('start='+this.start);
             vars.push('end='+this.end);
@@ -133,9 +134,9 @@ AWFY.displayNewGraph = function (name, graph) {
     if (!elt.length)
         return;
     if (!graph) {
-	this.aggregate[name] = undefined;
+    this.aggregate[name] = undefined;
         elt.hide();
-	return;
+    return;
     }
     elt.show();
     var display = elt.data('awfy-display');
@@ -571,17 +572,18 @@ AWFY.showBreakdown = function (name) {
     for (var i = 0; i < suite.tests.length; i++) {
         var test = suite.tests[i];
         var id = name + '-' + test;
+        var domid = id.replace(/ /g,'-').replace(/\./g, '-');
         ( function (name, test) {
             $('<div></div>').click(
                 (function (event) {
-                    this.showSingle(name, test, null, null);
-                    this.pushState();
-                    return false;
+                 this.showSingle(name, test, null, null);
+                 this.pushState();
+                 return false;
                  }).bind(this))
             .html('<b><a href="#">' + id + '</a></b>')
             .appendTo(breakdown);
-        }.bind(this)  )(name, test)
-        var div = $('<div id="' + id + '-graph" class="graph"></div>');
+            }.bind(this)  )(name, test)
+        var div = $('<div id="' + domid + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
         div.hide();
         $('<br><br>').appendTo(breakdown);
@@ -589,13 +591,13 @@ AWFY.showBreakdown = function (name) {
         this.panes.push(div);
 
         var callback = (function (id) {
-            return (function (received) {
-                if (received[0])
+                return (function (received) {
+                    if (received[0])
                     this.computeBreakdown(received[0], id);
-                if (++total == suite.tests.length)
+                    if (++total == suite.tests.length)
                     this.drawLegend();
-            }).bind(this);
-        }).bind(this)(id);
+                    }).bind(this);
+                }).bind(this)(domid);
 
         // Fire off an XHR request for each test.
         var file = 'bk-aggregate-' + id + '-' + this.machineId;
@@ -620,17 +622,22 @@ AWFY.showSingle = function (name, subtest, start, end) {
     this.end = end;
     this.panes = [];
 
-    var total = 0;
-
-    // Create a div for each sub-test.
+    // Test existance of subtest
     var suite = AWFYMaster.suites[name];
+    var found = false;
     for (var i = 0; i < suite.tests.length; i++) {
         var test = suite.tests[i];
-        if (subtest != test)
-            continue;
+        if (subtest == test) {
+            found = true;
+            break;
+        }
+    }
+
+    if (found) {
         var id = name + '-' + test;
         $('<div></div>').html('<b>' + id + '</b>').appendTo(breakdown);
-        var div = $('<div id="' + id + '-graph" class="graph"></div>');
+        var domid = id.replace(/ /g,'-').replace(/\./g, '-');
+        var div = $('<div id="' + domid + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
         div.hide();
         $('<br><br>').appendTo(breakdown);
@@ -638,40 +645,91 @@ AWFY.showSingle = function (name, subtest, start, end) {
         this.panes.push(div);
 
         var callback = (function (id) {
-            return (function (received) {
-                if (received[0])
+                return (function (received) {
+                    if (received[0])
                     this.computeBreakdown(received[0], id);
-                this.drawLegend();
-            }).bind(this);
-        }).bind(this)(id);
+                    this.drawLegend();
+                    }).bind(this);
+                }).bind(this)(domid);
 
-        // Fire off an XHR request for each test.
         var file = 'bk-aggregate-' + id + '-' + this.machineId;
         this.request([file], callback);
+    } else {
+        var id = name;
+        $('<div></div>').html('<b>' + id + '</b>').appendTo(breakdown);
+        var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
+        var div = $('<div id="' + domid + '-graph" class="graph"></div>');
+        div.appendTo(breakdown);
+        div.hide();
+        $('<br><br>').appendTo(breakdown);
+
+        this.panes.push(div);
+
+        var callback = (function (id) {
+                return (function (received) {
+                    if (received[0])
+                        this.computeBreakdown(received[0], id);
+                    this.drawLegend();
+                    }).bind(this);
+                }).bind(this)(domid);
+
+        var file = 'aggregate-' + id + '-' + this.machineId;
+        this.request([file], callback);
     }
+
     this.lastRefresh = Date.now();
 }
 
 AWFY.requestRedraw = function () {
     if (this.view == 'overview') {
         this.request(['aggregate-' + this.machineId],
-                   this.computeAggregate.bind(this));
-    } else if (this.view == 'breakdown' || this.view == 'single') {
+                this.computeAggregate.bind(this));
+    } else if (this.view == 'breakdown') {
         var suite = AWFYMaster.suites[this.suiteName];
         var total = 0;
         for (var i = 0; i < suite.tests.length; i++) {
             var id = this.suiteName + '-' + suite.tests[i];
-            if (this.view == 'single' && suite.tests[i] != this.subtest)
-                continue;
             var callback = (function (id) {
-                return (function (received) {
-                    if (received[0])
+                    return (function (received) {
+                        if (received[0])
                         this.computeBreakdown(received[0], id);
-                    if (++total == suite.tests.length || this.view == 'single')
+                        if (++total == suite.tests.length)
                         this.drawLegend();
-                }).bind(this);
-            }).bind(this)(id);
+                        }).bind(this);
+                    }).bind(this)(id);
             var file = 'bk-aggregate-' + id + '-' + this.machineId;
+            this.request([file], callback);
+        }
+    } else if (this.view == 'single') {
+        var suite = AWFYMaster.suites[this.suiteName];
+        var found = false;    
+        for (var i = 0; i < suite.tests.length; i++) {
+            if (suite.tests[i] == this.subtest) {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            var id = this.suiteName + '-' + this.subtest;
+            var callback = (function (id) {
+                    return (function (received) {
+                        if (received[0])
+                        this.computeBreakdown(received[0], id);
+                        this.drawLegend();
+                        }).bind(this);
+                    }).bind(this)(id);
+            var file = 'bk-aggregate-' + id + '-' + this.machineId;
+            this.request([file], callback);
+        } else {
+            var id = this.suiteName;
+            var callback = (function (id) {
+                    return (function (received) {
+                        if (received[0])
+                        this.computeBreakdown(received[0], id);
+                        this.drawLegend();
+                        }).bind(this);
+                    }).bind(this)(id);
+            var file = 'aggregate-' + id + '-' + this.machineId;
             this.request([file], callback);
         }
     }
@@ -762,7 +820,7 @@ AWFY.parseURL = function () {
             found = true;
             break;
         }
-        if (!subtest || !found) {
+        if (subtest && !found) {
             view = 'breakdown';
         } else {
             start = (this.queryParams['start'])?parseInt(this.queryParams['start']):null;

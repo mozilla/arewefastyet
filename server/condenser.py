@@ -265,9 +265,12 @@ def condense_suite(cx, machine, suite):
     if suite.visible == 2:
         prefix = "auth-"
 
-    # We don't build individual aggregate json for each suite, so just pass
-    # the combine graph back to our caller.
     suite_aggregate = condense(cx, suite, prefix, name)
+
+    j = { 'version': awfy.version,
+          'graph': suite_aggregate
+        }
+    export(prefix + 'aggregate-' + suite.name + '-' + str(machine.id) + '.json', j)
 
     for test_name in suite.tests:
         test_path = suite.name + '-' + test_name + '-' + str(machine.id)
