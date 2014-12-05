@@ -245,6 +245,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
             if path == "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html":
                 return data.replace('location = "results.html?" + encodeURI(outputString);',
                                     'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
+        return data
 
 class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
     pass

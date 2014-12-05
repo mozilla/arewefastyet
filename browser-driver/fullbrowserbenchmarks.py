@@ -127,7 +127,8 @@ class Kraken(Benchmark):
 
 class SunSpider(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "sunspider", "1.0.2")
+        Benchmark.__init__(self, "ss", "1.0.2")
+        self.url = "http://sunspider.localhost:8000/"
 
     def processResults(self, results):
         ret = []
