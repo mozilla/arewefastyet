@@ -42,7 +42,7 @@ class Engine:
         st = os.stat(file)
         os.chmod(file, st.st_mode | stat.S_IEXEC)
 
-    def getOrDownload(self, prefix, revision, file, output): 
+    def getOrDownload(self, prefix, revision, file, output):
         rev_file = self.tmp_dir + "/" + prefix + "-revision"
         old_revision = ""
         if os.path.isfile(rev_file):
@@ -88,14 +88,24 @@ class Mozilla(Engine):
     def update(self):
         # Step 1: Get newest nightly folder
         if "latest" in self.nightly_dir:
-            self.folder_id = "."
+            self._update(".")
         else:
             response = urllib2.urlopen(self.nightly_dir+"/?C=N;O=D")
             html = response.read()
-            self.folder_id =  re.findall("[0-9]{5,}", html)[0]
+            ids = re.findall("[0-9]{5,}", html)
 
+            for folder_id in ids:
+                try:
+                    print "trying", folder_id
+                    self._update(folder_id)
+                except Exception as e:
+                    print(e)
+                    continue
+                break
+
+    def _update(self, folder_id):
         # Step 2: Find the correct file
-        response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id)
+        response = urllib2.urlopen(self.nightly_dir+"/"+folder_id)
         html = response.read()
         if self.slaveType == "android":
             exec_file = re.findall("fennec-[a-zA-Z0-9.]*.en-US.android-arm.apk", html)[0]
@@ -111,7 +121,7 @@ class Mozilla(Engine):
             json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.json", html)[0]
 
         # Step 3: Get build information
-        response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id+"/"+json_file)
+        response = urllib2.urlopen(self.nightly_dir+"/"+folder_id+"/"+json_file)
         html = response.read()
         info = json.loads(html)
 
@@ -125,7 +135,7 @@ class Mozilla(Engine):
         else:
             output = self.tmp_dir + self.folder + "/firefox.zip"
         self.getOrDownload("mozilla", info["moz_source_stamp"],
-                           self.nightly_dir + "/" + self.folder_id + "/" + exec_file,
+                           self.nightly_dir + "/" + folder_id + "/" + exec_file,
                            output)
 
         # Step 5: Prepare to run
@@ -165,13 +175,13 @@ class Mozilla(Engine):
             executable = self.tmp_dir + self.folder + "/firefox/firefox"
         else:
             executable = self.tmp_dir + self.folder + "/firefox/firefox.exe"
-        
+
         # Step 2: Delete profile
         if os.path.exists(self.tmp_dir + "profile"):
             shutil.rmtree(self.tmp_dir + "profile")
 
         # Step 3: Create new profile
-        output = subprocess.check_output([executable, 
+        output = subprocess.check_output([executable,
                                          "-CreateProfile", "test "+self.tmp_dir+"profile"],
                                          stderr=subprocess.STDOUT)
 
@@ -179,11 +189,11 @@ class Mozilla(Engine):
         fp = open(self.tmp_dir + "profile/prefs.js", 'w')
         fp.write('user_pref("dom.max_script_run_time", 0);');
         fp.close()
-        
+
         # Step 5: Start browser
         env = os.environ.copy()
         env["JSGC_DISABLE_POISONING"] = "1";
-        self.subprocess = subprocess.Popen([executable, 
+        self.subprocess = subprocess.Popen([executable,
                                            "-P", "test", page], env=env)
         self.pid = self.subprocess.pid
 
@@ -222,22 +232,22 @@ class MozillaShell(Engine):
         # Step 1: Get newest nightly folder
         response = urllib2.urlopen(self.nightly_dir+"/?C=N;O=D")
         html = response.read()
-        self.folder_id =  re.findall("[0-9]{5,}", html)[0]
+        folder_id =  re.findall("[0-9]{5,}", html)[0]
 
         # Step 2: Find the correct file
-        response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id)
+        response = urllib2.urlopen(self.nightly_dir+"/"+folder_id)
         html = response.read()
         exec_file = re.findall("jsshell-win32.zip", html)[0]
         json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.json", html)[0]
 
         # Step 3: Get build information
-        response = urllib2.urlopen(self.nightly_dir+"/"+self.folder_id+"/"+json_file)
+        response = urllib2.urlopen(self.nightly_dir+"/"+folder_id+"/"+json_file)
         html = response.read()
         info = json.loads(html)
 
         # Step 4: Fetch archive
-        print "Retrieving", self.nightly_dir+"/"+self.folder_id+"/"+exec_file
-        urllib.urlretrieve(self.nightly_dir+"/"+self.folder_id+"/"+exec_file, self.tmp_dir + "shell.zip")
+        print "Retrieving", self.nightly_dir+"/"+folder_id+"/"+exec_file
+        urllib.urlretrieve(self.nightly_dir+"/"+folder_id+"/"+exec_file, self.tmp_dir + "shell.zip")
 
         # Step 5: Unzip
         self.unzip(".","shell.zip")
