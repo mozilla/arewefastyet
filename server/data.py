@@ -56,9 +56,19 @@ class Machine(object):
         self.frontpage = frontpage
         self.pushed_separate = pushed_separate
         self.message = message
+        self.recent_runs = False
+
+        c = awfy.db.cursor()
+        c.execute("SELECT finish_stamp FROM awfy_run                                      \
+                   WHERE machine = %s AND                                                 \
+                         status = 1 AND                                                   \
+                         finish_stamp > UNIX_TIMESTAMP() - 60*60*24*7                     \
+                   ORDER BY finish_stamp DESC                                             \
+                   LIMIT 1", (id,))
+        if c.rowcount > 0:
+            self.recent_runs = True
 
         self.suites = []
-        c = awfy.db.cursor()
         c.execute("SELECT DISTINCT(suite_version_id) FROM awfy_run                        \
                    JOIN `awfy_build` ON awfy_run.id = run_id                              \
                    JOIN `awfy_score` ON awfy_build.id = build_id                          \
@@ -79,6 +89,7 @@ class Machine(object):
                  "frontpage": self.frontpage,
                  "pushed_separate": self.pushed_separate,
                  "message": self.message,
+                 "recent_runs": self.recent_runs,
                  "suites": self.suites
                }
 

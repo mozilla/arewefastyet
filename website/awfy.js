@@ -894,6 +894,8 @@ AWFY.updateMachineList = function (machineId) {
         }).bind(this)(id));
         if (parseInt(id) == machineId)
             a.addClass('clicked');
+        if (!machine.recent_runs)
+            a.addClass('inactive');
         a.html(machine.description);
         a.appendTo(li);
         li.appendTo(menu);

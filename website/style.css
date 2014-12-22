@@ -121,6 +121,10 @@ h1 {
  font-weight: bold;
 }
 
+.inactive {
+ color: #aaaaaa;
+}
+
 #message {
   font-style: italic;
 }
