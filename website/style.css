@@ -18,6 +18,7 @@ h1 {
 .graph {
  width: 555px;
  height: 340px;
+ margin-bottom:2em;
 }
 .graph-row {
  text-align: center;

@@ -131,14 +131,17 @@ AWFY.loadAggregateGraph = function (blobgraph) {
 
 AWFY.displayNewGraph = function (name, graph) {
     var elt = $('#' + name + '-graph');
+    var title = $('#' + name + '-title');
     if (!elt.length)
         return;
     if (!graph) {
-    this.aggregate[name] = undefined;
+        this.aggregate[name] = undefined;
         elt.hide();
-    return;
+        title.hide();
+        return;
     }
     elt.show();
+    title.show();
     var display = elt.data('awfy-display');
     if (!display) {
         display = new Display(this, name, elt);
@@ -574,7 +577,7 @@ AWFY.showBreakdown = function (name) {
         var id = name + '-' + test;
         var domid = id.replace(/ /g,'-').replace(/\./g, '-');
         ( function (name, test) {
-            $('<div></div>').click(
+            var title = $('<div id="' + domid + '-title"></div>').click(
                 (function (event) {
                  this.showSingle(name, test, null, null);
                  this.pushState();
@@ -582,11 +585,11 @@ AWFY.showBreakdown = function (name) {
                  }).bind(this))
             .html('<b><a href="#">' + id + '</a></b>')
             .appendTo(breakdown);
+            title.hide();
             }.bind(this)  )(name, test)
         var div = $('<div id="' + domid + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
         div.hide();
-        $('<br><br>').appendTo(breakdown);
 
         this.panes.push(div);
 
@@ -635,8 +638,9 @@ AWFY.showSingle = function (name, subtest, start, end) {
 
     if (found) {
         var id = name + '-' + test;
-        $('<div></div>').html('<b>' + id + '</b>').appendTo(breakdown);
         var domid = id.replace(/ /g,'-').replace(/\./g, '-');
+        var title = $('<div id="' + domid + '-title"></div>').html('<b>' + id + '</b>').appendTo(breakdown);
+		title.hide();
         var div = $('<div id="' + domid + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
         div.hide();
@@ -656,8 +660,9 @@ AWFY.showSingle = function (name, subtest, start, end) {
         this.request([file], callback);
     } else {
         var id = name;
-        $('<div></div>').html('<b>' + id + '</b>').appendTo(breakdown);
         var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
+        var title = $('<div id="' + domid + '-title"></div>').html('<b>' + id + '</b>').appendTo(breakdown);
+		title.hide();
         var div = $('<div id="' + domid + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
         div.hide();
