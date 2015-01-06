@@ -178,12 +178,51 @@ class Assorted(SunSpiderBased):
     def __init__(self):
         super(Assorted, self).__init__('misc', '0.1', 'misc', 3)
 
+class Shumway(Benchmark):
+    def __init__(self):
+        super(Shumway, self).__init__('shumway', '0.1', 'shumway')
+
+        # Only update harness once a day:
+        from datetime import datetime
+        date = datetime.now().strftime("%Y-%m-%d %H:%M")
+        utils.getOrDownload("/tmp/", "shumway", date,
+                            "http://mozilla.github.io/shumway/shell/shumway-shell.zip",
+                            "shumway-shell.zip")
+        utils.unzip("/tmp/", "shumway-shell.zip")
+
+    def benchmark(self, shell, env, args):
+        with utils.chdir("/tmp/"):
+            full_args = [shell]
+            if args:
+                full_args.extend(args)
+            full_args.append('build/ts/shell.js')
+
+            tests = []
+            totalscore = 0
+            for name in ["crypto", "deltablue", "raytrace", "richards", "splay"]:
+                output = utils.RunTimedCheckOutput(full_args + ["-x", name+".swf"], env=env)
+
+                lines = output.splitlines()
+
+                for x in lines:
+                    m = re.search("NotifyScore (\d+)", x)
+                    if not m:
+                        continue
+                    score = m.group(1)
+                    totalscore += score
+                    tests.append({ 'name': name, 'time': score})
+                    print(score + '    - ' + name)
+
+            tests.append({ 'name': '__total__', 'time': totalscore / len(tests)})
+            return tests
+
 Benchmarks = [AsmJSApps(),
               AsmJSMicro(),
               SunSpider(),
               Kraken(),
               Assorted(),
               Octane(),
+              Shumway()
              ]
 
 def run(submit, native, modes):

@@ -3,7 +3,6 @@ import sys
 import urllib2
 import urllib
 import re
-import tarfile
 import subprocess
 import os
 import stat
@@ -15,7 +14,6 @@ socket.setdefaulttimeout(120)
 
 sys.path.insert(1, '../driver')
 import utils
-import zipfile
 
 class TimeException(Exception):
     pass
@@ -27,36 +25,6 @@ class Engine:
         self.updated = False
         self.tmp_dir = utils.config.get('main', 'tmpDir')
         self.slaveType = utils.config.get('main', 'slaveType')
-
-    def unzip(self, directory, name):
-        if "tar.bz2" in name:
-            tar = tarfile.open(self.tmp_dir + directory + "/" + name)
-            tar.extractall(self.tmp_dir + directory + "/")
-            tar.close()
-        else:
-            zip = zipfile.ZipFile(self.tmp_dir + directory + "/" + name)
-            zip.extractall(self.tmp_dir + directory + "/")
-            zip.close()
-
-    def chmodx(self, file):
-        st = os.stat(file)
-        os.chmod(file, st.st_mode | stat.S_IEXEC)
-
-    def getOrDownload(self, prefix, revision, file, output):
-        rev_file = self.tmp_dir + "/" + prefix + "-revision"
-        old_revision = ""
-        if os.path.isfile(rev_file):
-            fp = open(rev_file, 'r')
-            old_revision = fp.read()
-            fp.close()
-
-        if revision != old_revision:
-            print "Retrieving", file
-            urllib.urlretrieve(file, output)
-
-            fp = open(rev_file, 'w')
-            fp.write(revision)
-            fp.close()
 
     def kill(self):
         self.subprocess.terminate()
@@ -134,9 +102,9 @@ class Mozilla(Engine):
             output = self.tmp_dir + self.folder + "/firefox.tar.bz2"
         else:
             output = self.tmp_dir + self.folder + "/firefox.zip"
-        self.getOrDownload("mozilla", info["moz_source_stamp"],
-                           self.nightly_dir + "/" + folder_id + "/" + exec_file,
-                           output)
+        utils.getOrDownload(self.tmp_dir, "mozilla", info["moz_source_stamp"],
+                            self.nightly_dir + "/" + folder_id + "/" + exec_file,
+                            output)
 
         # Step 5: Prepare to run
         if self.slaveType == "android":
@@ -146,9 +114,9 @@ class Mozilla(Engine):
                 print subprocess.check_output(["hdiutil", "detach", "/Volumes/Nightly"])
             print subprocess.check_output(["hdiutil", "attach", self.tmp_dir + self.folder + "/firefox.dmg"])
         elif self.slaveType == "linux-desktop":
-            self.unzip(self.folder, "firefox.tar.bz2")
+            utils.unzip(self.tmp_dir + self.folder, "firefox.tar.bz2")
         else:
-            self.unzip(self.folder, "firefox.zip")
+            utils.unzip(self.tmp_dir + self.folder, "firefox.zip")
 
         # Step 6: Save info
         self.updated = True
@@ -250,7 +218,7 @@ class MozillaShell(Engine):
         urllib.urlretrieve(self.nightly_dir+"/"+folder_id+"/"+exec_file, self.tmp_dir + "shell.zip")
 
         # Step 5: Unzip
-        self.unzip(".","shell.zip")
+        utils.unzip(self.tmp_dir,"shell.zip")
 
         # Step 6: Save info
         self.updated = True
@@ -293,12 +261,12 @@ class Chrome(Engine):
         self.cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
 
         # Step 3: Test if there is a new revision
-        self.getOrDownload("chrome", self.cset,
-                           self.nightly_dir + chromium_rev + "/" + self.filename,
-                           self.tmp_dir + self.filename)
+        utils.getOrDownload(self.tmp_dir, "chrome", self.cset,
+                            self.nightly_dir + chromium_rev + "/" + self.filename,
+                            self.tmp_dir + self.filename)
         # Step 4: Unzip
         try:
-            self.unzip(".", self.filename)
+            utils.unzip(self.tmp_dir, self.filename)
         except zipfile.BadZipfile:
             return
 
@@ -317,11 +285,11 @@ class Chrome(Engine):
             execs = subprocess.check_output(["find", self.tmp_dir + "chrome-mac", "-type", "f"])
             for i in execs.split("\n"):
                 if "/Contents/MacOS/" in i:
-                    self.chmodx(i)
+                    utils.chmodx(i)
             self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-mac/Chromium.app/Contents/MacOS/Chromium", page])
             self.pid = self.subprocess.pid
         elif self.slaveType == "linux-desktop":
-            self.chmodx(self.tmp_dir + "chrome-linux/chrome")
+            utils.chmodx(self.tmp_dir + "chrome-linux/chrome")
             self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-linux/chrome", page])
             self.pid = self.subprocess.pid
         else:
@@ -350,9 +318,9 @@ class WebKit(Engine):
         self.cset = re.findall('WebKit r([0-9]*)<', response.read())[0]
 
         # Step 2: Download the latest installation
-        self.getOrDownload("webkit", self.cset,
-                           self.nightly_dir + "WebKit-SVN-r" + self.cset + ".dmg",
-                           self.tmp_dir + "WebKit.dmg")
+        utils.getOrDownload(self.tmp_dir, "webkit", self.cset,
+                            self.nightly_dir + "WebKit-SVN-r" + self.cset + ".dmg",
+                            self.tmp_dir + "WebKit.dmg")
 
         # Step 3: Prepare running
         if os.path.exists("/Volumes/WebKit"):
