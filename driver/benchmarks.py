@@ -184,10 +184,10 @@ class Shumway(Benchmark):
 
         # Only update harness once a day:
         from datetime import datetime
-        date = datetime.now().strftime("%Y-%m-%d %H:%M")
+        date = datetime.now().strftime("%Y-%m-%d")
         utils.getOrDownload("/tmp/", "shumway", date,
                             "http://mozilla.github.io/shumway/shell/shumway-shell.zip",
-                            "shumway-shell.zip")
+                            "/tmp/shumway-shell.zip")
         utils.unzip("/tmp/", "shumway-shell.zip")
 
     def benchmark(self, shell, env, args):
@@ -199,8 +199,10 @@ class Shumway(Benchmark):
 
             tests = []
             totalscore = 0
+            bench_path = os.path.join(utils.BenchmarkPath, self.folder)
             for name in ["crypto", "deltablue", "raytrace", "richards", "splay"]:
-                output = utils.RunTimedCheckOutput(full_args + ["-x", name+".swf"], env=env)
+                output = utils.RunTimedCheckOutput(full_args +
+                             ["--", "-x", os.path.join(bench_path, name+".swf")], env=env)
 
                 lines = output.splitlines()
 
@@ -209,11 +211,12 @@ class Shumway(Benchmark):
                     if not m:
                         continue
                     score = m.group(1)
-                    totalscore += score
+                    totalscore += int(score)
                     tests.append({ 'name': name, 'time': score})
                     print(score + '    - ' + name)
 
-            tests.append({ 'name': '__total__', 'time': totalscore / len(tests)})
+            if len(tests) > 0:
+	        tests.append({ 'name': '__total__', 'time': totalscore / len(tests)})
             return tests
 
 Benchmarks = [AsmJSApps(),

@@ -9,6 +9,10 @@ import commands
 import subprocess
 import signal
 import ConfigParser
+import urllib
+import tarfile
+import zipfile
+
 
 config = None
 RepoPath = None
@@ -108,10 +112,6 @@ def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenar
     print (output)
     return output
 
-
-import tarfile
-import zipfile
-import os
 
 def unzip(directory, name):
     if "tar.bz2" in name:
