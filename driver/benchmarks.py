@@ -196,13 +196,18 @@ class Shumway(Benchmark):
             if args:
                 full_args.extend(args)
             full_args.append('build/ts/shell.js')
+            if "WebKit" in shell:
+                full_args.append('--')
+            if "v8" in shell:
+                full_args.append('--')
+            full_args.append('-x')
 
             tests = []
             totalscore = 0
             bench_path = os.path.join(utils.BenchmarkPath, self.folder)
             for name in ["crypto", "deltablue", "raytrace", "richards", "splay"]:
                 output = utils.RunTimedCheckOutput(full_args +
-                             ["--", "-x", os.path.join(bench_path, name+".swf")], env=env)
+                             [os.path.join(bench_path, name+".swf")], env=env)
 
                 lines = output.splitlines()
 
