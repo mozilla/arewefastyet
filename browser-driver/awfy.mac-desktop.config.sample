@@ -10,7 +10,7 @@ machine = 16
 updateURL = http://www.arewefastyet.com/???
 
 [mozilla]
-nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/b2g-inbound-macosx64/
+nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-macosx64/
 
 [chrome]
 buildInfoUrl = http://build.chromium.org/p/chromium.lkgr/builders/Mac
