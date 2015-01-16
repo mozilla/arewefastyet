@@ -129,13 +129,13 @@ AWFY.loadAggregateGraph = function (blobgraph) {
     return graph;
 }
 
-AWFY.displayNewGraph = function (name, graph) {
-    var elt = $('#' + name + '-graph');
-    var title = $('#' + name + '-title');
+AWFY.displayNewGraph = function (id, domid, graph) {
+    var elt = $('#' + domid + '-graph');
+    var title = $('#' + domid + '-title');
     if (!elt.length)
         return;
     if (!graph) {
-        this.aggregate[name] = undefined;
+        this.aggregate[id] = undefined;
         elt.hide();
         title.hide();
         return;
@@ -144,14 +144,14 @@ AWFY.displayNewGraph = function (name, graph) {
     title.show();
     var display = elt.data('awfy-display');
     if (!display) {
-        display = new Display(this, name, elt);
+        display = new Display(this, id, domid, elt);
         elt.data('awfy-display', display);
     }
     if (display.shouldRefresh()) {
         display.setup(graph);
         display.draw();
     }
-    this.aggregate[name] = graph;
+    this.aggregate[id] = graph;
     if (this.start && this.end) {
         AWFY.requestZoom(display, "condensed", this.start, this.end)
         display.zoomInfo.level = 'month';
@@ -225,7 +225,7 @@ AWFY.drawLegend = function () {
     this.hasLegend = true;
 }
 
-AWFY.computeBreakdown = function (data, id) {
+AWFY.computeBreakdown = function (data, id, domid) {
     var blob = typeof data == "string"
                ? JSON.parse(data)
                : data;
@@ -237,7 +237,7 @@ AWFY.computeBreakdown = function (data, id) {
     }
 
     var graph = this.loadAggregateGraph(blob['graph']);
-    this.displayNewGraph(id, graph);
+    this.displayNewGraph(id, domid, graph);
 }
 
 AWFY.computeAggregate = function (received) {
@@ -263,7 +263,7 @@ AWFY.computeAggregate = function (received) {
     this.aggregate = graphs;
 
     for (var id in graphs) {
-        this.displayNewGraph(id, graphs[id]);
+        this.displayNewGraph(id, id, graphs[id]);
     }
 
     this.drawLegend();
@@ -504,12 +504,14 @@ AWFY.requestZoom = function (display, kind, start_t, end_t) {
                         : 12;
         for (var month = firstMonth; month <= lastMonth; month++) {
             var name = kind + '-' +
-                       display.id + '-' +
-                       this.machineId + '-' +
+					   display.id + '-' +
+					   this.machineId + '-' +
                        year + '-' +
                        month;
-            if (this.view == 'breakdown' || this.view == 'single')
+            if (this.view == 'breakdown')
                 name = 'bk-' + name;
+            else if (this.view == 'single' && this.subtest)
+				name = 'bk-' + name;
             files.push(name);
         }
     }
@@ -593,14 +595,14 @@ AWFY.showBreakdown = function (name) {
 
         this.panes.push(div);
 
-        var callback = (function (id) {
+        var callback = (function (id, domid) {
                 return (function (received) {
                     if (received[0])
-                    this.computeBreakdown(received[0], id);
+                        this.computeBreakdown(received[0], id, domid);
                     if (++total == suite.tests.length)
                     this.drawLegend();
                     }).bind(this);
-                }).bind(this)(domid);
+                }).bind(this)(id, domid);
 
         // Fire off an XHR request for each test.
         var file = 'bk-aggregate-' + id + '-' + this.machineId;
@@ -648,13 +650,13 @@ AWFY.showSingle = function (name, subtest, start, end) {
 
         this.panes.push(div);
 
-        var callback = (function (id) {
+        var callback = (function (id, domid) {
                 return (function (received) {
                     if (received[0])
-                    this.computeBreakdown(received[0], id);
+                    this.computeBreakdown(received[0], id, domid);
                     this.drawLegend();
                     }).bind(this);
-                }).bind(this)(domid);
+                }).bind(this)(id, domid);
 
         var file = 'bk-aggregate-' + id + '-' + this.machineId;
         this.request([file], callback);
@@ -670,13 +672,13 @@ AWFY.showSingle = function (name, subtest, start, end) {
 
         this.panes.push(div);
 
-        var callback = (function (id) {
+        var callback = (function (id, domid) {
                 return (function (received) {
                     if (received[0])
-                        this.computeBreakdown(received[0], id);
+                        this.computeBreakdown(received[0], id, domid);
                     this.drawLegend();
                     }).bind(this);
-                }).bind(this)(domid);
+                }).bind(this)(id, domid);
 
         var file = 'aggregate-' + id + '-' + this.machineId;
         this.request([file], callback);
@@ -694,14 +696,15 @@ AWFY.requestRedraw = function () {
         var total = 0;
         for (var i = 0; i < suite.tests.length; i++) {
             var id = this.suiteName + '-' + suite.tests[i];
-            var callback = (function (id) {
+			var domid = id.replace(/ /g,'-').replace(/\./g, '-');
+            var callback = (function (id, domid) {
                     return (function (received) {
                         if (received[0])
-                        this.computeBreakdown(received[0], id);
+                            this.computeBreakdown(received[0], id, domid);
                         if (++total == suite.tests.length)
-                        this.drawLegend();
+                            this.drawLegend();
                         }).bind(this);
-                    }).bind(this)(id);
+                    }).bind(this)(id, domid);
             var file = 'bk-aggregate-' + id + '-' + this.machineId;
             this.request([file], callback);
         }
@@ -716,24 +719,26 @@ AWFY.requestRedraw = function () {
         }
         if (found) {
             var id = this.suiteName + '-' + this.subtest;
-            var callback = (function (id) {
+			var domid = id.replace(/ /g,'-').replace(/\./g, '-');
+            var callback = (function (id, domid) {
                     return (function (received) {
                         if (received[0])
-                        this.computeBreakdown(received[0], id);
+                        this.computeBreakdown(received[0], id, domid);
                         this.drawLegend();
                         }).bind(this);
-                    }).bind(this)(id);
+                    }).bind(this)(id, domid);
             var file = 'bk-aggregate-' + id + '-' + this.machineId;
             this.request([file], callback);
         } else {
             var id = this.suiteName;
-            var callback = (function (id) {
+			var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
+            var callback = (function (id, domid) {
                     return (function (received) {
                         if (received[0])
-                        this.computeBreakdown(received[0], id);
+                        this.computeBreakdown(received[0], id, domid);
                         this.drawLegend();
                         }).bind(this);
-                    }).bind(this)(id);
+                    }).bind(this)(id, domid);
             var file = 'aggregate-' + id + '-' + this.machineId;
             this.request([file], callback);
         }
