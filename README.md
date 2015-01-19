@@ -33,7 +33,11 @@ Clone the AWFY repo and check out each vendor's source code. Typically this look
        cd repos
 
        # Get V8
-       git clone https://chromium.googlesource.com/v8/v8.git v8
+       git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+       PATH=`pwd`/depot_tools:$PATH fetch v8
+       cd v8
+       git checkout master
+       cd ..
 
        # Get Mozilla
        hg clone http://hg.mozilla.org/integration/mozilla-inbound
