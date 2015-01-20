@@ -161,7 +161,8 @@ class V8(Engine):
             env['LINK_host'] = self.link_host
         env["GYP_DEFINES"] = "clang=1"
 
-        Run(['make', 'builddeps', '-j3'], env)
+        with utils.FolderChanger('..'):
+            Run(['gclient', 'sync'], {"PATH": "depot_tools/:"+env["PATH"]})
         if self.cpu == 'x64':
             Run(['make', 'x64.release', '-j3'], env)
         elif self.cpu == 'arm':
