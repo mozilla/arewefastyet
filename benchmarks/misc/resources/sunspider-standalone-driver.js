@@ -20,7 +20,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 var results = new Array();
@@ -29,9 +29,18 @@ var time = 0;
 var times = [];
 times.length = tests.length;
 
-for (var krakenCounter = 0; krakenCounter < tests.length; krakenCounter++) {    
+for (var krakenCounter = 0; krakenCounter < tests.length; krakenCounter++) {
     var testBase = "tests/" + suiteName + "/" + tests[krakenCounter];
     var testName = testBase + ".js";
+    var shouldrun = true;
+    try {
+        if (this.loadRelativeToCwd)
+            loadRelativeToCwd(testBase + "-shouldrun.js");
+        else
+            load(testBase + "-shouldrun.js");
+    } catch(e) {}
+    if (!shouldrun)
+        continue;
     try {
         if (this.loadRelativeToCwd)
             loadRelativeToCwd(testBase + "-data.js");
@@ -52,7 +61,8 @@ function recordResults(tests, times)
     var output = "{\n";
 
     for (j = 0; j < tests.length; j++) {
-        output += '    "' + tests[j] + '": ' + times[j] + ',\n'; 
+        if (typeof times[j] !== "undefined")
+            output += '    "' + tests[j] + '": ' + times[j] + ',\n';
     }
     output = output.substring(0, output.length - 2) + "\n";
 

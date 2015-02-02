@@ -21,7 +21,7 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 var count = output.length;
@@ -62,8 +62,17 @@ function initialize()
         testStdErrsByCategory[category] = {};
     }
 
-    for (var i = 0; i < tests.length; i++) {
-        var test = tests[i];
+    // The list of tests that got run can be lower than the list of tests tried to run.
+    // So take the former if we have atleast on result.
+    var inputs = tests;
+    if (output.length > 0) {
+        inputs = [];
+        for (var test in output[0])
+            inputs[inputs.length] = test;
+    }
+
+    for (var i = 0; i < inputs.length; i++) {
+        var test = inputs[i];
         itemTotals[test] = [];
         var category = test.replace(/-.*/, "");
         testTotalsByCategory[category][test] = 0;
@@ -229,7 +238,7 @@ function resultLine(labelWidth, indent, label, meanWidth, mean, stdErr)
     for (i = 0; i < indent; i++) {
         result += " ";
     }
-    
+
     if (label in explanations)
         result += "<a href='" + explanations[label] + "'>" + label + "</a>: ";
     else
@@ -238,7 +247,7 @@ function resultLine(labelWidth, indent, label, meanWidth, mean, stdErr)
     for (i = 0; i < (labelWidth - (label.length + indent)); i++) {
         result += " ";
     }
-    
+
     return result + formatResult(meanWidth, mean, stdErr, count);
 }
 

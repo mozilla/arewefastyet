@@ -38,15 +38,13 @@ var kSplayTreePayloadDepth = 5;
 
 var splayTree = null;
 
-if (typeof TypedObject != "undefined") {
-    var T = TypedObject;
+var T = TypedObject;
 
-    var kPayloadArrayType = T.int32.array(4);
-    var kPayloadStructType = new T.StructType({array: T.Object, string: T.string});
-    var kPayloadTreeType = new T.StructType({left: T.Object, right: T.Object});
-    var kSplayTreeNodeType = new T.StructType({key: T.float64, value: T.Object,
-                                               left: T.Object, right: T.Object});
-}
+var kPayloadArrayType = T.int32.array(4);
+var kPayloadStructType = new T.StructType({array: T.Object, string: T.string});
+var kPayloadTreeType = new T.StructType({left: T.Object, right: T.Object});
+var kSplayTreeNodeType = new T.StructType({key: T.float64, value: T.Object,
+                                           left: T.Object, right: T.Object});
 
 function GeneratePayloadTree(depth, tag) {
   var res;
