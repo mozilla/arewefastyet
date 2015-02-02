@@ -10,7 +10,7 @@ machine = 27
 updateURL = http://server2.arewefastyet.com/???
 
 [mozilla]
-nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-inbound-android/
+nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-inbound-android-api-11/
 
 [chrome]
 buildInfoUrl = http://build.chromium.org/p/chromium.lkgr/builders/Android
