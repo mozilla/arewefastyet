@@ -248,7 +248,7 @@ class Chrome(Engine):
         }]
         if self.slaveType == "android":
             self.filename = "chrome-android.zip"
-        if self.slaveType == "mac-desktop":
+        elif self.slaveType == "mac-desktop":
             self.filename = "chrome-mac.zip"
         elif self.slaveType == "linux-desktop":
             self.filename = "chrome-linux.zip"
@@ -269,10 +269,7 @@ class Chrome(Engine):
                             self.nightly_dir + chromium_rev + "/" + self.filename,
                             self.tmp_dir + self.filename)
         # Step 4: Unzip
-        try:
-            utils.unzip(self.tmp_dir, self.filename)
-        except zipfile.BadZipfile:
-            return
+        utils.unzip(self.tmp_dir, self.filename)
 
         # Step 5: Install on device
         if self.slaveType == "android":
