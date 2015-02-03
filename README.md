@@ -33,7 +33,11 @@ Clone the AWFY repo and check out each vendor's source code. Typically this look
        cd repos
 
        # Get V8
-       git clone https://chromium.googlesource.com/v8/v8.git v8
+       git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+       PATH=`pwd`/depot_tools:$PATH fetch v8
+       cd v8
+       git checkout master
+       cd ..
 
        # Get Mozilla
        hg clone http://hg.mozilla.org/integration/mozilla-inbound
@@ -70,4 +74,6 @@ There is also a `monitor.py` script provided in the server folder. You can run t
 
 Website
 -------
-Nothing special needed, just place the static files somewhere. Don't forget to replace the default machine number in website/awfy.js, which is the one that will show up in the first place. Note that AWFY's flot is slightly modified, so it might not work to just replace it with upstream flot. There must be a 'data' folder that contains the json/js files dumped by `update.py`. It can be a symlink.
+Put the files somewhere. Currently php is needed for data.php, which pulls the data from the correct location. You need to update that file to refer the 'data' folder that contains the json/js files dumped by update.py.
+
+Don't forget to replace the default machine number in website/awfy.js, which is the one that will show up in the first place. Note that AWFY's flot is slightly modified, so it might not work to just replace it with upstream flot.

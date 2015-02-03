@@ -91,6 +91,7 @@ class Nitro(Engine):
         Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/WTF/Configurations/Base.xcconfig"])
         Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/Line.h"])
         Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/Page.h"])
+        Run(["patch","Source/JavaScriptCore/jsc.cpp","../../driver/jsc.patch"])
 
         with utils.FolderChanger(os.path.join('Tools', 'Scripts')):
             # Hack 2: This check fails currently. Disable checking to still have a build.
@@ -110,6 +111,7 @@ class Nitro(Engine):
         Run(["svn","revert","Source/WTF/Configurations/Base.xcconfig"])
         Run(["svn","revert","Source/bmalloc/bmalloc/Line.h"])
         Run(["svn","revert","Source/bmalloc/bmalloc/Page.h"])
+        Run(["svn","revert","Source/JavaScriptCore/jsc.cpp"])
 
     def shell(self):
         return os.path.join('WebKitBuild', 'Release', 'jsc')
@@ -159,7 +161,8 @@ class V8(Engine):
             env['LINK_host'] = self.link_host
         env["GYP_DEFINES"] = "clang=1"
 
-        Run(['make', 'builddeps', '-j3'], env)
+        with utils.FolderChanger('..'):
+            Run(['gclient', 'sync'], {"PATH": "depot_tools/:"+env["PATH"]})
         if self.cpu == 'x64':
             Run(['make', 'x64.release', '-j3'], env)
         elif self.cpu == 'arm':
@@ -223,6 +226,10 @@ class MozillaInbound(Mozilla):
                 {
                     'mode': 'noasmjs',
                     'args': ['--ion-offthread-compile=on', '-W', '--no-asmjs']
+                },
+                {
+                    'mode': 'backtracking',
+                    'args': ['--ion-offthread-compile=on', '-W', '--ion-regalloc=backtracking']
                 }
             ]
 

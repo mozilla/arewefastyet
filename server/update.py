@@ -52,7 +52,7 @@ def fetch_test_scores(machine_id, suite_id, name,
              JOIN awfy_suite_version v ON v.id = t.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \
              AND t.name = %s                                                        \
-             AND r.status = 1                                                       \
+             AND r.status > 0                                                       \
              AND r.machine = %s                                                     \
              AND r.finish_stamp >= "+str(finish_stamp[0])+"                         \
              AND r.finish_stamp <= "+str(finish_stamp[1])+"                         \
@@ -73,7 +73,7 @@ def fetch_suite_scores(machine_id, suite_id,
              JOIN awfy_score s ON s.build_id = b.id                                 \
              JOIN awfy_suite_version v ON v.id = s.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \
-             AND r.status = 1                                                       \
+             AND r.status > 0                                                       \
              AND r.machine = %s                                                     \
              AND r.finish_stamp >= "+str(finish_stamp[0])+"                         \
              AND r.finish_stamp <= "+str(finish_stamp[1])+"                         \
@@ -139,7 +139,7 @@ def update_cache(cx, suite, prefix, when, rows):
                              cset,
                              None,
                              score,
-			     row[5])
+                             row[5])
         line = { 'modeid': modeid,
                  'data': points
                }
@@ -209,10 +209,8 @@ def renew_cache(cx, machine, suite, prefix, when, last_stamp, fetch):
     delete_cache(prefix + '-' + str(when[0]) + '-' + str(when[1]));
 
     # Delete corresponding condensed graph
-    if prefix[0:3] == "raw":
-        delete_cache("condensed" + prefix[3:] + '-' + str(when[0]) + '-' + str(when[1]));
-    else:
-        delete_cache("bk-condensed" + prefix[6:] + '-' + str(when[0]) + '-' + str(when[1]));
+    before, after = prefix.split("raw", 1)
+    delete_cache(before + "condensed" + after + '-' + str(when[0]) + '-' + str(when[1]));
 
     dt = datetime.datetime(year=when[0], month=when[1], day=1)
     start_stamp = int(time.mktime(dt.timetuple()))
@@ -295,7 +293,11 @@ def update(cx, machine, suite):
                                  test_stamp = (0, "UNIX_TIMESTAMP()")):
         return fetch_suite_scores(machine.id, suite.id, finish_stamp, test_stamp)
 
-    prefix = 'raw-' + suite.name + '-' + str(machine.id)
+    prefix = ""
+    if suite.visible == 2:
+        prefix = "auth-"
+
+    prefix += 'raw-' + suite.name + '-' + str(machine.id)
     new_rows = perform_update(cx, machine, suite, prefix, fetch_aggregate)
 
     # This is a little cheeky, but as an optimization we don't bother querying
@@ -308,7 +310,11 @@ def update(cx, machine, suite):
                                 test_stamp = (0, "UNIX_TIMESTAMP()")):
             return fetch_test_scores(machine.id, suite.id, test_name, finish_stamp, test_stamp)
 
-        prefix = 'bk-raw-' + suite.name + '-' + test_name + '-' + str(machine.id)
+        prefix = ""
+        if suite.visible == 2:
+            prefix = "auth-"
+
+        prefix += 'bk-raw-' + suite.name + '-' + test_name + '-' + str(machine.id)
         perform_update(cx, machine, suite, prefix, fetch_test)
 
 def export_master(cx):

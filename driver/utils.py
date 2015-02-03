@@ -9,6 +9,10 @@ import commands
 import subprocess
 import signal
 import ConfigParser
+import urllib
+import tarfile
+import zipfile
+
 
 config = None
 RepoPath = None
@@ -107,3 +111,35 @@ def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenar
             output = p.communicate()[0]
     print (output)
     return output
+
+
+def unzip(directory, name):
+    if "tar.bz2" in name:
+        tar = tarfile.open(directory + "/" + name)
+        tar.extractall(directory + "/")
+        tar.close()
+    else:
+        zip = zipfile.ZipFile(directory + "/" + name)
+        zip.extractall(directory + "/")
+        zip.close()
+
+def chmodx(file):
+    st = os.stat(file)
+    os.chmod(file, st.st_mode | stat.S_IEXEC)
+
+def getOrDownload(directory, prefix, revision, file, output):
+    rev_file = directory + "/" + prefix + "-revision"
+    old_revision = ""
+    if os.path.isfile(rev_file):
+        fp = open(rev_file, 'r')
+        old_revision = fp.read()
+        fp.close()
+
+    if revision != old_revision:
+        print "Retrieving", file
+        urllib.urlretrieve(file, output)
+
+        fp = open(rev_file, 'w')
+        fp.write(revision)
+        fp.close()
+

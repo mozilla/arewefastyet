@@ -1,0 +1,135 @@
+
+.box {
+  border: 1px SOLID get($_box, border);
+  background-color: get($_box, header);
+  color: get($_box, color);
+  padding: $unit;
+  float: left;
+  width: 32%;
+  margin-right: 2%;
+  margin-bottom: $unit*5;
+
+  &:nth-child(3n) {
+    margin-right: 0%;
+  }
+
+  .header {
+    text-transform: uppercase;
+    padding-left: $unit*2;
+    font-weight: bold;
+    padding-top: $unit;
+    padding-bottom: $unit*2;
+    text-align: center;
+  }
+
+  h3 {
+    color: #AAAAAA;
+    font-size: $unit*2.5;
+    font-weight: normal;
+    text-align: center;
+    margin-top: $unit;
+  }
+
+  .content {
+    background-color: get($_box, bg);
+    padding: $unit*2;
+    color: $_accent;
+  }
+
+  .legend {
+    text-align: right;
+    font-size: $unit*1.5;
+    text-transform: uppercase;
+    margin-top: $unit*3;
+    color: #AAAAAA;
+  }
+
+  .score {
+    float: right;
+    font-size: 1.4em;
+    margin-top: -0.2em;
+  }
+
+  .title {
+    text-transform: uppercase;
+    margin-top: 0.4em;
+  }
+
+  .stamp {
+    display: block;
+    font-size: $unit*2;
+  }
+
+  progress {
+    width: 100%;
+    height: $unit;
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    margin-bottom: $unit*3;
+    margin-top: $unit;
+
+    border: none; 
+    background: get($_box, header);
+
+    &::-moz-progress-bar {
+      background-color: $_accent;
+    }
+    &::-webkit-progress-value {
+      background-color: $_accent;  
+    }
+    &::-webkit-progress-bar {
+      background: get($_box, header);
+    }
+  }
+
+  progress.ff {
+    &::-moz-progress-bar {
+      background-color: $_orange;
+    }
+    &::-webkit-progress-value {
+      background-color: $_orange;  
+    }
+  }
+
+  .footer {
+    text-align: center;
+    
+    a, button {
+      display: inline-block;
+      width: 49%;
+      margin: 0px;
+      background-color: transparent;
+      border: 0px SOLID #FFFFFF;
+      padding-top: $unit*3;
+      padding-bottom: $unit*2;
+      cursor: pointer;
+      text-align: center;
+      color: get($_box, color);
+      text-decoration: none;
+
+      &.history:before {
+        display: inline-block;
+        vertical-align: middle;
+        font-family: 'Glyphicons Halflings';
+        font-style: normal;
+        font-weight: normal;
+        margin-left: $unit;
+        margin-right: $unit;
+        content: "\e023";
+      }
+
+      &.subtests:before {
+        display: inline-block;
+        vertical-align: middle;
+        font-family: 'Glyphicons Halflings';
+        font-style: normal;
+        font-weight: normal;
+        margin-left: $unit;
+        margin-right: $unit;
+        content: "\e137";
+      }      
+
+    }
+  }
+}

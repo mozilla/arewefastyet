@@ -6,7 +6,11 @@ import subprocess
 import engine
 import sys
 import time
+import traceback
 from optparse import OptionParser
+import shellbenchmarks
+import browserbenchmarks
+import fullbrowserbenchmarks
 
 sys.path.insert(1, '../driver')
 import submitter
@@ -24,21 +28,52 @@ parser.add_option("-c", "--config", dest="config_name", type="string", default="
 
 utils.InitConfig(options.config_name)
 
-from shellbenchmarks import Benchmarks as ShellBenchmarks
-from browserbenchmarks import Benchmarks as BrowserBenchmarks
-
 slaveType = utils.config.get('main', 'slaveType')
 if slaveType == "android":
     KnownEngines = [engine.Mozilla(), engine.Chrome()]
+    BrowserBenchmarks = [browserbenchmarks.Octane(),
+                         browserbenchmarks.SunSpider(),
+                         browserbenchmarks.Kraken(),
+                         browserbenchmarks.WebGLSamples()]
+    ShellBenchmarks = [shellbenchmarks.SunSpider(),
+                       shellbenchmarks.Kraken(),
+                       shellbenchmarks.Octane()]
+elif slaveType == "mac-desktop":
+    KnownEngines = [engine.Mozilla(), engine.Chrome(), engine.WebKit()]
+    BrowserBenchmarks = [fullbrowserbenchmarks.Octane(),
+                         fullbrowserbenchmarks.Massive(),
+                         fullbrowserbenchmarks.JetStream(),
+                         fullbrowserbenchmarks.Speedometer(),
+                         fullbrowserbenchmarks.Kraken(),
+                         fullbrowserbenchmarks.SunSpider(),
+                         fullbrowserbenchmarks.Browsermark()]
+    ShellBenchmarks = []
+elif slaveType == "linux-desktop":
+    KnownEngines = [engine.Mozilla()]
+    BrowserBenchmarks = [fullbrowserbenchmarks.Octane(),
+                         fullbrowserbenchmarks.Massive(),
+                         fullbrowserbenchmarks.JetStream(),
+                         fullbrowserbenchmarks.Speedometer(),
+                         fullbrowserbenchmarks.Kraken(),
+                         fullbrowserbenchmarks.SunSpider(),
+                         fullbrowserbenchmarks.Browsermark()]
+    ShellBenchmarks = []
 else:
     KnownEngines = [engine.Mozilla(), engine.MozillaPGO(), engine.MozillaShell(), engine.Chrome()]
-NumUpdated = 0
+    BrowserBenchmarks = [browserbenchmarks.Octane(),
+                         browserbenchmarks.SunSpider(),
+                         browserbenchmarks.Kraken(),
+                         browserbenchmarks.Dromaeo(),
+                         browserbenchmarks.WebGLSamples()]
+    ShellBenchmarks = [shellbenchmarks.SunSpider(),
+                       shellbenchmarks.Kraken(),
+                       shellbenchmarks.Octane()]
 
 # Update All engines
+NumUpdated = 0
 RunningEngines = []
 for engine in KnownEngines:
     try:
-        print "trying update"
         engine.update()
         if engine.updated:
             NumUpdated += 1

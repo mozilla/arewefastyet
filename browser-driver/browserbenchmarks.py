@@ -83,11 +83,6 @@ class Dromaeo(Benchmark):
                 ret.append({'name': key, 'time': results[key]})
         return ret
 
-if utils.config.get('main', 'slaveType') == "android":
-    Benchmarks = [Octane(), SunSpider(), Kraken(), WebGLSamples()]
-else:
-    Benchmarks = [Octane(), SunSpider(), Kraken(), Dromaeo(), WebGLSamples()]
-
 # Test if server is running and start server if needed.
 s =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 result = s.connect_ex(("localhost", 8000))

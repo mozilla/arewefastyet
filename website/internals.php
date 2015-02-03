@@ -3,11 +3,26 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+session_start();
 
 function init_database()
 {
     mysql_connect("localhost", "***", "***") or die("ERROR: " . mysql_error());
     mysql_select_db("dvander") or die("ERROR: " . mysql_error());
+}
+
+function has_permissions()
+{
+	if (!isset($_SESSION['persona']))
+		return false;
+
+	# Test here which persons have permission to see all benchmarks
+	if ($_SESSION['persona'] == "hv1989@gmail.com")
+		return true;
+	if ($_SESSION['persona'] == "hverschore@mozilla.com")
+		return true;
+
+	return false;
 }
 
 function GET_int($name)

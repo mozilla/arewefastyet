@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html ng-app="awfyApp">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta http-equiv="content-language" content="en">
+  <title>ARE WE FAST YET?</title>
+  <link href="css/nv.d3.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" title="Default Stylesheet" type="text/css" href="css/style.css">
+  <link rel="stylesheet" title="Default Stylesheet" type="text/css" href="css/main.css">
+  <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+  <link rel="shortcut icon" href="../awfy_favicon.png">
+
+  <script type="text/javascript" src="../jquery/jquery-1.8.3.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular-route.js"></script>
+  <script src="https://login.persona.org/include.js"></script>
+  <script src="js/persona.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/controllers.js"></script>
+
+</head>
+<body ng-controller="pageCtrl">
+
+<header>
+  <div class='container'>
+    <h1>AreWeFastYet</h1>
+    <div class='rightSide'>
+      <div class='query'>
+        <div id='machines'>
+          <select ng-model="selectedMachine" ng-options="machine.id as machine.description for machine in machines track by machine.id"></select>
+        </div>
+        <div id='dates'>
+          <div>tested on {{date | date:'dd MMM yy HH:mm'}}</div>
+        </div>
+      </div>
+      <div class='userMenu'>
+        <a id='personaLogin' href="javascript:doPersonaLogin()"><span>Login</span></a>
+        <a id='personaLogout' href="javascript:doPersonaLogout()" style='display: none;'><span>Logout</span></a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class='container content' ng-view><div>
+
+</body>
+</html>
