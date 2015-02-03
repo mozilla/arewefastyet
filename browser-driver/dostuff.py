@@ -36,15 +36,16 @@ NumUpdated = 0
 
 # Update All engines
 RunningEngines = []
-for e in KnownEngines:
+for engine in KnownEngines:
     try:
         print "trying update"
-        e.update()
-        if e.updated:
+        engine.update()
+        if engine.updated:
             NumUpdated += 1
-        RunningEngines.append(e)
-    except:
-        pass
+        RunningEngines.append(engine)
+    except Exception, e:
+        import logging
+        logging.exception(e) # or pass an error message, see comment
 
 class Slave:
     def __init__(self, machine):

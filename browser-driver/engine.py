@@ -60,6 +60,10 @@ class Mozilla(Engine):
         self.folder = "firefox"
 
     def update(self):
+        # Step 0: Make sure folder exists.
+        if not os.path.exists(self.tmp_dir+"/"+self.folder):
+            os.makedirs(self.tmp_dir+"/"+self.folder)
+
         # Step 1: Get newest nightly folder
         response = urllib2.urlopen(self.nightly_dir+"/?C=N;O=D")
         html = response.read()
