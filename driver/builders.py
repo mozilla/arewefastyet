@@ -16,7 +16,7 @@ class Engine(object):
         self.cpu = utils.config.get('main', 'cpu')
 
     def updateAndBuild(self, update=True, forceRebuild=False, rev=None):
-        with utils.FolderChanger(os.path.join(utils.RepoPath, self.source)):
+        with utils.FolderChanger(os.path.join(utils.config.RepoPath, self.source)):
             self._updateAndBuild(update, forceRebuild, rev=rev)
 
     def _updateAndBuild(self, update, forceRebuild, rev=None):
@@ -66,10 +66,7 @@ class Nitro(Engine):
         super(Nitro, self).__init__()
         self.puller = 'svn'
         self.source = utils.config.get('jsc', 'source')
-        if utils.config.has_option('jsc', 'conf'):
-            self.extra = utils.config.get('jsc', 'conf').split(' ')
-        else:
-            self.extra = []
+        self.extra = utils.config.getDefault('jsc', 'conf', "").split()
         self.args = None
         self.important = False # WebKit changes too frequently, we'd need to detect JSC changes.
         self.modes = [
@@ -131,8 +128,7 @@ class V8(Engine):
         self.link_host = utils.config.getDefault('v8', 'link_host', None)
         self.args = ['--expose-gc']
         self.important = True
-        self.hardfp = (utils.config.has_option('main', 'flags')) and \
-                       ("hardfp" in utils.config.get('main', 'flags'))
+        self.hardfp = "hardfp" in utils.config.getDefault('main', 'flags', '')
         self.modes = [{
                         'mode': 'v8',
                         'args': None

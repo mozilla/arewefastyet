@@ -26,7 +26,7 @@ parser.add_option("-c", "--config", dest="config_name", type="string", default="
                   help="Config file (default: awfy.config)")
 (options, args) = parser.parse_args()
 
-utils.InitConfig(options.config_name)
+utils.config.init(options.config_name)
 
 # Set resource limits for child processes
 resource.setrlimit(resource.RLIMIT_AS, (-1, -1))
@@ -57,9 +57,9 @@ Mode = namedtuple('Mode', ['shell', 'args', 'env', 'name', 'cset'])
 # Make a list of all modes.
 modes = []
 for engine in Engines:
-    shell = os.path.join(utils.RepoPath, engine.source, engine.shell())
+    shell = os.path.join(utils.config.RepoPath, engine.source, engine.shell())
     env = None
-    with utils.chdir(os.path.join(utils.RepoPath, engine.source)):
+    with utils.chdir(os.path.join(utils.config.RepoPath, engine.source)):
         env = engine.env()
     for m in engine.modes:
         engineArgs = engine.args if engine.args else []
