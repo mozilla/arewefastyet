@@ -26,7 +26,7 @@ parser.add_option("-c", "--config", dest="config_name", type="string", default="
                   help="Config file (default: awfy.config)")
 (options, args) = parser.parse_args()
 
-utils.InitConfig(options.config_name)
+utils.config.init(options.config_name)
 
 # Set resource limits for child processes
 resource.setrlimit(resource.RLIMIT_AS, (-1, -1))
