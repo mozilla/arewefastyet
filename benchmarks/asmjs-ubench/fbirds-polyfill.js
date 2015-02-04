@@ -12,6 +12,8 @@ if (typeof SIMD === 'undefined') {
     quit(0);
 }
 
+var assertEq = assertEq || function(a, b) { if (a !== b) throw new Error("assertion error: obtained " + a + ", expected " + b); };
+
 const NUM_BIRDS = 100;
 const NUM_UPDATES = 200;
 const ACCEL_DATA_STEPS = 300;
@@ -152,7 +154,7 @@ function moduleCode(global, imp, buffer) {
 }
 
 var ffi = {
-    getActualBirds,
+    getActualBirds: getActualBirds,
     accelDataSteps: ACCEL_DATA_STEPS
 };
 
@@ -163,11 +165,9 @@ for (var i = 0; i < NUM_BIRDS; i++) {
     addBird(i / 10, Math.exp(2, NUM_BIRDS - i));
 }
 
-var b = dateNow();
 for (var j = 0; j < NUM_UPDATES; j++) {
     fbirds(16);
 }
-print(dateNow() - b);
 
 assertEq(bufferF32[0], 0);
 assertEq(bufferF32[1], 0.10000000149011612);

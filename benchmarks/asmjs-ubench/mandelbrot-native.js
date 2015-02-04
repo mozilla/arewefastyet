@@ -13,6 +13,8 @@ if (typeof SIMD === 'undefined') {
     quit(0);
 }
 
+var assertEq = assertEq || function(a, b) { if (a !== b) throw new Error("assertion error: obtained " + a + ", expected " + b); };
+
 // global variables
 const MAX_ITERATIONS = 100;
 const DRAW_ITERATIONS = 20;
