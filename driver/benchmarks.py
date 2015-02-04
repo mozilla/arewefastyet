@@ -23,7 +23,7 @@ class Benchmark(object):
         self.folder = folder
 
     def run(self, submit, native, modes):
-        with utils.chdir(os.path.join(utils.BenchmarkPath, self.folder)):
+        with utils.chdir(os.path.join(utils.config.BenchmarkPath, self.folder)):
             return self._run(submit, native, modes)
 
     def omit(self, mode):
@@ -56,7 +56,7 @@ class AsmJS(Benchmark):
 
     def _run(self, submit, native, modes):
         # Run the C++ mode.
-        full_args = [utils.PythonName, 'harness.py', '--native']
+        full_args = [utils.config.PythonName, 'harness.py', '--native']
         full_args += ['--cc="' + native.cc + '"']
         full_args += ['--cxx="' + native.cxx + '"']
         full_args += ['--'] + native.args
@@ -69,7 +69,7 @@ class AsmJS(Benchmark):
         super(AsmJS, self)._run(submit, native, modes)
 
     def benchmark(self, shell, env, args):
-        full_args = [utils.PythonName, 'harness.py', shell, '--'] + args
+        full_args = [utils.config.PythonName, 'harness.py', shell, '--'] + args
         print(' '.join(full_args))
         
         output = utils.RunTimedCheckOutput(full_args, env=env)
@@ -204,7 +204,7 @@ class Shumway(Benchmark):
 
             tests = []
             totalscore = 0
-            bench_path = os.path.join(utils.BenchmarkPath, self.folder)
+            bench_path = os.path.join(utils.config.BenchmarkPath, self.folder)
             for name in ["crypto", "deltablue", "raytrace", "richards", "splay"]:
                 output = utils.RunTimedCheckOutput(full_args +
                              [os.path.join(bench_path, name+".swf")], env=env)
