@@ -17,6 +17,11 @@ Benchmarks = ['copy',
               'primes',
               'skinning']
 
+SimdBenchmarks = ['mandelbrot-native',
+                  'mandelbrot-polyfill']
+
+JSBenchmarks = Benchmarks + SimdBenchmarks
+
 RunFactor = '4'
 
 def BuildNative(options, args, benchmark):
@@ -56,7 +61,7 @@ def Exec(vec):
     return o.decode("utf-8")
 
 def BenchmarkJavaScript(options, args):
-    for benchmark in Benchmarks:
+    for benchmark in JSBenchmarks:
         # Don't overwrite args!
         argv = [] + args
         argv.extend(['ubench.js', '--', benchmark + '.js', RunFactor])
