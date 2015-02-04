@@ -5,6 +5,9 @@ cpu = x86
 machine = 28
 updateURL = http://www.arewefastyet.com/????
 
+[benchmarks]
+dir = /Users/hannesverschore/awfy/ia32/benchmarks
+
 [native]
 cc = /Users/hannesverschore/awfy/clang-3.3/bin/clang
 cxx = /Users/hannesverschore/awfy/clang-3.3/bin/clang++

@@ -13,27 +13,92 @@ import urllib
 import tarfile
 import zipfile
 
+class ConfigState:
+    def __init__(self):
+        self.inited = False
+        self.rawConfig = None
+        self.RepoPath = None
+        self.BenchmarkPath = None
+        self.DriverPath = None
+        self.Timeout = 15*60
+        self.PythonName = None
+        self.SlaveType = None
 
-config = None
-RepoPath = None
-BenchmarkPath = None
-DriverPath = None
-Timeout = 15*60
-PythonName = None
+    def init(self, name):
+        self.rawConfig = ConfigParser.RawConfigParser()
+        if not os.path.isfile(name):
+            raise Exception('could not find file: ' + name)
+        self.rawConfig.read(name)
+        self.inited = True
 
-def InitConfig(name):
-    global config, RepoPath, BenchmarkPath, DriverPath, Timeout, PythonName
-    config = ConfigParser.RawConfigParser()
-    if not os.path.isfile(name):
-        raise Exception('could not find file: ' + name)
-    config.read(name)
-    RepoPath = config.get('main', 'repos')
-    BenchmarkPath = config.get('main', 'benchmarks')
-    DriverPath = config_get_default('main', 'driver', os.getcwd())
-    Timeout = config_get_default('main', 'timeout', str(Timeout))
-    # silly hack to allow 30*60 in the config file.
-    Timeout = eval(Timeout, {}, {})
-    PythonName = config_get_default(name, 'python', sys.executable)
+        self.RepoPath = self.get('main', 'repos')
+        self.BenchmarkPath = self.get('benchmarks', 'dir')
+        self.DriverPath = self.getDefault('main', 'driver', os.getcwd())
+        self.Timeout = self.getDefault('main', 'timeout', str(15*60))
+        self.Timeout = eval(self.Timeout, {}, {}) # silly hack to allow 30*60 in the config file.
+        self.PythonName = self.getDefault(name, 'python', sys.executable)
+        self.SlaveType = self.getDefault("main", 'slaveType', "")
+
+    def get(self, section, name):
+        assert self.inited
+        return self.rawConfig.get(section, name)
+
+    def getDefault(self, section, name, default):
+        assert self.inited
+        if self.rawConfig.has_option(section, name):
+            return self.rawConfig.get(section, name)
+        return default
+
+    @staticmethod
+    def parseBenchmarks(li):
+        benchmarks = []
+        for benchmark in li.split(","):
+            benchmark = benchmark.strip()
+            _, section, name = benchmark.split(".")
+            if section == "local":
+                import benchmarks_local
+                benchmarks.append(benchmarks_local.getBenchmark(name))
+            elif section == "remote":
+                import benchmarks_remote
+                benchmarks.append(benchmarks_remote.getBenchmark(name))
+            elif section == "shell":
+                import benchmarks_shell
+                benchmarks.append(benchmarks_shell.getBenchmark(name))
+            else:
+                raise Exception("Unknown benchmark type")
+        return benchmarks
+
+    def browserbenchmarks(self):
+        assert self.inited
+
+        browserList = self.getDefault("benchmarks", "browserList", None)
+        if not browserList:
+            return []
+        return ConfigState.parseBenchmarks(browserList)
+
+    def shellbenchmarks(self):
+        assert self.inited
+
+        shellList = self.getDefault("benchmarks", "shellList", None)
+        if not shellList:
+            return []
+        return ConfigState.parseBenchmarks(shellList)
+
+    def engines(self):
+        assert self.inited
+
+        engineList = self.getDefault("engines", "list", None)
+        if not engineList:
+            return []
+
+        import engine
+        engines = []
+        for engineName in engineList.split(","):
+            engineName = engineName.strip()
+            engines.append(engine.getEngine(engineName))
+        return engines
+
+config = ConfigState()
 
 class FolderChanger:
     def __init__(self, folder):
@@ -69,11 +134,6 @@ def Shell(string):
     print(output)
     return output
 
-def config_get_default(section, name, default=None):
-    if config.has_option(section, name):
-        return config.get(section, name)
-    return default
-
 class TimeException(Exception):
     pass
 def timeout_handler(signum, frame):
@@ -87,8 +147,8 @@ class Handler():
         self.old = signal.signal(self.signum, self.lam)
     def __exit__(self, type, value, traceback):
         signal.signal(self.signum, self.old)
-        
-    
+
+
 def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenargs):
     if timeout is None:
         timeout = Timeout

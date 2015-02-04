@@ -70,8 +70,9 @@ class Mozilla(Engine):
                 try:
                     print "trying", folder_id
                     self._update(folder_id)
-                except Exception as e:
-                    print(e)
+                except Exception, e:
+                    import logging
+                    logging.exception(e) # or pass an error message, see comment
                     continue
                 break
 
@@ -86,8 +87,8 @@ class Mozilla(Engine):
             exec_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.mac.dmg", html)[0]
             json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.mac.json", html)[0]
         elif self.slaveType == "linux-desktop":
-            exec_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.linux-i686.tar.bz2", html)[0]
-            json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.linux-i686.json", html)[0]
+            exec_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.linux-x86_64.tar.bz2", html)[0]
+            json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.linux-x86_64.json", html)[0]
         else:
             exec_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.zip", html)[0]
             json_file = re.findall("firefox-[a-zA-Z0-9.]*.en-US.win32.json", html)[0]
@@ -345,3 +346,16 @@ class WebKit(Engine):
             subprocess.check_output("rm -Rf ~/Library/Saved\ Application\ State/com.apple.Safari.savedState", shell=True)
         except:
             pass
+
+def getEngine(name):
+    if name == "chrome":
+        return Chrome()
+    if name == "chrome":
+        return Chrome()
+    if name == "mozillapgo":
+        return MozillaPGO()
+    if name == "mozillashell":
+        return MozillaShell()
+    if name == "mozilla":
+        return Mozilla()
+    raise Exception("Unknown engine")

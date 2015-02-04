@@ -1,13 +1,26 @@
 [main]
 slaveType = mac-desktop
 repos = /Users/mozilla/awfy/repos
-benchmarks = /Users/mozilla/awfy/benchmarks
 tmpDir= /tmp/
 timeout = 20 ; in minutes
 serverURL = http://localhost:8000/
 
 machine = 16
 updateURL = http://www.arewefastyet.com/???
+
+[engines]
+list = mozilla,chrome,webkit
+
+[benchmarks]
+dir = /Users/mozilla/awfy/benchmarks
+browserList = benchmark.remote.octane,
+              benchmark.remote.massive,
+              benchmark.remote.jetstream,
+              benchmark.remote.speedometer,
+              benchmark.remote.kraken,
+              benchmark.remote.sunspider,
+              benchmark.remote.browsermark
+shellList = 
 
 [mozilla]
 nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-macosx64/

@@ -115,6 +115,17 @@ class Assorted(SunSpiderBased):
     def __init__(self):
         super(Assorted, self).__init__('misc', '0.1', 'misc', 3)
 
+def getBenchmark(name):
+    if name == "octane":
+        return Octane()
+    if name == "sunspider":
+        return SunSpider()
+    if name == "kraken":
+        return Kraken()
+    if name == "assorted":
+        return Assorted()
+    raise Exception("Unknown benchmark")
+
 def run(submit, native, modes):
     for benchmark in Benchmarks:
         benchmark.run(submit, native, modes)

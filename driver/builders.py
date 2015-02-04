@@ -121,14 +121,14 @@ class V8(Engine):
         super(V8, self).__init__()
         self.puller = 'git'
         self.source = utils.config.get('v8', 'source')
-        self.cxx = utils.config_get_default('v8', 'cxx', None)
-        self.cc = utils.config_get_default('v8', 'cc', None)
-        self.cpp = utils.config_get_default('v8', 'cpp', None)
-        self.link = utils.config_get_default('v8', 'link', None)
-        self.cxx_host = utils.config_get_default('v8', 'cxx_host', None)
-        self.cc_host = utils.config_get_default('v8', 'cc_host', None)
-        self.cpp_host = utils.config_get_default('v8', 'cpp_host', None)
-        self.link_host = utils.config_get_default('v8', 'link_host', None)
+        self.cxx = utils.config.getDefault('v8', 'cxx', None)
+        self.cc = utils.config.getDefault('v8', 'cc', None)
+        self.cpp = utils.config.getDefault('v8', 'cpp', None)
+        self.link = utils.config.getDefault('v8', 'link', None)
+        self.cxx_host = utils.config.getDefault('v8', 'cxx_host', None)
+        self.cc_host = utils.config.getDefault('v8', 'cc_host', None)
+        self.cpp_host = utils.config.getDefault('v8', 'cpp_host', None)
+        self.link_host = utils.config.getDefault('v8', 'link_host', None)
         self.args = ['--expose-gc']
         self.important = True
         self.hardfp = (utils.config.has_option('main', 'flags')) and \

@@ -1,13 +1,23 @@
 [main]
 slaveType = android
 repos = /Users/mozilla/awfy/repos
-benchmarks = /Users/mozilla/awfy/benchmarks
 tmpDir= /tmp/
 timeout = 3 ; in minutes
 serverURL = http://192.168.0.212:8000/
 
 machine = 27
 updateURL = http://server2.arewefastyet.com/???
+
+[engines]
+list = mozilla, chrome
+
+[benchmarks]
+dir = /Users/mozilla/awfy/benchmarks
+browserList = benchmark.local.octane,
+              benchmark.local.sunspider,
+              benchmark.local.kraken,
+              benchmark.local.webglsamples
+shellList = 
 
 [mozilla]
 nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-inbound-android-api-11/

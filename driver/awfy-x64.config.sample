@@ -1,9 +1,11 @@
 [main]
 repos = /Users/hannesverschore/awfy/x64/repos
-benchmarks = /Users/hannesverschore/awfy/x64/benchmarks
 cpu = x64
 machine = 29
 updateURL = http://www.arewefastyet.com/?????
+
+[benchmarks]
+dir = /Users/hannesverschore/awfy/x64/benchmarks
 
 [native]
 cc = /Users/hannesverschore/awfy/clang-3.3/bin/clang

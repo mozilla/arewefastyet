@@ -162,6 +162,25 @@ class Browsermark(Benchmark):
                 ret.append({'name': item[0], 'time': item[1]})
         return ret
 
+def getBenchmark(name):
+    if name == "octane":
+        return Octane()
+    if name == "dromaeo":
+        return Dromaeo()
+    if name == "massive":
+        return Massive()
+    if name == "jetstream":
+        return JetStream()
+    if name == "speedometer":
+        return Speedometer()
+    if name == "kraken":
+        return Kraken()
+    if name == "sunspider":
+        return SunSpider()
+    if name == "browsermark":
+        return Browsermark()
+    raise Exception("Unknown benchmark")
+
 # Test if server is running and start server if needed.
 s =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 result = s.connect_ex(("localhost", 8000))

@@ -70,18 +70,16 @@ class WebGLSamples(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "webglsamples", "0.1", "browser-driver/webglsamples.html")
 
-class Dromaeo(Benchmark):
-    def __init__(self):
-        Benchmark.__init__(self, "dromaeo", "1.0", "desktop-driver/dromaeo.html")
-        
-    def processResults(self, results):
-        ret = []
-        for key in results:
-            if key == "total":
-                ret.append({'name': "__total__", 'time': results[key]})
-            else:
-                ret.append({'name': key, 'time': results[key]})
-        return ret
+def getBenchmark(name):
+    if name == "octane":
+        return Octane()
+    if name == "sunspider":
+        return SunSpider()
+    if name == "kraken":
+        return Kraken()
+    if name == "webglsamples":
+        return WebGLSamples()
+    raise Exception("Unknown benchmark")
 
 # Test if server is running and start server if needed.
 s =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)

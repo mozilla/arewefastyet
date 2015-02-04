@@ -12,7 +12,7 @@ import benchmarks
 class Slave(object):
     def __init__(self, name):
         self.name = name
-        self.machine = utils.config.get(name,'machine')
+        self.machine = utils.config.get(name, 'machine')
 
     def prepare(self, engines):
         pass
@@ -26,14 +26,6 @@ class Slave(object):
 class RemoteSlave(Slave):
     def __init__(self, name):
         super(RemoteSlave, self).__init__(name)
-        self.HostName = utils.config_get_default(name, 'hostname', name)
-        self.RepoPath = utils.config_get_default(name, 'repos', utils.RepoPath)
-        self.BenchmarkPath = utils.config_get_default(name, 'benchmarks', utils.BenchmarkPath)
-        self.DriverPath = utils.config_get_default(name, 'driver', utils.DriverPath)
-        self.Timeout = utils.config_get_default(name, 'timeout', str(utils.Timeout))
-        # calculate timeoutmake multiplication work!
-        self.Timeout = eval(self.Timeout, {}, {})
-        self.PythonName = utils.config_get_default(name, 'python', utils.PythonName)
         self.delayed = None
         self.delayedCommand = None
 
@@ -51,12 +43,6 @@ class RemoteSlave(Slave):
         fd = open("state.p", "wb")
         # dump the global state gathered from the config file
         pickle.dump(utils.config, fd)
-        # dump out the per-slave path *as* the global path for the rpc
-        pickle.dump(self.RepoPath, fd)
-        pickle.dump(self.BenchmarkPath, fd)
-        pickle.dump(self.DriverPath, fd)
-        pickle.dump(self.Timeout, fd)
-        pickle.dump(self.PythonName, fd)
 
         # dump out all the arguments
         pickle.dump(submit, fd)
@@ -100,11 +86,11 @@ class RemoteSlave(Slave):
 
 def init(): 
     slaves = []
-    slaveNames = utils.config_get_default('main', 'slaves', None)
+    slaveNames = utils.config.getDefault('main', 'slaves', None)
     if slaveNames:
         slaveNames = slaveNames.split(",")
         for name in slaveNames:
-            remote = utils.config_get_default(name, 'remote', 1)
+            remote = utils.config.getDefault(name, 'remote', 1)
             if remote == 1:
                 slaves.append(RemoteSlave(name))
             else:
@@ -121,11 +107,6 @@ if __name__ == "__main__":
     fd = open(state, "rb")
     # pull out the global configuration
     utils.config = pickle.load(fd)
-    utils.RepoPath = pickle.load(fd)
-    utils.BenchmarkPath = pickle.load(fd)
-    utils.DriverPath = pickle.load(fd)
-    utils.Timeout = pickle.load(fd)
-    utils.PythonName = pickle.load(fd)
 
     # pull out the pickled arguments
     submit = pickle.load(fd)

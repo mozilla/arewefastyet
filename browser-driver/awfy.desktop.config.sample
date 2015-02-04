@@ -1,16 +1,29 @@
 [main]
-slaveType = desktop
+slaveType = linux-desktop
 repos = /Users/mozilla/awfy/repos
-benchmarks = /Users/mozilla/awfy/benchmarks
-tmpDir= C:\Users\mozilla\Desktop\tmp\
+tmpDir= /tmp/
 timeout = 20 ; in minutes
 serverURL = http://localhost:8000/
 
 machine = 16
 updateURL = http://www.arewefastyet.com/???
 
+[engines]
+list = mozilla
+
+[benchmarks]
+dir = /Users/mozilla/awfy/benchmarks
+browserList = benchmark.remote.octane,
+              benchmark.remote.massive,
+              benchmark.remote.jetstream,
+              benchmark.remote.speedometer,
+              benchmark.remote.kraken,
+              benchmark.remote.sunspider,
+              benchmark.remote.browsermark
+shellList = 
+
 [mozilla]
-nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux/
+nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux64/
 pgoDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux-pgo/
 
 [chrome]
