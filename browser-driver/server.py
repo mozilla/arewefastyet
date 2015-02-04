@@ -150,8 +150,8 @@ class FakeHandler(SimpleHTTPRequestHandler):
     def retrieve(self, host, path, data):
         hash_object = hashlib.sha1(host+path)
         hex_dig = hash_object.hexdigest()
-        if os.path.exists("cache/"+hex_dig):
-            fp = open("cache/"+hex_dig, "rb")
+        if os.path.exists("cache/"+host+"/"+hex_dig):
+            fp = open("cache/"+host+"/"+hex_dig, "rb")
             status, headers, data = pickle.load(fp)
             fp.close()
         else:
@@ -159,7 +159,9 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
             if not os.path.exists("cache"):
                 os.mkdir("cache")
-            fp = open("cache/"+hex_dig, "wb")
+            if not os.path.exists("cache/"+host):
+                os.mkdir("cache/"+host)
+            fp = open("cache/"+host+"/"+hex_dig, "wb")
             pickle.dump([status, headers, data], fp)
             fp.close()
 
