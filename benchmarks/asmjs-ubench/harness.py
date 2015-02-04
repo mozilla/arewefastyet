@@ -18,7 +18,9 @@ Benchmarks = ['copy',
               'skinning']
 
 SimdBenchmarks = ['mandelbrot-native',
-                  'mandelbrot-polyfill']
+                  'mandelbrot-polyfill',
+                  'fbirds-native',
+                  'fbirds-polyfill']
 
 JSBenchmarks = Benchmarks + SimdBenchmarks
 
