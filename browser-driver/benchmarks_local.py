@@ -21,7 +21,13 @@ class Benchmark:
             if os.path.exists("results"):
                 os.unlink("results")
 
-            engine.run(utils.config.get('main', 'serverURL')+self.page)
+            host = utils.config.get('main', 'serverUrl')
+            port = "80"
+            if ":" in host:
+                host, port = host.split(":")
+                 
+            engine.injectServerHost(host)
+            engine.run("benchmarks.local:"+port+"/"+self.page)
             timeout = int(utils.config.get('main', 'timeout')) * 60
             while not os.path.exists("results") and timeout > 0:
                 time.sleep(10)

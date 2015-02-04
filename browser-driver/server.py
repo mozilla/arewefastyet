@@ -16,7 +16,7 @@ os.chdir("../")
 class FakeHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         host = self.headers.get("Host", "")
-        if host == "localhost:8000":
+        if host.startswith("benchmarks.local"):
             if self.path.startswith("/submit"):
                 print "capture"
                 return self.captureResults()
@@ -28,7 +28,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         host = self.headers.get("Host", "")
-        if host == "localhost:8000":
+        if host.startswith("benchmarks.local"):
             if self.path.startswith("/submit"):
                 content_len = int(self.headers.getheader('content-length', 0))
                 post_body = self.rfile.read(content_len).split("=", 1)[1]
@@ -112,6 +112,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
             return "www.webkit.org", path
         elif host.startswith("browsermark."):
             return "browsermark.local", path
+        raise TypeError("host: "+host+", path: "+path+" not found")
 
     def forwardUrl(self, data=None):
         host = self.headers.get("Host", "")

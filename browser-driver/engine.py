@@ -40,6 +40,20 @@ class Engine:
         except:
             pass
 
+    def injectServerHost(self, host):
+        if not self.slaveType == "android":
+            return
+
+        output = subprocess.check_output(["adb", "shell", "cat /system/etc/hosts"])
+        if "benchmarks.local" in output:
+            return
+
+        if ":" in host:
+            host = host.split(":")[0]
+
+        print subprocess.check_output(["adb", "shell", "mount -o remount,rw /system"])
+        print subprocess.check_output(["adb", "shell", "echo '"+host+" benchmarks.local' >> /system/etc/hosts"])
+        print subprocess.check_output(["adb", "shell", "mount -o remount,ro /system"])
 
 class Mozilla(Engine):
     def __init__(self):
