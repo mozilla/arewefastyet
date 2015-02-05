@@ -17,7 +17,7 @@ class Benchmark(object):
         self.folder = folder
 
     def run(self, engine, submit):
-        with utils.chdir(os.path.join(utils.BenchmarkPath, self.folder)):
+        with utils.chdir(os.path.join(utils.config.BenchmarkPath, self.folder)):
             return self._run(engine, submit)
 
     def _run(self, engine, submit):
