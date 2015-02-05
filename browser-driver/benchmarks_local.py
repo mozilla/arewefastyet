@@ -22,7 +22,7 @@ class Benchmark:
                 os.unlink("results")
 
             host = utils.config.get('main', 'serverUrl')
-            engine.run(host+"/"+self.page)
+            engine.run(host+"/"+self.page, modeInfo)
 
             timeout = int(utils.config.get('main', 'timeout')) * 60
             while not os.path.exists("results") and timeout > 0:

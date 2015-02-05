@@ -46,7 +46,14 @@ class Mozilla(Engine):
         self.nightly_dir = utils.config.get('mozilla', 'nightlyDir')
         self.isBrowser = True
         self.modes = [{
-            'name': 'jmim'
+            'name': 'jmim',
+            'env': { 'JSGC_DISABLE_POISONING': '1' }
+        },{
+            'name': 'backtracking',
+            'env': { 
+                'JSGC_DISABLE_POISONING': '1',
+                'JIT_OPTION_forcedRegisterAllocator': 'lsra'
+            }
         }]
         self.folder = "firefox"
         if not os.path.isdir(self.tmp_dir + self.folder):
@@ -126,7 +133,7 @@ class Mozilla(Engine):
         self.updated = True
         self.cset = info["moz_source_stamp"]
 
-    def runAndroid(self, page):
+    def runAndroid(self, page, mode):
         # To be sure.
         self.kill()
 
@@ -137,10 +144,17 @@ class Mozilla(Engine):
         print subprocess.check_output(["adb", "shell", "mkdir /storage/emulated/legacy/awfy"])
         print subprocess.check_output(["adb", "shell", "echo 'user_pref(\"dom.max_script_run_time\", 0);' > /storage/emulated/legacy/awfy/prefs.js"])
 
-        # Start browser
-        print subprocess.check_output(["adb", "shell", "am start -a android.intent.action.VIEW -n org.mozilla.fennec/.App -d "+page+" --es env0 JSGC_DISABLE_POISONING=1 --es args \"--profile /storage/emulated/legacy/awfy\""])
+        # Create env
+        parsedenv = ""
+        i = 0
+        for env in mode["env"]:
+            parsedenv += "--es env"+str(i)+" "+env+"="+mode["env"][env]
+            i += 0
 
-    def runDesktop(self, page):
+        # Start browser
+        print subprocess.check_output(["adb", "shell", "am start -a android.intent.action.VIEW -n org.mozilla.fennec/.App -d "+page+" "+parsedenv+" --es args \"--profile /storage/emulated/legacy/awfy\""])
+
+    def runDesktop(self, page, mode):
         if self.slaveType == "mac-desktop":
             executable = "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox"
         elif self.slaveType == "linux-desktop":
@@ -164,16 +178,17 @@ class Mozilla(Engine):
 
         # Step 5: Start browser
         env = os.environ.copy()
-        env["JSGC_DISABLE_POISONING"] = "1";
+        if "env" in mode:
+            env.update(mode["env"])
         self.subprocess = subprocess.Popen([executable,
                                            "-P", "test", page], env=env)
         self.pid = self.subprocess.pid
 
-    def run(self, page):
+    def run(self, page, mode):
         if self.slaveType == "android":
-            self.runAndroid(page)
+            self.runAndroid(page, mode)
         else:
-            self.runDesktop(page)
+            self.runDesktop(page, mode)
 
     def kill(self):
         if self.slaveType == "android":
@@ -228,7 +243,7 @@ class MozillaShell(Engine):
         self.updated = True
         self.cset = info["moz_source_stamp"]
 
-    def run(self, page):
+    def run(self, page, mode):
         pass
 
     def shell(self):
@@ -278,7 +293,7 @@ class Chrome(Engine):
         # Step 6: Save info
         self.updated = True
 
-    def run(self, page):
+    def run(self, page, mode):
         if self.slaveType == "android":
             self.kill()
             print subprocess.check_output(["adb", "shell", "am start -a android.intent.action.VIEW -n org.chromium.chrome.shell/org.chromium.chrome.shell.ChromeShellActivity -d", page])
@@ -332,7 +347,7 @@ class WebKit(Engine):
         # Step 4: Save info
         self.updated = True
 
-    def run(self, page):
+    def run(self, page, mode):
         self.subprocess = subprocess.Popen(["open", "-F", "-a", "/Volumes/WebKit/WebKit.app/Contents/MacOS/WebKit", page])
         self.pid = self.subprocess.pid
 
