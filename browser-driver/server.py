@@ -15,41 +15,36 @@ os.chdir("../")
 
 class FakeHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        host = self.headers.get("Host", "")
-        if host.startswith("benchmarks.local"):
-            if self.path.startswith("/submit"):
-                print "capture"
-                return self.captureResults()
-            elif self.path.startswith("/sunspider.js"):
-                return self.returnSunspiderJS()
-            return SimpleHTTPRequestHandler.do_GET(self)
-        else:
-            return self.forwardUrl()
+        if self.remoteBenchmark():
+            return
+
+        parsedParams = urlparse.urlparse(self.path)
+        self.localBenchmark(parsedParams.query)
 
     def do_POST(self):
-        host = self.headers.get("Host", "")
-        if host.startswith("benchmarks.local"):
-            if self.path.startswith("/submit"):
-                content_len = int(self.headers.getheader('content-length', 0))
-                post_body = self.rfile.read(content_len).split("=", 1)[1]
-                fp = open("browser-driver/results", "w");
-                fp.write(post_body);
-                fp.close()
-        else:
-            length = int(self.headers.getheader('content-length'))
-            data = self.rfile.read(length)
-            return self.forwardUrl(data)
+        length = int(self.headers.getheader('content-length', 0))
+        postdata = self.rfile.read(length)
 
-    def captureResults(self):
-        parsedParams = urlparse.urlparse(self.path)
-        queryParsed = urlparse.parse_qs(parsedParams.query)
+        if self.remoteBenchmark(postdata):
+            return
+
+        self.localBenchmark(postdata)
+
+    def localBenchmark(self, query = None):
+        if self.path.startswith("/submit"):
+            return self.captureResults(query)
+        elif self.path.startswith("/sunspider.js"):
+            return self.returnSunspiderJS(query)
+        return SimpleHTTPRequestHandler.do_GET(self)
+
+    def captureResults(self, query):
+        queryParsed = urlparse.parse_qs(query)
         fp = open("browser-driver/results", "w");
         fp.write(queryParsed["results"][0]);
         fp.close()
 
-    def returnSunspiderJS(self):
-        parsedParams = urlparse.urlparse(self.path)
-        queryParsed = urlparse.parse_qs(parsedParams.query)
+    def returnSunspiderJS(self, query):
+        queryParsed = urlparse.parse_qs(query)
         tests = queryParsed["tests"][0]
 
         fp = open(tests+"/LIST", "r");
@@ -112,18 +107,21 @@ class FakeHandler(SimpleHTTPRequestHandler):
             return "www.webkit.org", path
         elif host.startswith("browsermark."):
             return "browsermark.local", path
-        raise TypeError("host: "+host+", path: "+path+" not found")
+        return None, None
 
-    def forwardUrl(self, data=None):
+    def remoteBenchmark(self, postdata=None):
         host = self.headers.get("Host", "")
         url, path = self.translatePath(host, self.path)
+        if not url and not path:
+            return False
+
         if self.path != path:
             self.send_response(301)
             self.send_header('Location', 'http://' + host + path)
             self.end_headers()
-            return
+            return True
 
-        status, headers, data = self.retrieve(url, path, data)
+        status, headers, data = self.retrieve(url, path, postdata)
         data = self.injectData(host, path, data)
 
         if status == 301 or status == 302:
@@ -146,8 +144,9 @@ class FakeHandler(SimpleHTTPRequestHandler):
         self.send_header("connection", "close")
         self.end_headers()
         self.wfile.write(bytes(data))
+        return True
 
-    def retrieve(self, host, path, data):
+    def retrieve(self, host, path, postdata):
         hash_object = hashlib.sha1(host+path)
         hex_dig = hash_object.hexdigest()
         if os.path.exists("cache/"+host+"/"+hex_dig):
@@ -155,7 +154,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
             status, headers, data = pickle.load(fp)
             fp.close()
         else:
-            status, headers, data = self.retrieveOnline(host, path, data)
+            status, headers, data = self.retrieveOnline(host, path, postdata)
 
             if not os.path.exists("cache"):
                 os.mkdir("cache")
@@ -167,9 +166,9 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
         return status, headers, data
 
-    def retrieveOnline(self, host, path, data):
+    def retrieveOnline(self, host, path, postdata):
         conn = httplib.HTTPConnection(host)
-        if not data:
+        if not postdata:
             conn.request("GET", path, headers = {
                 "Cache-Control": self.headers.get("Cache-Control", ""),
                 "Accept": self.headers.get("Accept", ""),
@@ -177,11 +176,11 @@ class FakeHandler(SimpleHTTPRequestHandler):
                 "Accept-Language": self.headers.get("Accept-Language", ""),
             })
         else:
-            conn.request("POST", path, data, headers = {
+            conn.request("POST", path, postdata, headers = {
                 "Cache-Control": self.headers.get("Cache-Control", ""),
                 "Accept": self.headers.get("Accept", ""),
                 "User-Agent": self.headers.get("User-Agent", ""),
-                "Content-Length": len(data),
+                "Content-Length": len(postdata),
                 "Accept-Language": self.headers.get("Accept-Language", ""),
             })
         response = conn.getresponse()
