@@ -107,6 +107,8 @@ class FakeHandler(SimpleHTTPRequestHandler):
             return "www.webkit.org", path
         elif host.startswith("browsermark."):
             return "browsermark.local", path
+        elif host.startswith("dromaeo."):
+            return "dromaeo.com", path
         return None, None
 
     def remoteBenchmark(self, postdata=None):
@@ -247,6 +249,26 @@ class FakeHandler(SimpleHTTPRequestHandler):
             if path == "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html":
                 return data.replace('location = "results.html?" + encodeURI(outputString);',
                                     'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
+        if host.startswith("dromaeo."):
+            if path == "/webrunner.js":
+                data = data.replace('function init(){',
+                                    """
+                                    function init(){
+                                        setTimeout(function () {
+                                            interval = true;
+                                            dequeue();
+                                        }, 10000);
+                                    """)
+                return data.replace('} else if ( queue.length == 0 ) {',
+                                     """
+                                     } else if ( queue.length == 0 ) {;
+                                        var results = {};
+                                        for (var i=0; i<dataStore.length; i++) {
+                                            results[dataStore[i].curID] = dataStore[i].mean
+                                        }
+                                        results["total"] = summary;
+                                        location.href = "http://localhost:8000/submit?results="+encodeURIComponent(JSON.stringify(results))
+                                     """)
         return data
 
 class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
