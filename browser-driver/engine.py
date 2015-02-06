@@ -52,7 +52,7 @@ class Mozilla(Engine):
             'name': 'backtracking',
             'env': { 
                 'JSGC_DISABLE_POISONING': '1',
-                'JIT_OPTION_forcedRegisterAllocator': 'lsra'
+                'JIT_OPTION_forcedRegisterAllocator': 'backtracking'
             }
         }]
         self.folder = "firefox"
