@@ -266,6 +266,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
                                         for (var i=0; i<dataStore.length; i++) {
                                             results[dataStore[i].curID] = dataStore[i].mean
                                         }
+                                        var summary = (runStyle === "runs/s" ? Math.pow(Math.E, maxTotal / maxTotalNum) : maxTotal).toFixed(2);
                                         results["total"] = summary;
                                         location.href = "http://localhost:8000/submit?results="+encodeURIComponent(JSON.stringify(results))
                                      """)
