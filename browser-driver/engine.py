@@ -148,7 +148,7 @@ class Mozilla(Engine):
         parsedenv = ""
         i = 0
         for env in mode["env"]:
-            parsedenv += "--es env"+str(i)+" "+env+"="+mode["env"][env]
+            parsedenv += "--es env"+str(i)+" "+env+"="+mode["env"][env]+" "
             i += 0
 
         # Start browser
