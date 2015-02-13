@@ -114,8 +114,8 @@ function moduleCode(global, imp, buffer) {
 
         for (i = 0; (i | 0) < (len | 0); i = (i + 16) | 0) {
             accelIndex = 0;
-            newPosx4 = f4(f4load(u8, i & mk4));
-            newVelx4 = f4(f4load(u8, (i & mk4) + maxBirdsx4));
+            newPosx4 = f4load(u8, i & mk4);
+            newVelx4 = f4load(u8, (i & mk4) + maxBirdsx4);
             for (a = 0; (a | 0) < (steps | 0); a = (a + 1) | 0) {
                 accel = toF(f32[(accelIndex & accelMask) + maxBirdsx8 >> 2]);
                 accelx4 = f4splat(accel);

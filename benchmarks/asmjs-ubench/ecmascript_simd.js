@@ -193,11 +193,6 @@ if (typeof SIMD.float32x4 === "undefined") {
       return new SIMD.float32x4(x, y, z, w);
     }
 
-    // Workaround until we implement .check in asm.js
-    if (x instanceof SIMD.float32x4) {
-      return x;
-    }
-
     this.x_ = _SIMD_PRIVATE.truncatef32(x);
     this.y_ = _SIMD_PRIVATE.truncatef32(y);
     this.z_ = _SIMD_PRIVATE.truncatef32(z);
@@ -467,11 +462,6 @@ if (typeof SIMD.int32x4 === "undefined") {
   SIMD.int32x4 = function(x, y, z, w) {
     if (!(this instanceof SIMD.int32x4)) {
       return new SIMD.int32x4(x, y, z, w);
-    }
-
-    // Workaround until we implement .check in asm.js
-    if (x instanceof SIMD.int32x4) {
-      return x;
     }
 
     this.x_ = x|0;
