@@ -205,7 +205,7 @@ class Shumway(Benchmark):
             tests = []
             totalscore = 0
             bench_path = os.path.join(utils.config.BenchmarkPath, self.folder)
-            for name in ["crypto", "deltablue", "raytrace", "richards", "splay", "earley-boyer"]:
+            for name in ["crypto", "deltablue", "raytrace", "richards", "splay"]:
                 output = utils.RunTimedCheckOutput(full_args +
                              [os.path.join(bench_path, name+".swf")], env=env)
 
