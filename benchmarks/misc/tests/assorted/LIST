@@ -31,3 +31,6 @@ misc-typedobj-splay-standard
 misc-forEach-baseline
 misc-forEach-custom
 misc-forEach-library
+misc-bugs-1131099-lodash1
+misc-bugs-1131099-lodash2
+misc-bugs-1131099-underscore
