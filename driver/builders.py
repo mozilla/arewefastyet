@@ -224,8 +224,8 @@ class MozillaInbound(Mozilla):
                     'args': ['--ion-offthread-compile=on', '-W', '--no-asmjs']
                 },
                 {
-                    'mode': 'backtracking',
-                    'args': ['--ion-offthread-compile=on', '-W', '--ion-regalloc=backtracking']
+                    'mode': 'unboxedobjects',
+                    'args': ['--ion-offthread-compile=on', '-W', '--unboxed-objects']
                 }
             ]
 
