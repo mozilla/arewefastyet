@@ -100,8 +100,16 @@
     <p>AWFY is automated. Throughout the day, we checkout the latest source code to each available JavaScript engine, and compile it. Then we run it through some benchmark suites, and tally up the scores into a database. This data gets exported as JSON which can then be easily plotted.</p>
    </li>
    <li>
-    <p>Why aren't Opera or IE available?</p>
-    <p>AWFY currently runs standalone, command-line JavaScript shells - not the web browsers that embed them. Opera doesn't provide a standalone shell, and IE doesn't work on Mac or Linux (which is where we benchmark right now).</p>
+    <p>Why is Opera not available?</p>
+    <p>Historically AWFY runs standalone, command-line JavaScript shells - not the web browsers that embed them. Opera doesn't provide a standalone shell. Currently we have some machines that also runs browser versions, but now Opera has switched to V8 (js engine of Chrome). As a result it doesn't seems that important to include a seperate line, since you can mostly look to the v8 line.</p>
+   </li>
+   <li>
+    <p>Why is IE not available?</p>
+    <p>AWFY runs cutting-edge not released yet versions of the browsers to track improvements and regressions as they happen. The browsers get tested multiple times a day, since that is how fast performance can change from one to another build. IE doesn't provide nightly builds. So a new build is only available every few months/years. In that regard it doesn't really make sense to run benchmarks on it every few hours. (This is nexto the fact that currently only one machine would be able to run IE versions and that IE builds are quite invasive and touch a lot of the machine OS upon install and might cause unrelated regressions on other browsers). Maybe the release of Spartan will bring us closer on having IE on AWFY.</p>
+   </li>
+   <li>
+    <p>Why is Safari not tested on 32-bit machine?</p>
+    <p>Safari defaults to 64-bit machines and doesn't need to worry about 32-bit anymore. Big pieces of their engine is 64-bit only. As a result showing Safari on 32-bit machines would give incorrect results.</p>
    </li>
    <li>
     <p>What are the graphs?</p>
