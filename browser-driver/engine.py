@@ -72,7 +72,7 @@ class Mozilla(Engine):
             html = response.read()
             ids = re.findall("[0-9]{5,}", html)
 
-            for folder_id in ids:
+            for folder_id in ids[0:4]:
                 try:
                     print "trying", folder_id
                     self._update(folder_id)
