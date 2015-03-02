@@ -48,12 +48,6 @@ class Mozilla(Engine):
         self.modes = [{
             'name': 'jmim',
             'env': { 'JSGC_DISABLE_POISONING': '1' }
-        },{
-            'name': 'backtracking',
-            'env': { 
-                'JSGC_DISABLE_POISONING': '1',
-                'JIT_OPTION_forcedRegisterAllocator': 'backtracking'
-            }
         }]
         self.folder = "firefox"
         if not os.path.isdir(self.tmp_dir + self.folder):
