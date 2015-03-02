@@ -364,12 +364,12 @@ class WebKit(Engine):
 def getEngine(name):
     if name == "chrome":
         return Chrome()
-    if name == "chrome":
-        return Chrome()
     if name == "mozillapgo":
         return MozillaPGO()
     if name == "mozillashell":
         return MozillaShell()
     if name == "mozilla":
         return Mozilla()
+    if name == "webkit":
+        return WebKit()
     raise Exception("Unknown engine")
