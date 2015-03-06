@@ -48,12 +48,6 @@ class Mozilla(Engine):
         self.modes = [{
             'name': 'jmim',
             'env': { 'JSGC_DISABLE_POISONING': '1' }
-        },{
-            'name': 'backtracking',
-            'env': { 
-                'JSGC_DISABLE_POISONING': '1',
-                'JIT_OPTION_forcedRegisterAllocator': 'backtracking'
-            }
         }]
         self.folder = "firefox"
         if not os.path.isdir(self.tmp_dir + self.folder):
@@ -72,7 +66,7 @@ class Mozilla(Engine):
             html = response.read()
             ids = re.findall("[0-9]{5,}", html)
 
-            for folder_id in ids:
+            for folder_id in ids[0:4]:
                 try:
                     print "trying", folder_id
                     self._update(folder_id)
@@ -364,12 +358,12 @@ class WebKit(Engine):
 def getEngine(name):
     if name == "chrome":
         return Chrome()
-    if name == "chrome":
-        return Chrome()
     if name == "mozillapgo":
         return MozillaPGO()
     if name == "mozillashell":
         return MozillaShell()
     if name == "mozilla":
         return Mozilla()
+    if name == "webkit":
+        return WebKit()
     raise Exception("Unknown engine")

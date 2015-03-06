@@ -12,6 +12,7 @@ import ConfigParser
 import urllib
 import tarfile
 import zipfile
+import stat
 
 class ConfigState:
     def __init__(self):
