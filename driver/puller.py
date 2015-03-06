@@ -8,6 +8,7 @@ import os
 import sys
 import subprocess
 from utils import Run
+from utils import FolderChanger
 
 class HG:
     @staticmethod
@@ -64,3 +65,21 @@ class GIT:
             raise Exception('unknown output from git: ' + output)
         return m.group(1)
 
+class V8GIT(GIT):
+    @staticmethod
+    def Update(rev = None):
+        assert rev == None
+        env = os.environ.copy()
+        with FolderChanger('..'):
+            Run(['gclient', 'sync'], {"PATH": "depot_tools/:"+env["PATH"]})
+
+def get(name):
+    if name == 'svn':
+        return SVN
+    elif name == 'hg':
+        return HG
+    elif name == 'git':
+        return GIT
+    elif name == 'v8git':
+        return V8GIT
+    assert False

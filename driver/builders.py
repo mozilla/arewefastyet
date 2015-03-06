@@ -20,14 +20,8 @@ class Engine(object):
             self._updateAndBuild(update, forceRebuild, rev=rev)
 
     def _updateAndBuild(self, update, forceRebuild, rev=None):
-        if self.puller == 'svn':
-            scm = puller.SVN
-        elif self.puller == 'hg':
-            scm = puller.HG
-        elif self.puller == 'git':
-            scm = puller.GIT
+        scm = puller.get(self.puller)
         shell = self.shell()
-    
         if not os.path.isfile(shell):
             forceRebuild = True
     
@@ -116,7 +110,7 @@ class Nitro(Engine):
 class V8(Engine):
     def __init__(self):
         super(V8, self).__init__()
-        self.puller = 'git'
+        self.puller = 'v8git'
         self.source = utils.config.get('v8', 'source')
         self.cxx = utils.config.getDefault('v8', 'cxx', None)
         self.cc = utils.config.getDefault('v8', 'cc', None)
@@ -157,8 +151,6 @@ class V8(Engine):
             env['LINK_host'] = self.link_host
         env["GYP_DEFINES"] = "clang=1"
 
-        with utils.FolderChanger('..'):
-            Run(['gclient', 'sync'], {"PATH": "depot_tools/:"+env["PATH"]})
         if self.cpu == 'x64':
             Run(['make', 'x64.release', '-j3'], env)
         elif self.cpu == 'arm':
