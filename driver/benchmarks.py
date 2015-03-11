@@ -61,7 +61,7 @@ class AsmJS(Benchmark):
         full_args += ['--cxx="' + native.cxx + '"']
         full_args += ['--'] + native.args
         output = utils.RunTimedCheckOutput(full_args)
-        
+
         tests = self.parse(output)
         submit.AddTests(tests, self.suite, self.version, native.mode)
 
@@ -71,7 +71,7 @@ class AsmJS(Benchmark):
     def benchmark(self, shell, env, args):
         full_args = [utils.config.PythonName, 'harness.py', shell, '--'] + args
         print(' '.join(full_args))
-        
+
         output = utils.RunTimedCheckOutput(full_args, env=env)
         return self.parse(output)
 
@@ -91,7 +91,7 @@ class AsmJS(Benchmark):
 
 class AsmJSMicro(AsmJS):
     def __init__(self):
-        super(AsmJSMicro, self).__init__('asmjs-ubench', '0.4', 'asmjs-ubench')
+        super(AsmJSMicro, self).__init__('asmjs-ubench', '0.4.1', 'asmjs-ubench')
 
 class AsmJSApps(AsmJS):
     def __init__(self):
