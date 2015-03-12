@@ -69,15 +69,11 @@ class V8GIT(GIT):
     @staticmethod
     def Update(rev = None):
         assert rev == None
-        output = Run(['git', 'pull', 'origin', 'master'])
-        return re.search("Already up-to-date", output) == None
-
-    @staticmethod
-    def Update(rev = None):
-        assert rev == None
         env = os.environ.copy()
         with FolderChanger('..'):
             Run(['gclient', 'sync'], {"PATH": "depot_tools/:"+env["PATH"]})
+        output = Run(['git', 'pull', 'origin', 'master'])
+        return re.search("Already up-to-date", output) == None
 
 def get(name):
     if name == 'svn':
