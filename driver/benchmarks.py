@@ -176,7 +176,7 @@ class Kraken(SunSpiderBased):
 
 class Assorted(SunSpiderBased):
     def __init__(self):
-        super(Assorted, self).__init__('misc', '0.2', 'misc', 3)
+        super(Assorted, self).__init__('misc', '0.3', 'misc', 3)
 
 class Shumway(Benchmark):
     def __init__(self):
