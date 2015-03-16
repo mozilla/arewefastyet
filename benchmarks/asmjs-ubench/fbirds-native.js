@@ -50,9 +50,12 @@ function moduleCode(global, imp, buffer) {
     var toF = global.Math.fround;
     var u8 = new global.Uint8Array(buffer);
     var f32 = new global.Float32Array(buffer);
-    const maxBirds = 100000;
-    const maxBirdsx4 = 400000;
-    const maxBirdsx8 = 800000;
+
+    // Keep these 3 constants in sync with NUM_BIRDS
+    const maxBirds = 100;
+    const maxBirdsx4 = 400;
+    const maxBirdsx8 = 800;
+
     const accelMask = 0x3c;
     const mk4 = 0x000ffff0;
 
@@ -149,7 +152,7 @@ var fbirds = moduleCode(this, ffi, buffer);
 
 init();
 for (var i = 0; i < NUM_BIRDS; i++) {
-    addBird(i / 10, Math.exp(2, NUM_BIRDS - i));
+    addBird(1000.0, 0);
 }
 
 for (var j = 0; j < NUM_UPDATES; j++) {
