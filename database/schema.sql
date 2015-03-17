@@ -246,3 +246,56 @@ CREATE TABLE `awfy_run` (
   KEY `status` (`status`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
+
+--
+-- Table structure for table `awfy_regression`
+--
+
+CREATE TABLE `awfy_regression` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `build_id` int(11) unsigned NOT NULL,
+  `bug` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `build_id` (`build_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `awfy_regression_score`
+--
+
+CREATE TABLE `awfy_regression_score` (
+  `build_id` int(11) unsigned NOT NULL,
+  `score_id` int(10) unsigned NOT NULL,
+  UNIQUE KEY `build_id` (`build_id`,`score_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `awfy_regression_status`
+--
+
+CREATE TABLE `awfy_regression_status` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `regression_id` int(11) unsigned NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `extra` text NOT NULL,
+  `stamp` int(11) unsigned NOT NULL,
+  `status` enum('unconfirmed','confirmed','improvement','fixed','wontfix','infrastructure') NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `regression_id` (`regression_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+-- phpMyAdmin SQL Dump
+-- version 3.4.10.1deb1
+-- http://www.phpmyadmin.net
+--
+-- Host: localhost
+-- Generation Time: Mar 17, 2015 at 03:51 AM
+-- Server version: 5.5.41
+-- PHP Version: 5.3.10-1ubuntu3.16
+
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
