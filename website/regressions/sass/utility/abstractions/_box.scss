@@ -1,0 +1,55 @@
+
+.box {
+  border: 1px SOLID get($_box, border);
+  background-color: get($_box, header);
+  color: get($_box, color);
+  padding: $unit;
+  float: left;
+  width: 100%;
+  margin-right: 2%;
+  margin-bottom: $unit*5;
+
+  &:nth-child(3n) {
+    margin-right: 0%;
+  }
+
+  .header {
+    text-transform: uppercase;
+    padding-left: $unit*2;
+    font-weight: bold;
+    padding-top: $unit;
+    padding-bottom: $unit*2;
+  }
+
+  h3 {
+    color: #AAAAAA;
+    font-size: $unit*2.5;
+    font-weight: normal;
+    text-align: center;
+    margin-top: $unit;
+  }
+
+  .content {
+    background-color: get($_box, bg);
+    padding: $unit*2;
+    color: $_accent;
+  }
+
+
+  .footer {
+    padding-left: $unit*2;
+    padding-right: $unit*2;
+    
+    a, button {
+      display: block;
+      margin: 0px;
+      background-color: transparent;
+      border: 0px SOLID #FFFFFF;
+      padding-top: $unit*3;
+      padding-bottom: $unit*2;
+      cursor: pointer;
+      color: get($_box, color);
+      text-decoration: none;
+    }
+  }
+}

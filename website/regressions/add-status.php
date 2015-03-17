@@ -1,0 +1,25 @@
+<?php
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+require_once("../internals.php");
+
+init_database();
+
+if (!has_permissions())
+	die();
+
+$postdata = file_get_contents("php://input");
+$request = json_decode($postdata);
+
+$regression_id = mysql_real_escape_string($request->regression_id);
+$name = mysql_real_escape_string($request->name);
+$status = mysql_real_escape_string($request->status);
+$extra = mysql_real_escape_string($request->extra);
+
+$query = mysql_query("INSERT INTO awfy_regression_status
+                      (regression_id, name, status, extra, stamp)
+					  VALUES
+					  ('$regression_id', '$name', '$status', '$extra', UNIX_TIMESTAMP())
+                      ") or die(mysql_error());

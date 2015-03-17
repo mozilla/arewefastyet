@@ -1,0 +1,317 @@
+/***************************************/
+/* Icon dimensions are calculated with
+/* $unit, so they will also scale when
+/* $unit is changed. But at the default
+/* 6px unit, the small icon should be 16px
+/* and the medium icon should be 32px.
+/* (Because else the icons become fusy)
+/* So therefor calculate the dimensions
+/***************************************/
+/**********************************************************************/
+/* Introduce some associative array functionality to SASS             */
+/*   so you can define:                                               */
+/*     $var: key1 "value1", key2 "value2";                            */
+/* And use following functions:                                       */
+/*   get($var, key1);                     // will return "value1"     */
+/*   get($var, key2);                     // will return "value2"     */
+/*   $var: set($var, key1, "newValue");                               */
+/*   get($var, key1);                     // will return "newValue"   */
+/*                                                                    */
+/* Tips and source from:                                              */
+/* http://hugogiraudel.com/2013/08/12/sass-functions/#mapping         */
+/**********************************************************************/
+.box {
+  border: 1px SOLID #dddddd;
+  background-color: #f2f2f2;
+  color: #222222;
+  padding: 6px;
+  float: left;
+  width: 100%;
+  margin-right: 2%;
+  margin-bottom: 30px; }
+  .box:nth-child(3n) {
+    margin-right: 0%; }
+  .box .header {
+    text-transform: uppercase;
+    padding-left: 12px;
+    font-weight: bold;
+    padding-top: 6px;
+    padding-bottom: 12px; }
+  .box h3 {
+    color: #AAAAAA;
+    font-size: 15px;
+    font-weight: normal;
+    text-align: center;
+    margin-top: 6px; }
+  .box .content {
+    background-color: white;
+    padding: 12px;
+    color: #42637b; }
+  .box .footer {
+    padding-left: 12px;
+    padding-right: 12px; }
+    .box .footer a, .box .footer button {
+      display: block;
+      margin: 0px;
+      background-color: transparent;
+      border: 0px SOLID #FFFFFF;
+      padding-top: 18px;
+      padding-bottom: 12px;
+      cursor: pointer;
+      color: #222222;
+      text-decoration: none; }
+
+html {
+  overflow-y: scroll; }
+
+* {
+  box-sizing: border-box; }
+
+.container.content {
+  position: relative;
+  padding-top: 0px; }
+  body.ff .container.content:after {
+    position: absolute;
+    content: "";
+    display: block;
+    top: -260px;
+    left: -130px;
+    background-image: url("../img/tail.png");
+    background-size: 90%;
+    background-repeat: no-repeat;
+    background-position: 0px 0px;
+    width: 500px;
+    height: 900px;
+    transform: rotate(-35deg);
+    z-index: -1; }
+  .container.content h2 {
+    line-height: 48px;
+    font-weight: normal; }
+    .container.content h2 a {
+      color: #000000;
+      text-decoration: none; }
+    .container.content h2:after {
+      content: "";
+      display: block;
+      clear: both; }
+
+header {
+  background-color: #42637b;
+  color: white;
+  -webkit-box-shadow: 0px 0px 15px 0px black;
+  -moz-box-shadow: 0px 0px 15px 0px black;
+  box-shadow: 0px 0px 15px 0px black; }
+  header .container {
+    display: table; }
+  header select {
+    color: white;
+    background-color: #42637b; }
+  header #machines, header #types, header #dates {
+    margin-left: 6px;
+    margin-right: 6px; }
+    header #machines select, header #machines input, header #machines div, header #types select, header #types input, header #types div, header #dates select, header #dates input, header #dates div {
+      -moz-appearance: toolbox;
+      -webkit-appearance: none;
+      text-indent: 0.01px;
+      text-overflow: '';
+      display: inline-block;
+      vertical-align: middle;
+      padding-right: 18px; }
+      header #machines select::-ms-expand, header #machines input::-ms-expand, header #machines div::-ms-expand, header #types select::-ms-expand, header #types input::-ms-expand, header #types div::-ms-expand, header #dates select::-ms-expand, header #dates input::-ms-expand, header #dates div::-ms-expand {
+        display: none; }
+    header #machines:after, header #types:after, header #dates:after {
+      position: absolute;
+      content: "\e114";
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Glyphicons Halflings';
+      font-style: normal;
+      font-weight: normal;
+      font-size: 0.5em;
+      height: 2.0em;
+      margin-left: -12px;
+      line-height: 2.0em;
+      pointer-events: none; }
+  header #dates:after {
+    display: none; }
+  header div {
+    display: inline-block; }
+  header h1 {
+    position: relative;
+    text-transform: uppercase;
+    font-size: 18px; }
+    body.ff header h1:after {
+      background-image: url("../img/firefox.png");
+      background-size: 75%;
+      background-repeat: no-repeat;
+      background-position: 0px -35px;
+      width: 250px;
+      top: -15px;
+      bottom: -15px;
+      content: "";
+      display: block;
+      left: -180px;
+      position: absolute; }
+  header h1, header .rightSide {
+    display: table-cell;
+    vertical-align: middle; }
+  header .rightSide {
+    text-align: right; }
+  header .query {
+    margin-right: 24px; }
+  header a {
+    text-decoration: none;
+    color: white; }
+
+.subheader {
+  float: right;
+  vertical-align: bottom;
+  text-align: right; }
+  .subheader .container {
+    padding-top: 0px;
+    padding-bottom: 0px; }
+  .subheader .history {
+    color: #222222;
+    text-decoration: none; }
+    .subheader .history:before {
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Glyphicons Halflings';
+      font-style: normal;
+      font-weight: normal;
+      margin-left: 6px;
+      margin-right: 6px;
+      content: "\e023"; }
+  .subheader .up {
+    color: #222222;
+    text-decoration: none; }
+    .subheader .up:before {
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Glyphicons Halflings';
+      font-style: normal;
+      font-weight: normal;
+      margin-left: 6px;
+      margin-right: 6px;
+      content: "\e113"; }
+  .subheader .button {
+    background-color: #f2f2f2;
+    border: 1px SOLID #dddddd;
+    padding: 12px 18px;
+    display: inline-block;
+    color: #222222;
+    margin-left: 12px;
+    margin-right: 12px; }
+    .subheader .button:last-child {
+      margin-right: 0px; }
+    .subheader .button .title, .subheader .button .result {
+      display: inline-block; }
+    .subheader .button .title {
+      text-transform: uppercase;
+      font-size: 15px; }
+    .subheader .button .result {
+      color: #222222;
+      font-weight: bold; }
+      .subheader .button .result:before {
+        display: inline-block;
+        vertical-align: middle;
+        font-family: 'Glyphicons Halflings';
+        font-style: normal;
+        font-weight: normal;
+        margin-left: 6px;
+        margin-right: 6px;
+        content: "\2212";
+        color: #b67525; }
+      .subheader .button .result.bad:before {
+        content: "\e114";
+        color: #d12600; }
+      .subheader .button .result.good:before {
+        content: "\e113";
+        color: #2f7836; }
+
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.eot");
+  src: url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.woff") format("woff"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.ttf") format("truetype"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.svg") format("svg"); }
+
+body {
+  font-family: lato;
+  background-color: #e6e6e6; }
+
+html, body {
+  margin: 0px;
+  padding: 0px; }
+
+.container {
+  padding: 15px;
+  width: 1200px;
+  margin-left: auto;
+  margin-right: auto; }
+
+.modal {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.5); }
+.modal .container {
+  margin: 100px auto;
+  background-color: #fff;
+  border: 1px solid #000;
+  padding: 15px; }
+  .modal .container .status table {
+    width: 100%; }
+  .modal .container .status select {
+    text-transform: uppercase; }
+  .modal .container .status .input_extra {
+    width: 80%; }
+  .modal .container .status .button_submit {
+    width: 19%; }
+  .modal .container .status .status {
+    text-transform: uppercase; }
+  .modal .container .status .extra {
+    width: 50%; }
+  .modal .container .bug pre {
+    text-align: left; }
+  .modal .container .graph {
+    height: 80vh; }
+  .modal .container .graph iframe {
+    width: 100%;
+    height: 95%; }
+
+.overview .subnav {
+  float: right;
+  line-height: 48px; }
+.overview .box .percent {
+  float: right;
+  font-size: 1.4em;
+  margin-top: -0.2em; }
+.overview .box .suite {
+  float: left;
+  position: absolute; }
+.overview .box .regression {
+  color: #d12600; }
+.overview .box .improvement {
+  color: #2f7836; }
+.overview .box .title {
+  text-transform: uppercase;
+  margin-top: 0.4em; }
+.overview .box .score {
+  text-align: center;
+  height: 1.5em; }
+.overview .box .stamp {
+  display: block;
+  font-size: 12px; }
+.overview .box .footer .status .status {
+  text-transform: uppercase; }
+.overview .box .footer a.bug, .overview .box .footer button.bug {
+  float: right; }
+  .overview .box .footer a.bug .edit, .overview .box .footer button.bug .edit {
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: normal;
+    margin-left: 6px;
+    margin-right: 6px; }

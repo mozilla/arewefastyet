@@ -1,0 +1,81 @@
+<div ng-controller="overviewCtrl" class='overview'>
+  <div class='subheader'>
+    <div class='button' ng-repeat="software in softwares">
+      <div class='title'>{{software.name}}</div>
+      <div class='result'>Base</div>
+    </div>
+    <div class='button' ng-if='hasSuite'>
+      <a class='up' ng-href='#/machine/{{machineId}}'></a>
+    </div>
+  </div>
+
+  <div class='subnav'>
+     <a ng-href="#/notTriaged">Not triaged</a> / <a ng-href="#/open">Open</a> / <a ng-href="#/improvements">Improvements</a> / <a ng-click="advancedSearch()">Advanced search</a>
+  </div>
+
+  <h2>Regressions</h2>
+
+  <div ng-if="advanced" class='box'>
+	<div class='content'>
+	  <b>Modes: </b>
+	  <label ng-repeat="(id, mode) in master.modes">
+	    <input
+	  	type="checkbox"
+	  	ng-model="mode.selected"
+	    >
+        {{mode.name}}
+	  </label><br>
+	  <b>Machines: </b>
+	  <label ng-repeat="(id, machine) in master.machines">
+	    <input
+	  	type="checkbox"
+	  	ng-model="machine.selected"
+	    >
+        {{machine.description}}
+	  </label><br>
+	  <b>Status: </b>
+	  <label ng-repeat="state in availablestates">
+	    <input
+	  	type="checkbox"
+	  	ng-model="state.selected"
+	    >
+        {{state.name}}
+	  </label></br>
+	  <input type='button' value='Search' class='button_submit' ng-click="search()">
+    </div>
+  </div>
+
+  <div>
+    <div class='box' ng-repeat="regression in regressions">
+	  <div class='header'>
+        <div class='machine'>{{regression.machine}}</div>
+        <div class='mode'>{{regression.mode}}</div>
+        <div class='stamp'>{{regression.stamp | date:'dd MMM yy HH:mm'}}</div>
+      </div>
+      <div class='content'>
+        <div ng-repeat="score in regression.scores" ng-click="showRegression(regression, score)">
+			<div class='suite'>{{score.suiteversion}}</div>
+			<div class='percent' ng-class="(score.regression) ? 'regression' : 'improvement'">
+				{{score.percent}} %
+			</div>
+			<div class='score'>{{score.prev_score}} to {{score.score}}</div>
+        </div>
+      </div>
+      <div class='footer'>
+        <a class='bug' ng-click='bugPopup(regression.id, regression)' ng-if="currentUser!=undefined">
+			<span class="edit">&#x270f;</span>
+			<span ng-if="regression.bug==0">Link to bug</span>
+		</a>
+        <a class='bug' ng-href="https://bugzilla.mozilla.org/show_bug.cgi?id={{regression.bug}}" ng-if="regression.bug!=0">
+			#{{regression.bug}}
+		</a>
+        <a class='status' ng-click='statusPopup(regression)'>Status: 
+			<span class='status'>{{regression.status}}</span>
+			<span ng-if='regression.status_extra'>: {{regression.status_extra}}</span>
+		</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div ng-controller="ffIconCtrl"></div>

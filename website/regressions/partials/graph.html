@@ -1,0 +1,11 @@
+<div class="graph">
+<div>
+	{{modal.regression.mode}} -
+    {{modal.regression.stamp | date:'dd MMM yy HH:mm'}} -
+	<span class='percent' ng-class="(score.regression) ? 'regression' : 'improvement'">
+		{{modal.score.percent}} %
+	</span>
+	<span class='score'>{{modal.score.prev_score}} to {{modal.score.score}}</span>
+</div>
+<iframe ng-src="{{modal.url}}"></iframe>
+</div>

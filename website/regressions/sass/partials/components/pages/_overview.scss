@@ -1,0 +1,64 @@
+.subnav {
+	float: right;
+    line-height: $unit*8;
+}
+
+.box {
+
+  .percent {
+    float: right;
+    font-size: 1.4em;
+    margin-top: -0.2em;
+  }
+
+  .suite {
+    float: left;
+    position: absolute;
+  }
+
+  .regression {
+    color: $_red;
+  }
+
+  .improvement {
+    color: $_green;
+  }
+
+  .title {
+    text-transform: uppercase;
+    margin-top: 0.4em;
+  }
+
+  .score {
+    text-align: center;
+    height: 1.5em;
+  }
+
+  .stamp {
+    display: block;
+    font-size: $unit*2;
+  }
+
+  .footer {
+    .status {
+	  .status {
+		  text-transform: uppercase;
+	  }
+	}
+
+    a, button {
+
+	  &.bug {
+		float: right;
+
+		.edit {
+			font-family: 'Glyphicons Halflings';
+			font-style: normal;
+			font-weight: normal;
+			margin-left: $unit;
+			margin-right: $unit;
+		}
+	  }
+    }
+  }
+}

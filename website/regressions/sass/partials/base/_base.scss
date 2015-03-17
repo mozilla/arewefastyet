@@ -1,0 +1,45 @@
+html {
+    overflow-y: scroll;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.container.content {
+  position: relative;
+  padding-top: 0px;
+
+  body.ff &:after {
+    position: absolute;
+    content: "";
+    display: block;
+    top: -260px;
+    left: -130px;
+    background-image: url("../img/tail.png");
+    background-size: 90%;
+    background-repeat: no-repeat;
+    background-position: 0px 0px;
+    width: 500px;
+    height: 900px;
+    transform: rotate(-35deg);
+    z-index: -1;
+  }
+
+  h2 {
+    line-height: $unit*8;
+    font-weight: normal;
+
+    a {
+      color: #000000;
+      text-decoration: none;
+    }
+
+    &:after {
+      content: "";
+      display: block;
+      clear: both;
+    }
+  }
+}
+
