@@ -49,9 +49,12 @@ function moduleCode(global, imp, buffer) {
     var toF = global.Math.fround;
     var u8 = new global.Uint8Array(buffer);
     var f32 = new global.Float32Array(buffer);
-    const maxBirds = 100000;
-    const maxBirdsx4 = 400000;
-    const maxBirdsx8 = 800000;
+
+    // Keep these 3 constants in sync with NUM_BIRDS
+    const maxBirds = 100;
+    const maxBirdsx4 = 400;
+    const maxBirdsx8 = 800;
+
     const accelMask = 0x3c;
     const mk4 = 0x000ffff0;
 
@@ -148,120 +151,9 @@ var fbirds = moduleCode(this, ffi, buffer);
 
 init();
 for (var i = 0; i < NUM_BIRDS; i++) {
-    addBird(i / 10, Math.exp(2, NUM_BIRDS - i));
+    addBird(1000.0, 0);
 }
 
 for (var j = 0; j < NUM_UPDATES; j++) {
     fbirds(16);
 }
-
-assertEq(bufferF32[0], 0);
-assertEq(bufferF32[1], 0.10000000149011612);
-assertEq(bufferF32[2], 0.20000000298023224);
-assertEq(bufferF32[3], 0.30000001192092896);
-assertEq(bufferF32[4], 0.4000000059604645);
-assertEq(bufferF32[5], 0.5);
-assertEq(bufferF32[6], 0.6000000238418579);
-assertEq(bufferF32[7], 0.699999988079071);
-assertEq(bufferF32[8], 0.800000011920929);
-assertEq(bufferF32[9], 0.8999999761581421);
-assertEq(bufferF32[10], 1);
-assertEq(bufferF32[11], 1.100000023841858);
-assertEq(bufferF32[12], 1.2000000476837158);
-assertEq(bufferF32[13], 1.2999999523162842);
-assertEq(bufferF32[14], 1.399999976158142);
-assertEq(bufferF32[15], 1.5);
-assertEq(bufferF32[16], 1.600000023841858);
-assertEq(bufferF32[17], 1.7000000476837158);
-assertEq(bufferF32[18], 1.7999999523162842);
-assertEq(bufferF32[19], 1.899999976158142);
-assertEq(bufferF32[20], 2);
-assertEq(bufferF32[21], 2.0999999046325684);
-assertEq(bufferF32[22], 2.200000047683716);
-assertEq(bufferF32[23], 2.299999952316284);
-assertEq(bufferF32[24], 2.4000000953674316);
-assertEq(bufferF32[25], 2.5);
-assertEq(bufferF32[26], 2.5999999046325684);
-assertEq(bufferF32[27], 2.700000047683716);
-assertEq(bufferF32[28], 2.799999952316284);
-assertEq(bufferF32[29], 2.9000000953674316);
-assertEq(bufferF32[30], 3);
-assertEq(bufferF32[31], 3.0999999046325684);
-assertEq(bufferF32[32], 3.200000047683716);
-assertEq(bufferF32[33], 3.299999952316284);
-assertEq(bufferF32[34], 3.4000000953674316);
-assertEq(bufferF32[35], 3.5);
-assertEq(bufferF32[36], 3.5999999046325684);
-assertEq(bufferF32[37], 3.700000047683716);
-assertEq(bufferF32[38], 3.799999952316284);
-assertEq(bufferF32[39], 3.9000000953674316);
-assertEq(bufferF32[40], 4);
-assertEq(bufferF32[41], 4.099999904632568);
-assertEq(bufferF32[42], 4.199999809265137);
-assertEq(bufferF32[43], 4.300000190734863);
-assertEq(bufferF32[44], 4.400000095367432);
-assertEq(bufferF32[45], 4.5);
-assertEq(bufferF32[46], 4.599999904632568);
-assertEq(bufferF32[47], 4.699999809265137);
-assertEq(bufferF32[48], 4.800000190734863);
-assertEq(bufferF32[49], 4.900000095367432);
-assertEq(bufferF32[50], 5);
-assertEq(bufferF32[51], 5.099999904632568);
-assertEq(bufferF32[52], 5.199999809265137);
-assertEq(bufferF32[53], 5.300000190734863);
-assertEq(bufferF32[54], 5.400000095367432);
-assertEq(bufferF32[55], 5.5);
-assertEq(bufferF32[56], 5.599999904632568);
-assertEq(bufferF32[57], 5.699999809265137);
-assertEq(bufferF32[58], 5.800000190734863);
-assertEq(bufferF32[59], 5.900000095367432);
-assertEq(bufferF32[60], 6);
-assertEq(bufferF32[61], 6.099999904632568);
-assertEq(bufferF32[62], 6.199999809265137);
-assertEq(bufferF32[63], 6.300000190734863);
-assertEq(bufferF32[64], 6.400000095367432);
-assertEq(bufferF32[65], 6.5);
-assertEq(bufferF32[66], 6.599999904632568);
-assertEq(bufferF32[67], 6.699999809265137);
-assertEq(bufferF32[68], 6.800000190734863);
-assertEq(bufferF32[69], 6.900000095367432);
-assertEq(bufferF32[70], 7);
-assertEq(bufferF32[71], 7.099999904632568);
-assertEq(bufferF32[72], 7.199999809265137);
-assertEq(bufferF32[73], 7.300000190734863);
-assertEq(bufferF32[74], 7.400000095367432);
-assertEq(bufferF32[75], 7.5);
-assertEq(bufferF32[76], 7.599999904632568);
-assertEq(bufferF32[77], 7.699999809265137);
-assertEq(bufferF32[78], 7.800000190734863);
-assertEq(bufferF32[79], 7.900000095367432);
-assertEq(bufferF32[80], 8);
-assertEq(bufferF32[81], 8.100000381469727);
-assertEq(bufferF32[82], 8.199999809265137);
-assertEq(bufferF32[83], 8.300000190734863);
-assertEq(bufferF32[84], 8.399999618530273);
-assertEq(bufferF32[85], 8.5);
-assertEq(bufferF32[86], 8.600000381469727);
-assertEq(bufferF32[87], 8.699999809265137);
-assertEq(bufferF32[88], 8.800000190734863);
-assertEq(bufferF32[89], 8.899999618530273);
-assertEq(bufferF32[90], 9);
-assertEq(bufferF32[91], 9.100000381469727);
-assertEq(bufferF32[92], 9.199999809265137);
-assertEq(bufferF32[93], 9.300000190734863);
-assertEq(bufferF32[94], 9.399999618530273);
-assertEq(bufferF32[95], 9.5);
-assertEq(bufferF32[96], 9.600000381469727);
-assertEq(bufferF32[97], 9.699999809265137);
-assertEq(bufferF32[98], 9.800000190734863);
-assertEq(bufferF32[99], 9.899999618530273);
-
-// Code used to generate the assertEq list above.
-function generateAssertList() {
-    var buf = '';
-    for (var k = 0; k < NUM_BIRDS; k++) {
-        buf += 'assertEq(bufferF32['+ k + '], ' + bufferF32[k] + ');\n';
-    }
-    print(buf);
-}
-//generateAssertList();
