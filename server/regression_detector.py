@@ -6,10 +6,12 @@
 import awfy
 import sys
 import types
+import time
 
 def get_class(field):
     try:
-        identifier = getattr(sys.modules[__name__], field)
+        identifier = globals()[field]
+        #identifier = getattr(sys.modules[__name__], field)
     except AttributeError:
         raise NameError("%s doesn't exist." % field)
     if isinstance(identifier, (types.ClassType, types.TypeType)):
@@ -24,23 +26,42 @@ def camelcase(string):
     return class_.join('', map(class_.capitalize, splitted_string))
 
 class DBTable:
+  globalcache = {}
+
   def __init__(self, id):
     self.id = int(id)
     self.initialized = False
-    self.cached = {}
+    self.cached = None
+
+  def prefetch(self):
+    if self.table() not in self.__class__.globalcache:
+      self.__class__.globalcache[self.table()] = {}
+
+    c = awfy.db.cursor()
+    c.execute("SELECT *                                                         \
+               FROM "+self.table()+"                                            \
+               WHERE id > %s - 100 AND                                          \
+                     id < %s + 100                                              \
+               ", (self.id, self.id))
+    for row in c.fetchall():
+      cache = {}
+      for i in range(len(row)):
+        cache[c.description[i][0]] = row[i]
+      self.__class__.globalcache[self.table()][cache["id"]] = cache
 
   def initialize(self):
     if self.initialized:
       return
+
     self.initialized = True
-    c = awfy.db.cursor()
-    c.execute("SELECT *                                                         \
-               FROM "+self.table()+"                                            \
-               WHERE id = %s                                                    \
-               LIMIT 1", (self.id, ))
-    data = c.fetchone()
-    for i in range(len(data)):
-      self.cached[c.description[i][0]] = data[i]
+    if self.table() in self.__class__.globalcache:
+      if self.id in self.__class__.globalcache[self.table()]:
+        self.cached = self.__class__.globalcache[self.table()][self.id]
+        return
+
+    self.prefetch()
+    self.cached = self.__class__.globalcache[self.table()][self.id]
+    return
 
   def get(self, field):
     self.initialize()
@@ -56,21 +77,38 @@ class DBTable:
       return self.cached[field]
     assert False
 
+  def update(self, data):
+    sets = [key + " = " + DBTable.valuefy(data[key]) for key in data]
+    c = awfy.db.cursor()
+    c.execute("UPDATE "+self.table()+"                                          \
+               SET "+",".join(sets)+"                                           \
+               WHERE id = %s", (self.id, ))
+     
+  @staticmethod
+  def valuefy(value):
+    if "'" in str(value):
+        raise TypeError("' is not allowed as value.")
+    if value == "UNIX_TIMESTAMP()":
+        return value
+    else:
+        return "'"+str(value)+"'"
+
   @staticmethod
   def insert(class_, data):
+    values = [DBTable.valuefy(value) for value in data.values()]
     c = awfy.db.cursor()
-    values = []
-    for i in data.values():
-        if "'" in str(i):
-            raise TypeError("' is not allowed as value.")
-        if i == "UNIX_TIMESTAMP()":
-            values.append(i)
-        else:
-            values.append("'"+str(i)+"'")
     c.execute("INSERT INTO "+class_.table()+"                                  \
                ("+",".join(data.keys())+")                                     \
                VALUES ("+",".join(values)+")")
     return c.lastrowid
+
+  @classmethod
+  def maybeflush(class_):
+    #TODO
+    records = 0
+    for i in class_.globalcache:
+        records += len(class_.globalcache[i].keys())
+    print records
 
 class Run(DBTable):
   def __init__(self, id):
@@ -84,8 +122,9 @@ class Run(DBTable):
     if self.initialized:
       return
     DBTable.initialize(self)
-    self.cached["machine_id"] = self.cached["machine"]
-    del self.cached["machine"]
+    if "machine_id" not in self.cached:
+       self.cached["machine_id"] = self.cached["machine"]
+       del self.cached["machine"]
 
   @staticmethod
   def notProcessedRuns():
@@ -111,6 +150,14 @@ class Run(DBTable):
 
   def finishStamp(self):
     pass
+
+class SuiteTest(DBTable):
+  def __init__(self, id):
+    DBTable.__init__(self, id)
+
+  @staticmethod
+  def table():
+    return "awfy_suite_test"
 
 class SuiteVersion(DBTable):
   def __init__(self, id):
@@ -160,6 +207,14 @@ class RegressionScore(DBTable):
   def table():
     return "awfy_regression_score"
 
+class RegressionBreakdown(DBTable):
+  def __init__(self, id):
+    DBTable.__init__(self, id)
+
+  @staticmethod
+  def table():
+    return "awfy_regression_breakdown"
+
 class RegressionStatus(DBTable):
   def __init__(self, id):
     DBTable.__init__(self, id)
@@ -184,67 +239,63 @@ class Build(DBTable):
                WHERE build_id = %s", (self.id,))
     for row in c.fetchall():
       scores.append(Score(row[0]))
+
+    c.execute("SELECT id                                                              \
+               FROM awfy_breakdown                                                    \
+               WHERE build_id = %s", (self.id,))
+    for row in c.fetchall():
+      scores.append(Breakdown(row[0]))
     return scores
 
-class Score(DBTable):
+
+class RegressionTools(DBTable):
   def __init__(self, id):
     DBTable.__init__(self, id)
 
-  @staticmethod
-  def table():
-    return "awfy_score"
-  
   def next(self):
+    self.initialize()
     if "next" not in self.cached:
-        self.compute_next()
+        self.cached["next"] = self.compute_next()
+    return self.cached["next"]
+
+  def compute_next(self):
+    nexts = self.prefetch_next(10)
+    
+    prev = self
+    prev.cached["next"] = None
+    for score in nexts:
+       prev.initialize()
+       prev.cached["next"] = score
+       score.initialize()
+       score.cached["prev"] = prev
+       prev = score
+
     return self.cached["next"]
 
   def prev(self):
+    self.initialize()
     if "prev" not in self.cached:
-        self.compute_prev()
+        self.cached["prev"] = self.compute_prev()
+        if self.cached["prev"]:
+            self.cached["prev"].initialize()
+            self.cached["prev"].cached["next"] = self
+    else:
+        pass
     return self.cached["prev"]
 
-  def compute_next(self):
-    stamp = self.get("build").get("run").get("stamp")
-    machine = self.get("build").get("run").get("machine_id")
-    mode = self.get("build").get("mode_id")
-    suite = self.get("suite_version_id")
-
-    c = awfy.db.cursor()
-    c.execute("SELECT awfy_score.id                                                   \
-               FROM awfy_score                                                        \
-               INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
-               INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
-               WHERE stamp > %s AND                                                   \
-                     machine = %s AND                                                 \
-                     mode_id = %s AND                                                 \
-                     suite_version_id = %s AND                                        \
-                     status = 1                                                       \
-               ORDER BY stamp ASC                                                     \
-               LIMIT 1", (stamp, machine, mode, suite))
-    row = c.fetchone()
-    self.cached["next"] = Score(row[0]) if row else None
-
   def compute_prev(self):
-    stamp = self.get("build").get("run").get("stamp")
-    machine = self.get("build").get("run").get("machine_id")
-    mode = self.get("build").get("mode_id")
-    suite = self.get("suite_version_id")
+    prevs = self.prefetch_prev(10)
+    
+    next_ = self
+    next_.cached["prev"] = None
+    for score in prevs:
+       next_.initialize()
+       next_.cached["prev"] = score
+       score.initialize()
+       score.cached["next"] = next_
+       next_ = score
 
-    c = awfy.db.cursor()
-    c.execute("SELECT awfy_score.id                                                   \
-               FROM awfy_score                                                        \
-               INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
-               INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
-               WHERE stamp < %s AND                                                   \
-                     machine = %s AND                                                 \
-                     mode_id = %s AND                                                 \
-                     suite_version_id = %s AND                                        \
-                     status = 1                                                       \
-               ORDER BY stamp DESC                                                    \
-               LIMIT 1", (stamp, machine, mode, suite))
-    row = c.fetchone()
-    self.cached["prev"] = Score(row[0]) if row else None
+    return self.cached["prev"]
 
   def prevs(self, amount):
     prevs = []
@@ -267,15 +318,36 @@ class Score(DBTable):
     return nexts
 
   def change(self):
+    self.initialize()
     if "change" not in self.cached:
         self.cached["change"] = self.compute_change()
     return self.cached["change"]
 
-  def runs(self):
-    runs = max(1, self.get('build').get('run').get('machine').get("confidence_runs"))
-    runs *= self.get('suite_version').get('suite').get("confidence_factor")
-    runs = int(round(runs))
-    return runs
+  def regressed(self):
+    change = self.change()
+
+    # No change, so wait for more data before reporting.
+    if not change:
+        return None
+
+    # Lower than threshold, no regression.
+    if change <= 0.01:
+        return False
+
+    # Next is not available. Wait for that before reporting.
+    if not self.next():
+        return None
+
+    # Next has a bigger change. Regression is more likely to be that.
+    if self.next().change() > change:
+        return False
+
+    # If there is a prev, test that prev change is smaller
+    if self.prev(): 
+        if self.prev().change() >= change:
+            return False
+
+    return True
 
   def compute_change(self):
     "Compute the change in runs before and after the current run"
@@ -302,46 +374,149 @@ class Score(DBTable):
     change = (avg_prevs - avg_nexts) / (avg_prevs + avg_nexts)
     return abs(change)
 
-  def regressed(self):
-    change = self.change()
 
-    # No change, so wait for more data before reporting.
-    if not change:
-        return None
+class Score(RegressionTools):
+  def __init__(self, id):
+    RegressionTools.__init__(self, id)
 
-    # Lower than threshold, no regression.
-    if change <= 0.01:
-        return False
+  @staticmethod
+  def table():
+    return "awfy_score"
+  
+  def prefetch_next(self, limit = 1):
+    stamp = self.get("build").get("run").get("stamp")
+    machine = self.get("build").get("run").get("machine_id")
+    mode = self.get("build").get("mode_id")
+    suite = self.get("suite_version_id")
 
-    # Next is not available. Wait for that before reporting.
-    if not self.next():
-        return None
+    c = awfy.db.cursor()
+    c.execute("SELECT awfy_score.id                                                   \
+               FROM awfy_score                                                        \
+               INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
+               INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
+               WHERE stamp > %s AND                                                   \
+                     machine = %s AND                                                 \
+                     mode_id = %s AND                                                 \
+                     suite_version_id = %s AND                                        \
+                     status = 1                                                       \
+               ORDER BY stamp ASC                                                     \
+               LIMIT "+str(limit), (stamp, machine, mode, suite))
+    rows = c.fetchall()
+    return [Score(row[0]) for row in rows]
 
-    # Next has a bigger change. Regression is more likely to be that.
-    if self.next().change() > change:
-        return False
+  def prefetch_prev(self, limit = 1):
+    stamp = self.get("build").get("run").get("stamp")
+    machine = self.get("build").get("run").get("machine_id")
+    mode = self.get("build").get("mode_id")
+    suite = self.get("suite_version_id")
 
-    # If there is a prev, test that prev change is smaller
-    if self.prev(): 
-        if self.prev().change() >= change:
-            return False
+    c = awfy.db.cursor()
+    c.execute("SELECT awfy_score.id                                                   \
+               FROM awfy_score                                                        \
+               INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
+               INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
+               WHERE stamp < %s AND                                                   \
+                     machine = %s AND                                                 \
+                     mode_id = %s AND                                                 \
+                     suite_version_id = %s AND                                        \
+                     status = 1                                                       \
+               ORDER BY stamp DESC                                                    \
+               LIMIT 1", (stamp, machine, mode, suite))
+    rows = c.fetchall()
+    return [Score(row[0]) for row in rows]
 
+  def runs(self):
+    runs = max(1, self.get('build').get('run').get('machine').get("confidence_runs"))
+    runs *= self.get('suite_version').get('suite').get("confidence_factor")
+    runs = int(round(runs))
+    return runs
+
+  def dump(self):
     import datetime
     print datetime.datetime.fromtimestamp(
         int(self.get("build").get("run").get("stamp"))
     ).strftime('%Y-%m-%d %H:%M:%S'),
     print "", self.get("build").get("run").get("machine").get("description"), 
     print "", self.get("build").get("mode").get("name"),
-    print "", self.get("suite_version").get("name")+":", change,
+    print "", self.get("suite_version").get("name")+":", self.change(),
     print "", self.prev().get("score") if self.prev() else "", self.get("score"),
     print " (%d runs)"%self.runs()
-    return True
+
+
+class Breakdown(RegressionTools):
+  def __init__(self, id):
+    RegressionTools.__init__(self, id)
+
+  @staticmethod
+  def table():
+    return "awfy_breakdown"
+  
+  def prefetch_next(self, limit = 1):
+    stamp = self.get("build").get("run").get("stamp")
+    machine = self.get("build").get("run").get("machine_id")
+    mode = self.get("build").get("mode_id")
+    suite = self.get("suite_test_id")
+
+    c = awfy.db.cursor()
+    c.execute("SELECT awfy_breakdown.id                                               \
+               FROM awfy_breakdown                                                    \
+               INNER JOIN awfy_build ON awfy_build.id = awfy_breakdown.build_id       \
+               INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
+               WHERE stamp > %s AND                                                   \
+                     machine = %s AND                                                 \
+                     mode_id = %s AND                                                 \
+                     suite_test_id = %s AND                                           \
+                     status = 1                                                       \
+               ORDER BY stamp ASC                                                     \
+               LIMIT "+str(limit), (stamp, machine, mode, suite))
+    rows = c.fetchall()
+    return [Breakdown(row[0]) for row in rows]
+
+  def prefetch_prev(self, limit = 1):
+    stamp = self.get("build").get("run").get("stamp")
+    machine = self.get("build").get("run").get("machine_id")
+    mode = self.get("build").get("mode_id")
+    suite = self.get("suite_test_id")
+
+    c = awfy.db.cursor()
+    c.execute("SELECT awfy_breakdown.id                                               \
+               FROM awfy_breakdown                                                    \
+               INNER JOIN awfy_build ON awfy_build.id = awfy_breakdown.build_id       \
+               INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
+               WHERE stamp < %s AND                                                   \
+                     machine = %s AND                                                 \
+                     mode_id = %s AND                                                 \
+                     suite_test_id = %s AND                                           \
+                     status = 1                                                       \
+               ORDER BY stamp DESC                                                    \
+               LIMIT "+str(limit), (stamp, machine, mode, suite))
+    rows = c.fetchall()
+    return [Breakdown(row[0]) for row in rows]
+
+  def runs(self):
+    runs = max(1, self.get('build').get('run').get('machine').get("confidence_runs"))
+    # TODO: confidence factor
+    # runs *= self.get('suite_version').get('suite').get("confidence_factor")
+    runs = int(round(runs))
+    return runs
+
+  def dump(self):
+    import datetime
+    print datetime.datetime.fromtimestamp(
+        int(self.get("build").get("run").get("stamp"))
+    ).strftime('%Y-%m-%d %H:%M:%S'),
+    print "", self.get("build").get("run").get("machine").get("description"), 
+    print "", self.get("build").get("mode").get("name"),
+    print "", self.get("suite_test").get("suite_version").get("name")+":", self.get("suite_test").get("name")+":", self.change(),
+    print "", self.prev().get("score") if self.prev() else "", self.get("score"),
+    print " (%d runs)"%self.runs()
   
 import os
 import time
 os.environ['TZ'] = "Europe/Amsterdam"
 time.tzset()
 
+start = time.time()
 for run in Run.notProcessedRuns():
   scores = run.getScores()
   finish = True
@@ -353,6 +528,7 @@ for run in Run.notProcessedRuns():
       finish = False
 
     if regressed is True: 
+      score.dump()
       build = score.get("build_id")
       try:
         id_ = DBTable.insert(Regression, {"build_id": build})
@@ -360,9 +536,20 @@ for run in Run.notProcessedRuns():
       except:
         pass
       try:
-        DBTable.insert(RegressionScore, {"build_id": build, "score_id": score.get("id")})
+        if type(score) == Score:
+            DBTable.insert(RegressionScore, {"build_id": build, "score_id": score.get("id")})
+        elif type(score) == Breakdown:
+            DBTable.insert(RegressionBreakdown, {"build_id": build, "score_id": score.get("id")})
+        else:
+            assert False
       except:
         pass
-  print "Finished run", run.get("id")
+  if finish:
+    run.update({"detector": "1"})
+  #print "Finished run", run.get("id")
+  #print time.time() - start
+  #print "#queries:", awfy.queries
+  #exit()
+  DBTable.maybeflush()
 
 awfy.db.commit()

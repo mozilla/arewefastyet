@@ -4,17 +4,41 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 try:
-    import MySQLdb as mdb
+  import MySQLdb as mdb
 except:
-    import mysqldb as mdb
+  import mysqldb as mdb
 try:
-    import ConfigParser
+  import ConfigParser
 except:
-    import configparser as ConfigParser
+  import configparser as ConfigParser
 
 db = None
 version = None
 path = None
+
+
+queries = 0
+class DB:
+  def __init__(self, db):
+    self.db = db
+  def cursor(self):
+    return DBCursor(self.db.cursor())
+  def commit(self):
+    return self.db.commit()
+class DBCursor:
+  def __init__(self, cursor):
+    self.cursor = cursor
+  def execute(self, sql, data=None):
+    global queries
+    queries+=1
+    exe = self.cursor.execute(sql, data);
+    self.description = self.cursor.description
+    self.lastrowid = self.cursor.lastrowid
+    return exe
+  def fetchone(self):
+    return self.cursor.fetchone();
+  def fetchall(self):
+    return self.cursor.fetchall();
 
 def Startup():
     global db, version, path
@@ -31,6 +55,7 @@ def Startup():
     else:
         db = mdb.connect(host, user, pw, name, use_unicode=True)
 
+    db = DB(db)
     c = db.cursor()
     c.execute("SELECT `value` FROM awfy_config WHERE `key` = 'version'")
     row = c.fetchone()
