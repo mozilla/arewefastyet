@@ -158,3 +158,115 @@ for (var i = 0; i < NUM_BIRDS; i++) {
 for (var j = 0; j < NUM_UPDATES; j++) {
     fbirds(16);
 }
+
+assertEq(buffer[0], 999.9998168945312, "0th value should be 999.9998168945312");
+assertEq(buffer[1], 999.9998168945312, "1th value should be 999.9998168945312");
+assertEq(buffer[2], 999.9998168945312, "2th value should be 999.9998168945312");
+assertEq(buffer[3], 999.9998168945312, "3th value should be 999.9998168945312");
+assertEq(buffer[4], 999.9998168945312, "4th value should be 999.9998168945312");
+assertEq(buffer[5], 999.9998168945312, "5th value should be 999.9998168945312");
+assertEq(buffer[6], 999.9998168945312, "6th value should be 999.9998168945312");
+assertEq(buffer[7], 999.9998168945312, "7th value should be 999.9998168945312");
+assertEq(buffer[8], 999.9998168945312, "8th value should be 999.9998168945312");
+assertEq(buffer[9], 999.9998168945312, "9th value should be 999.9998168945312");
+assertEq(buffer[10], 999.9998168945312, "10th value should be 999.9998168945312");
+assertEq(buffer[11], 999.9998168945312, "11th value should be 999.9998168945312");
+assertEq(buffer[12], 999.9998168945312, "12th value should be 999.9998168945312");
+assertEq(buffer[13], 999.9998168945312, "13th value should be 999.9998168945312");
+assertEq(buffer[14], 999.9998168945312, "14th value should be 999.9998168945312");
+assertEq(buffer[15], 999.9998168945312, "15th value should be 999.9998168945312");
+assertEq(buffer[16], 999.9998168945312, "16th value should be 999.9998168945312");
+assertEq(buffer[17], 999.9998168945312, "17th value should be 999.9998168945312");
+assertEq(buffer[18], 999.9998168945312, "18th value should be 999.9998168945312");
+assertEq(buffer[19], 999.9998168945312, "19th value should be 999.9998168945312");
+assertEq(buffer[20], 999.9998168945312, "20th value should be 999.9998168945312");
+assertEq(buffer[21], 999.9998168945312, "21th value should be 999.9998168945312");
+assertEq(buffer[22], 999.9998168945312, "22th value should be 999.9998168945312");
+assertEq(buffer[23], 999.9998168945312, "23th value should be 999.9998168945312");
+assertEq(buffer[24], 999.9998168945312, "24th value should be 999.9998168945312");
+assertEq(buffer[25], 999.9998168945312, "25th value should be 999.9998168945312");
+assertEq(buffer[26], 999.9998168945312, "26th value should be 999.9998168945312");
+assertEq(buffer[27], 999.9998168945312, "27th value should be 999.9998168945312");
+assertEq(buffer[28], 999.9998168945312, "28th value should be 999.9998168945312");
+assertEq(buffer[29], 999.9998168945312, "29th value should be 999.9998168945312");
+assertEq(buffer[30], 999.9998168945312, "30th value should be 999.9998168945312");
+assertEq(buffer[31], 999.9998168945312, "31th value should be 999.9998168945312");
+assertEq(buffer[32], 999.9998168945312, "32th value should be 999.9998168945312");
+assertEq(buffer[33], 999.9998168945312, "33th value should be 999.9998168945312");
+assertEq(buffer[34], 999.9998168945312, "34th value should be 999.9998168945312");
+assertEq(buffer[35], 999.9998168945312, "35th value should be 999.9998168945312");
+assertEq(buffer[36], 999.9998168945312, "36th value should be 999.9998168945312");
+assertEq(buffer[37], 999.9998168945312, "37th value should be 999.9998168945312");
+assertEq(buffer[38], 999.9998168945312, "38th value should be 999.9998168945312");
+assertEq(buffer[39], 999.9998168945312, "39th value should be 999.9998168945312");
+assertEq(buffer[40], 999.9998168945312, "40th value should be 999.9998168945312");
+assertEq(buffer[41], 999.9998168945312, "41th value should be 999.9998168945312");
+assertEq(buffer[42], 999.9998168945312, "42th value should be 999.9998168945312");
+assertEq(buffer[43], 999.9998168945312, "43th value should be 999.9998168945312");
+assertEq(buffer[44], 999.9998168945312, "44th value should be 999.9998168945312");
+assertEq(buffer[45], 999.9998168945312, "45th value should be 999.9998168945312");
+assertEq(buffer[46], 999.9998168945312, "46th value should be 999.9998168945312");
+assertEq(buffer[47], 999.9998168945312, "47th value should be 999.9998168945312");
+assertEq(buffer[48], 999.9998168945312, "48th value should be 999.9998168945312");
+assertEq(buffer[49], 999.9998168945312, "49th value should be 999.9998168945312");
+assertEq(buffer[50], 999.9998168945312, "50th value should be 999.9998168945312");
+assertEq(buffer[51], 999.9998168945312, "51th value should be 999.9998168945312");
+assertEq(buffer[52], 999.9998168945312, "52th value should be 999.9998168945312");
+assertEq(buffer[53], 999.9998168945312, "53th value should be 999.9998168945312");
+assertEq(buffer[54], 999.9998168945312, "54th value should be 999.9998168945312");
+assertEq(buffer[55], 999.9998168945312, "55th value should be 999.9998168945312");
+assertEq(buffer[56], 999.9998168945312, "56th value should be 999.9998168945312");
+assertEq(buffer[57], 999.9998168945312, "57th value should be 999.9998168945312");
+assertEq(buffer[58], 999.9998168945312, "58th value should be 999.9998168945312");
+assertEq(buffer[59], 999.9998168945312, "59th value should be 999.9998168945312");
+assertEq(buffer[60], 999.9998168945312, "60th value should be 999.9998168945312");
+assertEq(buffer[61], 999.9998168945312, "61th value should be 999.9998168945312");
+assertEq(buffer[62], 999.9998168945312, "62th value should be 999.9998168945312");
+assertEq(buffer[63], 999.9998168945312, "63th value should be 999.9998168945312");
+assertEq(buffer[64], 999.9998168945312, "64th value should be 999.9998168945312");
+assertEq(buffer[65], 999.9998168945312, "65th value should be 999.9998168945312");
+assertEq(buffer[66], 999.9998168945312, "66th value should be 999.9998168945312");
+assertEq(buffer[67], 999.9998168945312, "67th value should be 999.9998168945312");
+assertEq(buffer[68], 999.9998168945312, "68th value should be 999.9998168945312");
+assertEq(buffer[69], 999.9998168945312, "69th value should be 999.9998168945312");
+assertEq(buffer[70], 999.9998168945312, "70th value should be 999.9998168945312");
+assertEq(buffer[71], 999.9998168945312, "71th value should be 999.9998168945312");
+assertEq(buffer[72], 999.9998168945312, "72th value should be 999.9998168945312");
+assertEq(buffer[73], 999.9998168945312, "73th value should be 999.9998168945312");
+assertEq(buffer[74], 999.9998168945312, "74th value should be 999.9998168945312");
+assertEq(buffer[75], 999.9998168945312, "75th value should be 999.9998168945312");
+assertEq(buffer[76], 999.9998168945312, "76th value should be 999.9998168945312");
+assertEq(buffer[77], 999.9998168945312, "77th value should be 999.9998168945312");
+assertEq(buffer[78], 999.9998168945312, "78th value should be 999.9998168945312");
+assertEq(buffer[79], 999.9998168945312, "79th value should be 999.9998168945312");
+assertEq(buffer[80], 999.9998168945312, "80th value should be 999.9998168945312");
+assertEq(buffer[81], 999.9998168945312, "81th value should be 999.9998168945312");
+assertEq(buffer[82], 999.9998168945312, "82th value should be 999.9998168945312");
+assertEq(buffer[83], 999.9998168945312, "83th value should be 999.9998168945312");
+assertEq(buffer[84], 999.9998168945312, "84th value should be 999.9998168945312");
+assertEq(buffer[85], 999.9998168945312, "85th value should be 999.9998168945312");
+assertEq(buffer[86], 999.9998168945312, "86th value should be 999.9998168945312");
+assertEq(buffer[87], 999.9998168945312, "87th value should be 999.9998168945312");
+assertEq(buffer[88], 999.9998168945312, "88th value should be 999.9998168945312");
+assertEq(buffer[89], 999.9998168945312, "89th value should be 999.9998168945312");
+assertEq(buffer[90], 999.9998168945312, "90th value should be 999.9998168945312");
+assertEq(buffer[91], 999.9998168945312, "91th value should be 999.9998168945312");
+assertEq(buffer[92], 999.9998168945312, "92th value should be 999.9998168945312");
+assertEq(buffer[93], 999.9998168945312, "93th value should be 999.9998168945312");
+assertEq(buffer[94], 999.9998168945312, "94th value should be 999.9998168945312");
+assertEq(buffer[95], 999.9998168945312, "95th value should be 999.9998168945312");
+assertEq(buffer[96], 999.9998168945312, "96th value should be 999.9998168945312");
+assertEq(buffer[97], 999.9998168945312, "97th value should be 999.9998168945312");
+assertEq(buffer[98], 999.9998168945312, "98th value should be 999.9998168945312");
+assertEq(buffer[99], 999.9998168945312, "99th value should be 999.9998168945312");
+
+function generateAssertList() {
+  function template(i, x) {
+    return 'assertEq(buffer[' + i + '], ' + x + ', "' + i + 'th value should be ' + x + '");\n';
+  }
+  var buf = ''
+  for (var i = 0; i < NUM_BIRDS; i++)
+      buf += template(i, bufferF32[i]);
+  print(buf);
+}
+//generateAssertList();
