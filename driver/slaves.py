@@ -26,6 +26,7 @@ class Slave(object):
 class RemoteSlave(Slave):
     def __init__(self, name):
         super(RemoteSlave, self).__init__(name)
+        self.HostName = utils.config_get_default(name, 'hostname', name)
         self.delayed = None
         self.delayedCommand = None
 
