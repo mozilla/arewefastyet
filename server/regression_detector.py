@@ -5,7 +5,6 @@
 
 import awfy
 import sys
-import types
 import time
 import tables
 
@@ -42,7 +41,7 @@ def regressed(score):
     return False
 
   # If there is a prev, test that prev change is smaller
-  if self.score(): 
+  if score.prev(): 
     if change >= 0 and score.prev().change() >= change:
       return False
     if change <= 0 and score.prev().change() <= change:
@@ -60,13 +59,13 @@ for run in notProcessedRuns():
   scores = run.getScores()
   finish = True
   for score in scores:
-    regressed = score.regressed()
+    regressed_ = regressed(score)
 
     # Not enough info yet
-    if regressed is None:
+    if regressed_ is None:
       finish = False
 
-    if regressed is True: 
+    if regressed_ is True: 
       score.dump()
       build = score.get("build_id")
       try:
@@ -83,8 +82,8 @@ for run in notProcessedRuns():
             assert False
       except:
         pass
-  if finish:
-    run.update({"detector": "1"})
-  DBTable.maybeflush()
+  #if finish:
+  #  run.update({"detector": "1"})
+  tables.DBTable.maybeflush()
 
 awfy.db.commit()
