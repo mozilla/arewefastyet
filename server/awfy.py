@@ -34,6 +34,7 @@ class DBCursor:
     exe = self.cursor.execute(sql, data);
     self.description = self.cursor.description
     self.lastrowid = self.cursor.lastrowid
+    self.rowcount = self.cursor.rowcount
     return exe
   def fetchone(self):
     return self.cursor.fetchone();
