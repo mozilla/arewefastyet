@@ -67,14 +67,14 @@ class RemoteSlave(Slave):
             self.delayedCommand = str(fullcmd)
         else:
             utils.Run(fullcmd)
-        
+
     def pushRemote(self, file_loc, file_remote, follow = False):
         rsync_flags = "-aP"
         # if they asked us to follow symlinks, then add '-L' into the arguments.
         if follow:
             rsync_flags += "L"
         utils.Run(["rsync", rsync_flags, file_loc, self.HostName + ":" + file_remote])
-        
+
     def synchronize(self):
         if self.delayed:
             print("Waiting for: "+self.delayedCommand)
@@ -84,7 +84,7 @@ class RemoteSlave(Slave):
             self.delayed = None
             self.delayedCommand = None
 
-def init(): 
+def init():
     slaves = []
     slaveNames = utils.config.getDefault('main', 'slaves', None)
     if slaveNames:
