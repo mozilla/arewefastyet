@@ -1,0 +1,45 @@
+<div ng-controller="overviewCtrl" class='overview'>
+  <div class='subheader'>
+    <div class='button' ng-repeat="software in softwares">
+      <div class='title'>{{software.name}}</div>
+      <div class='result'>Base</div>
+    </div>
+    <div class='button' ng-if='hasSuite'>
+      <a class='up' ng-href='#/machine/{{machineId}}'></a>
+    </div>
+  </div>
+
+  <h2>Regression: @{{regression.id}}</h2>
+
+  <div>
+    <div class='box'>
+	  <div class='header'>
+        <div class='machine'>{{regression.machine}}</div>
+        <div class='mode'>{{regression.mode}}</div>
+        <div class='stamp'>{{regression.stamp | date:'dd MMM yy HH:mm'}}</div>
+      </div>
+      <div class='content'>
+        <div ng-repeat="score in regression.scores" ng-click="showRegression(regression, score, 7)">
+			<div class='suite'>{{score.suiteversion}}</div>
+			<div class='percent' ng-class="(score.regression) ? 'regression' : 'improvement'">
+				{{score.percent}} %
+			</div>
+			<div class='score'>{{score.prev_score}} to {{score.score}}</div>
+        </div>
+      </div>
+      <div class='footer'>
+        <a class='bug' ng-click='bugPopup(regression.id, regression)' ng-if="currentUser!=undefined">
+			<span class="edit">&#x270f;</span>
+			<span ng-if="regression.bug==0">Link to bug</span>
+		</a>
+        <a class='bug' ng-href="https://bugzilla.mozilla.org/show_bug.cgi?id={{regression.bug}}" ng-if="regression.bug!=0">
+			#{{regression.bug}}
+		</a>
+        <a class='status' ng-click='statusPopup(regression)'>Status: 
+			<span class='status'>{{regression.status}}</span>
+			<span ng-if='regression.status_extra'>: {{regression.status_extra}}</span>
+		</a>
+      </div>
+    </div>
+  </div>
+</div>
