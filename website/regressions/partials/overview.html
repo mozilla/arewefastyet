@@ -53,7 +53,7 @@
         <div class='stamp'>{{regression.stamp | date:'dd MMM yy HH:mm'}}</div>
       </div>
       <div class='content'>
-        <div ng-repeat="score in regression.scores" ng-click="showRegression(regression, score)">
+        <div ng-repeat="score in regression.scores" ng-click="showRegression(regression, score, 7)">
 			<div class='suite'>{{score.suiteversion}}</div>
 			<div class='percent' ng-class="(score.regression) ? 'regression' : 'improvement'">
 				{{score.percent}} %

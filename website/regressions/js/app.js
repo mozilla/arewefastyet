@@ -6,6 +6,10 @@ var awfyApp = angular.module('awfyApp', [
 awfyApp.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
+      when('/regression/:id', {
+        templateUrl: 'partials/regression.html',
+        controller: 'regressionCtrl'
+      }).
       when('/:search', {
         templateUrl: 'partials/overview.html',
         controller: 'overviewCtrl'
@@ -67,6 +71,7 @@ awfyApp.controller('pageCtrl', ['$scope', '$http', '$q', '$location', 'modalDial
                               {"name":"improvement"},
 							  {"name":"fixed"},
 							  {"name":"wontfix"},
+							  {"name":"noise"},
 							  {"name":"infrastructure"}];
 
 }]);

@@ -13,6 +13,123 @@ var isFF = function(name) {
   return false;
 }
 
+awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 'modalDialog',
+  function ($scope, $http, $routeParams, $q, modalDialog) {
+
+	$http.post('data-regression.php', {
+		id:$routeParams.id
+	}).then(function(data) {
+	  var master = $scope.master;
+	  $scope.regression = normalize_regression_data(master, data.data);
+	});
+
+	$scope.statusPopup = function(regression) {
+		modalDialog.open("partials/loading.html");
+
+		$http.get('data-regression-status.php?regression_id='+regression.id).then(function(data) {
+			var states = data.data;
+			for (var i = 0; i < states.length; i++) {
+				states[i]["stamp"] = states[i]["stamp"] * 1000;
+			}
+			var data = {
+				"states": states,
+				"status": states[0].status.name,
+				"extra": states[0].extra,
+                "submit": function(data) {
+
+					$http.post('add-status.php', {
+						"regression_id": regression.id,
+                        "name": currentUser,
+                        "status": data.status.name,
+                        "extra": data.extra 
+					}).then(function () {
+						regression.status = data.status.name
+						regression.status_extra = data.extra
+						modalDialog.close();
+					});
+				}
+			}
+			modalDialog.open("partials/status.html", data);
+		});
+	}
+	$scope.bugPopup = function(id, data) {
+		data["submit"] = function(data) {
+			$http.post('change-bug.php', {
+				"regression_id": id,
+				"bug": data.bug
+			}).then(function () {
+				// TODO update item!!
+				modalDialog.close();
+			});
+		}
+		modalDialog.open("partials/bug.html", data);
+	}
+
+	$scope.showRegression = function(regression, score, amount) {
+		modalDialog.open("partials/loading.html");
+
+		var requests = [
+			$http.post('data-prev-next-stamp.php', {
+				"score_id": score.id,
+				"amount": amount,
+				"type": "prev"
+			}),
+			$http.post('data-prev-next-stamp.php', {
+				"score_id": score.id,
+				"amount": amount+1,
+				"type": "next"
+			}),
+		];
+
+		$q.all(requests).then(function(data) {
+			console.log(data[0].data, data[1].data);
+			modalDialog.open("partials/graph.html", {
+				"url": "http://arewefastyet.com/#"+
+					   "machine="+regression.machine_id+"&"+
+					   "view=single&"+
+					   "suite="+score.suite+"&"+
+					   "start="+data[0].data+"&"+
+					   "end="+data[1].data,
+				"score": score,
+				"regression": regression,
+				"showRegression": $scope.showRegression
+			});		
+		});
+	}
+  }
+]);
+
+function normalize_regression_data(master, regression) {
+	regression["machine_id"] = regression["machine"]
+	regression["machine"] = master["machines"][regression["machine"]]["description"]
+	regression["mode"] = master["modes"][regression["mode"]]["name"]
+	regression["stamp"] = regression["stamp"] * 1000
+
+	if (regression["scores"].length > 0) {
+	  var prev_cset = regression["scores"][0]["prev_cset"];
+	  for (var j = 0; j < regression["scores"].length; j++) {
+		var score = regression["scores"][j]
+		var suite_version = score["suite_version"]
+		var percent = ((score["score"] / score["prev_score"]) - 1) * 100
+		percent = Math.round(percent * 100)/100;
+		var suite = master["suiteversions"][suite_version]["suite"];
+		var direction = master["suites"][suite]["direction"];
+		var regressed = (direction == 1) ^ (percent > 0)
+
+		// unset prev_cset if they differ for different scores
+		if (prev_cset != regression["scores"][j]["prev_cset"])
+			prev_cset = ""
+
+		regression["scores"][j]["suite"] = master["suiteversions"][suite_version]["suite"]
+		regression["scores"][j]["suiteversion"] = master["suiteversions"][suite_version]["name"]
+		regression["scores"][j]["percent"] = percent
+		regression["scores"][j]["regression"] = regressed
+	  }
+
+	  regression["prev_cset"] = prev_cset
+	}
+	return regression;
+}
 
 awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'modalDialog',
   function ($scope, $http, $routeParams, $q, modalDialog) {
@@ -68,47 +185,25 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
 				selected_states.push($scope.availablestates[id].name);	
 		}
 
-		$http.post('data-regressions.php', {
+		$http.post('data-search.php', {
 			machines:selected_machines,
 			modes:selected_modes,
 			states:selected_states
 		}).then(function(data) {
+			$http.post('data-regression.php', {
+				ids:data.data
+			}).then(function(data) {
     
-		  // Extract machine data
-		  var regressions = data.data;
-		  var master = $scope.master;
+			  var regressions = data.data;
+			  var master = $scope.master;
 
-		  for (var i = 0; i < regressions.length; i++) {
-			regressions[i]["machine_id"] = regressions[i]["machine"]
-			regressions[i]["machine"] = master["machines"][regressions[i]["machine"]]["description"]
-			regressions[i]["mode"] = master["modes"][regressions[i]["mode"]]["name"]
-			regressions[i]["stamp"] = regressions[i]["stamp"] * 1000
+			  for (var i = 0; i < regressions.length; i++) {
+				regressions[i] = normalize_regression_data(master, regressions[i])
+			  }
 
-			var prev_cset = regressions[i]["scores"][0]["prev_cset"];
-			for (var j = 0; j < regressions[i]["scores"].length; j++) {
-			  var score = regressions[i]["scores"][j]
-			  var suite_version = score["suite_version"]
-			  var percent = ((score["score"] / score["prev_score"]) - 1) * 100
-			  percent = Math.round(percent * 100)/100;
-			  var suite = master["suiteversions"][suite_version]["suite"];
-			  var direction = master["suites"][suite]["direction"];
-			  var regression = (direction == 1) ^ (percent > 0)
-
-			  // unset prev_cset if they differ for different scores
-			  if (prev_cset != regressions[i]["scores"][j]["prev_cset"])
-				prev_cset = ""
-
-			  regressions[i]["scores"][j]["suite"] = master["suiteversions"][suite_version]["suite"]
-			  regressions[i]["scores"][j]["suiteversion"] = master["suiteversions"][suite_version]["name"]
-			  regressions[i]["scores"][j]["percent"] = percent
-			  regressions[i]["scores"][j]["regression"] = regression
-			}
-
-			regressions[i]["prev_cset"] = prev_cset
-		  }
-
-		  $scope.regressions = regressions;
-		  $scope.advanced = false;
+			  $scope.regressions = regressions;
+			  $scope.advanced = false;
+			});
 		});
     }
 
@@ -154,18 +249,36 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
 		modalDialog.open("partials/bug.html", data);
 	}
 
-	$scope.showRegression = function(regression, score) {
-		// TODO: give X datapoints before/after regressions, instead of x data!
-		modalDialog.open("partials/graph.html", {
-			"url": "http://arewefastyet.com/#"+
-				   "machine="+regression.machine_id+"&"+
-				   "view=single&"+
-				   "suite="+score.suite+"&"+
-			       "start="+(regression.stamp/1000 - 2*24*60*60)+"&"+
-			       "end="+(regression.stamp/1000 + 2*24*60*60),
-			"score": score,
-			"regression": regression
-		});		
+	$scope.showRegression = function(regression, score, amount) {
+		modalDialog.open("partials/loading.html");
+
+		var requests = [
+			$http.post('data-prev-next-stamp.php', {
+				"score_id": score.id,
+				"amount": amount,
+				"type": "prev"
+			}),
+			$http.post('data-prev-next-stamp.php', {
+				"score_id": score.id,
+				"amount": amount+1,
+				"type": "next"
+			}),
+		];
+
+		$q.all(requests).then(function(data) {
+			console.log(data[0].data, data[1].data);
+			modalDialog.open("partials/graph.html", {
+				"url": "http://arewefastyet.com/#"+
+					   "machine="+regression.machine_id+"&"+
+					   "view=single&"+
+					   "suite="+score.suite+"&"+
+					   "start="+data[0].data+"&"+
+					   "end="+data[1].data,
+				"score": score,
+				"regression": regression,
+				"showRegression": $scope.showRegression
+			});		
+		});
 	}
 
 	$scope.advanced = false;
