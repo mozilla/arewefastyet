@@ -105,3 +105,11 @@ class PrintSubmitter(object):
         print "\n*******************************************\nSummary: "
         print self.msg
         self.msg = ''
+
+def getSubmitter(name):
+    if name == 'remote':
+        return RemoteSubmitter
+    elif name == 'print':
+        return PrintSubmitter
+    else:
+        raise Exception('unknown submitter!')
