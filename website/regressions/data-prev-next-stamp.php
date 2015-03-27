@@ -10,22 +10,40 @@ init_database();
 $postdata = file_get_contents("php://input");
 $request = json_decode($postdata);
 
-$suite_version_id = get("score", (int)$request->score_id, "suite_version_id");
-$build_id = get("score", (int)$request->score_id, "build_id"); 
-$run_id = get("build", $build_id, "run_id"); 
-$stamp = get("run", $run_id, "stamp"); 
-$machine = get("run", $run_id, "machine"); 
-$mode_id = get("build", $build_id, "mode_id"); 
+if (!empty($request->score_id)) {
+	$suite_version_id = get("score", (int)$request->score_id, "suite_version_id");
+	$build_id = get("score", (int)$request->score_id, "build_id"); 
+	$run_id = get("build", $build_id, "run_id"); 
+	$stamp = get("run", $run_id, "stamp"); 
+	$machine = get("run", $run_id, "machine"); 
+	$mode_id = get("build", $build_id, "mode_id"); 
 
-if ($request->type == "prev") {
-	$prev = prev_($stamp, $machine, $mode_id, $suite_version_id, (int)$request->amount);
-	$last = array_pop($prev);
+	if ($request->type == "prev") {
+		$prev = prev_($stamp, $machine, $mode_id, $suite_version_id, (int)$request->amount);
+		$last = array_pop($prev);
+	} else {
+		$next = next_($stamp, $machine, $mode_id, $suite_version_id, (int)$request->amount);
+		$last = array_pop($next);
+	}
+	$build_id = get("score", $last["id"], "build_id"); 
 } else {
-	$next = next_($stamp, $machine, $mode_id, $suite_version_id, (int)$request->amount);
-	$last = array_pop($next);
+	$suite_test_id = get("breakdown", (int)$request->breakdown_id, "suite_test_id");
+	$build_id = get("breakdown", (int)$request->breakdown_id, "build_id"); 
+	$run_id = get("build", $build_id, "run_id"); 
+	$stamp = get("run", $run_id, "stamp"); 
+	$machine = get("run", $run_id, "machine"); 
+	$mode_id = get("build", $build_id, "mode_id"); 
+
+	if ($request->type == "prev") {
+		$prev = prev_suite_test($stamp, $machine, $mode_id, $suite_test_id, (int)$request->amount);
+		$last = array_pop($prev);
+	} else {
+		$next = next_suite_test($stamp, $machine, $mode_id, $suite_test_id, (int)$request->amount);
+		$last = array_pop($next);
+	}
+	$build_id = get("breakdown", $last["id"], "build_id"); 
 }
 
-$build_id = get("score", $last["id"], "build_id"); 
 $run_id = get("build", $build_id, "run_id"); 
 $stamp = get("run", $run_id, "stamp"); 
 

@@ -44,13 +44,34 @@ for ($i=0; $i < count($ids); $i++) {
 	while ($scores = mysql_fetch_assoc($qScores)) {
 		$suite_version_id = get("score", $scores["score_id"], "suite_version_id");
 		$score = array(
-			"id" => $scores["score_id"],
+			"score_id" => $scores["score_id"],
 			"suite_version" => $suite_version_id,
 			"score" => get("score", $scores["score_id"], "score")
 		);
 
         $prev = prev_($output["stamp"], $output["machine"],
                      $output["mode_id"], $suite_version_id);
+		if (count($prev) == 1) {
+            $score["prev_score"] = $prev[0]["score"];
+            $score["prev_cset"] = $prev[0]["cset"];
+		}
+
+		$regression["scores"][] = $score;
+	}
+	$qScores = mysql_query("SELECT * FROM awfy_regression_breakdown
+						    WHERE build_id = '".$output["build_id"]."'") or die(mysql_error());
+	while ($scores = mysql_fetch_assoc($qScores)) {
+		$suite_test_id = get("breakdown", $scores["breakdown_id"], "suite_test_id");
+		$suite_version_id = get("suite_test", $suite_test_id, "suite_version_id");
+		$score = array(
+			"breakdown_id" => $scores["breakdown_id"],
+			"suite_version" => $suite_version_id,
+			"suite_test" => get("suite_test", $suite_test_id, "name"),
+			"score" => get("breakdown", $scores["breakdown_id"], "score")
+		);
+
+        $prev = prev_suite_test($output["stamp"], $output["machine"],
+                                $output["mode_id"], $suite_test_id);
 		if (count($prev) == 1) {
             $score["prev_score"] = $prev[0]["score"];
             $score["prev_cset"] = $prev[0]["cset"];

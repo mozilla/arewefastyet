@@ -82,12 +82,12 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
 		];
 
 		$q.all(requests).then(function(data) {
-			console.log(data[0].data, data[1].data);
 			modalDialog.open("partials/graph.html", {
 				"url": "http://arewefastyet.com/#"+
 					   "machine="+regression.machine_id+"&"+
 					   "view=single&"+
 					   "suite="+score.suite+"&"+
+					   (score.suitetest ? "subtest="+score.suitetest+"&" : "") +
 					   "start="+data[0].data+"&"+
 					   "end="+data[1].data,
 				"score": score,
@@ -122,6 +122,7 @@ function normalize_regression_data(master, regression) {
 
 		regression["scores"][j]["suite"] = master["suiteversions"][suite_version]["suite"]
 		regression["scores"][j]["suiteversion"] = master["suiteversions"][suite_version]["name"]
+		regression["scores"][j]["suitetest"] = score["suite_test"]
 		regression["scores"][j]["percent"] = percent
 		regression["scores"][j]["regression"] = regressed
 	  }
@@ -157,7 +158,7 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
 	}
 	$scope.setNotFixedRegressions = function() {
 		setDefaultModeAndMachine();
-		setState(["unconfirmed","confirmed"]);
+		setState(["confirmed"]);
 		$scope.search()
 	}
 	$scope.setImprovements = function() {
@@ -254,24 +255,27 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
 
 		var requests = [
 			$http.post('data-prev-next-stamp.php', {
-				"score_id": score.id,
+				"score_id": score.score_id,
+				"breakdown_id": score.breakdown_id,
 				"amount": amount,
 				"type": "prev"
 			}),
 			$http.post('data-prev-next-stamp.php', {
-				"score_id": score.id,
+				"score_id": score.score_id,
+				"breakdown_id": score.breakdown_id,
 				"amount": amount+1,
 				"type": "next"
 			}),
 		];
 
 		$q.all(requests).then(function(data) {
-			console.log(data[0].data, data[1].data);
+		console.log(data)
 			modalDialog.open("partials/graph.html", {
 				"url": "http://arewefastyet.com/#"+
 					   "machine="+regression.machine_id+"&"+
 					   "view=single&"+
 					   "suite="+score.suite+"&"+
+					   (score.suitetest ? "subtest="+score.suitetest+"&" : "") +
 					   "start="+data[0].data+"&"+
 					   "end="+data[1].data,
 				"score": score,

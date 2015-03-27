@@ -22,6 +22,25 @@ function prev_($stamp, $machine, $mode, $suite, $limit = 1) {
 	return $output;
 }
 
+function prev_suite_test($stamp, $machine, $mode, $suite_test, $limit = 1) {
+    $query = mysql_query("SELECT awfy_breakdown.id, score, cset
+					      FROM awfy_breakdown
+					      INNER JOIN awfy_build ON awfy_build.id = awfy_breakdown.build_id
+					      INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id
+					      WHERE stamp < ".(int)$stamp." AND
+					       	 machine = ".(int)$machine." AND
+					       	 mode_id = ".(int)$mode." AND
+					       	 suite_test_id = ".(int)$suite_test." AND
+					       	 status = 1
+					      ORDER BY stamp DESC
+					      LIMIT ".(int)$limit) or die(mysql_error());
+	$output = array();
+	while ($prevs = mysql_fetch_assoc($query)) {
+		$output[] = $prevs;
+	}
+	return $output;
+}
+
 function next_($stamp, $machine, $mode, $suite, $limit = 1) {
     $query = mysql_query("SELECT awfy_score.id, score, cset
 					      FROM awfy_score
@@ -31,6 +50,25 @@ function next_($stamp, $machine, $mode, $suite, $limit = 1) {
 					       	 machine = ".(int)$machine." AND
 					       	 mode_id = ".(int)$mode." AND
 					       	 suite_version_id = ".(int)$suite." AND
+					       	 status = 1
+					      ORDER BY stamp ASC
+					      LIMIT ".(int)$limit) or die(mysql_error());
+	$output = array();
+	while ($nexts = mysql_fetch_assoc($query)) {
+		$output[] = $nexts;
+	}
+	return $output;
+}
+
+function next_suite_test($stamp, $machine, $mode, $suite_test, $limit = 1) {
+    $query = mysql_query("SELECT awfy_breakdown.id, score, cset
+					      FROM awfy_breakdown
+					      INNER JOIN awfy_build ON awfy_build.id = awfy_breakdown.build_id
+					      INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id
+					      WHERE stamp > ".(int)$stamp." AND
+					       	 machine = ".(int)$machine." AND
+					       	 mode_id = ".(int)$mode." AND
+					       	 suite_test_id = ".(int)$suite_test." AND
 					       	 status = 1
 					      ORDER BY stamp ASC
 					      LIMIT ".(int)$limit) or die(mysql_error());

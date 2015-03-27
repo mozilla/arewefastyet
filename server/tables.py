@@ -105,7 +105,6 @@ class DBTable:
     records = 0
     for i in class_.globalcache:
         records += len(class_.globalcache[i].keys())
-    print records
 
 class Run(DBTable):
   def __init__(self, id):
@@ -122,6 +121,16 @@ class Run(DBTable):
     if "machine_id" not in self.cached:
        self.cached["machine_id"] = self.cached["machine"]
        del self.cached["machine"]
+
+  def getScoresAndBreakdowns(self):
+    c = awfy.db.cursor()
+    c.execute("SELECT id                                                              \
+               FROM awfy_build                                                        \
+               WHERE run_id = %s", (self.id,))
+    scores = []
+    for row in c.fetchall():
+      scores += Build(row[0]).getScoresAndBreakdowns()
+    return scores
 
   def getScores(self):
     c = awfy.db.cursor()
@@ -228,6 +237,7 @@ class Build(DBTable):
 
   def getScoresAndBreakdowns(self):
     scores = self.getScores()
+    c = awfy.db.cursor()
     c.execute("SELECT id                                                              \
                FROM awfy_breakdown                                                    \
                WHERE build_id = %s", (self.id,))
@@ -344,6 +354,7 @@ class RegressionTools(DBTable):
     change = (avg_prevs - avg_nexts) / (avg_prevs)
     #return abs(change)
     return change
+
 class Score(RegressionTools):
   def __init__(self, id):
     RegressionTools.__init__(self, id)
@@ -400,6 +411,9 @@ class Score(RegressionTools):
     runs = int(round(runs))
     return runs
 
+  def noise(self):
+    return 1.0
+
   def dump(self):
     if self.get("build").get("mode").get("name") != "Ion":
         return
@@ -411,7 +425,7 @@ class Score(RegressionTools):
     print "", self.get("build").get("mode").get("name"),
     print "", self.get("suite_version").get("name")+":", self.change(),
     print "", self.prev().get("score") if self.prev() else "", self.get("score"),
-    print " (%d runs)"%self.runs()
+    print " ("+str(self.runs())+" runs, "+str(self.noise())+")"
 
 class Breakdown(RegressionTools):
   def __init__(self, id):
@@ -464,11 +478,13 @@ class Breakdown(RegressionTools):
     return [Breakdown(row[0]) for row in rows]
 
   def runs(self):
-    runs = max(15, self.get('build').get('run').get('machine').get("confidence_runs"))
-    # TODO: confidence factor
-    # runs *= self.get('suite_version').get('suite').get("confidence_factor")
+    runs = max(1, self.get('build').get('run').get('machine').get("confidence_runs"))
+    runs *= self.get('suite_test').get("confidence_factor")
     runs = int(round(runs))
     return runs
+
+  def noise(self):
+    return self.get('suite_test').get("noise") * 1.
 
   def dump(self):
     import datetime
@@ -479,4 +495,4 @@ class Breakdown(RegressionTools):
     print "", self.get("build").get("mode").get("name"),
     print "", self.get("suite_test").get("suite_version").get("name")+":", self.get("suite_test").get("name")+":", self.change(),
     print "", self.prev().get("score") if self.prev() else "", self.get("score"),
-    print " (%d runs)"%self.runs()
+    print " ("+str(self.runs())+" runs, "+str(self.noise())+")"

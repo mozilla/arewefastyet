@@ -27,7 +27,7 @@ def regressed(score):
     return None
 
   # Lower than threshold, no regression.
-  if abs(change) <= 0.01:
+  if abs(change) <= score.noise():
     return False
 
   # Next is not available. Wait for that before reporting.
@@ -56,8 +56,9 @@ time.tzset()
 
 start = time.time()
 for run in notProcessedRuns():
-  scores = run.getScores()
+  scores = run.getScoresAndBreakdowns()
   finish = True
+  print "run:", run.get("id")
   for score in scores:
     regressed_ = regressed(score)
 
@@ -74,10 +75,10 @@ for run in notProcessedRuns():
       except:
         pass
       try:
-        if score.__class__ == Score:
+        if score.__class__ == tables.Score:
             tables.RegressionScore.insert({"build_id": build, "score_id": score.get("id")})
-        elif score.__class__ == Breakdown:
-            tables.RegressionBreakdown.insert({"build_id": build, "score_id": score.get("id")})
+        elif score.__class__ == tables.Breakdown:
+            tables.RegressionBreakdown.insert({"build_id": build, "breakdown_id": score.get("id")})
         else:
             assert False
       except:
