@@ -4,42 +4,16 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
-import utils
 import urllib
 import urllib2
 import json
 
-class Submitter:
+import utils
+from remotecontroller import RemoteController
+
+class RemoteSubmitter(RemoteController):
     def __init__(self, slave):
-        self.machine = slave.machine
-        self.urls = utils.config.get('main', 'updateURL').split(",")
-        self.runIds = []
-        for i in range(len(self.urls)):
-            self.urls[i] = self.urls[i].strip()
-            self.runIds.append(0)
-
-    def RequestedRevs(self):
-        data = []
-        for i in range(len(self.urls)):
-            try:
-                url = self.urls[i]
-                url += '?requests=1'
-                url += '&MACHINE=' + str(self.machine)
-                url = urllib2.urlopen(url)
-                data += json.loads(url.read())
-            except urllib2.URLError:
-                pass
-        return data
-
-    def Awake(self):
-        for i in range(len(self.urls)):
-            try:
-                url = self.urls[i]
-                url += '?awake=yes'
-                url += '&MACHINE=' + str(self.machine)
-                urllib2.urlopen(url)
-            except urllib2.URLError:
-                pass
+        super(RemoteSubmitter, self).__init__(slave)
 
     def Start(self, timestamp=None):
         for i in range(len(self.urls)):
@@ -101,3 +75,41 @@ class Submitter:
             url += '&status=' + str(status)
             url += '&runid=' + str(self.runIds[i])
             urllib2.urlopen(url)
+
+class PrintSubmitter(object):
+    def __init__(self, slave):
+        self.slave = slave
+        self.msg = ''
+
+    def log(self, msg):
+        self.msg += msg + '\n'
+        print msg
+
+    def Start(self, timestamp=None):
+        msg = "Starting benchmark"
+        if timestamp:
+            msg += " at timestamp" + str(timestamp)
+        self.log(msg)
+
+    def AddEngine(self, name, cset):
+        self.log("Added engine %s (changeset: %s)" % (name, cset))
+
+    def AddTests(self, tests, suite, suiteversion, mode):
+        for test in tests:
+            self.SubmitTest(test['name'], suite, suiteversion, mode, test['time'])
+
+    def SubmitTest(self, name, suite, suiteversion, mode, time):
+        self.log("%s (%s -- %s): %s" % (name, suiteversion, mode, str(time)))
+
+    def Finish(self, status):
+        print "\n*******************************************\nSummary: "
+        print self.msg
+        self.msg = ''
+
+def getSubmitter(name):
+    if name == 'remote':
+        return RemoteSubmitter
+    elif name == 'print':
+        return PrintSubmitter
+    else:
+        raise Exception('unknown submitter!')

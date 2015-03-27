@@ -15,7 +15,9 @@ import benchmarks
 import builders
 import puller
 import slaves
-import submitter
+
+from submitter import getSubmitter
+from remotecontroller import RemoteController
 
 parser = OptionParser(usage="usage: %prog [options]")
 parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
@@ -24,6 +26,8 @@ parser.add_option("-n", "--no-update", dest="noupdate", action="store_true", def
                   help="Skip updating source repositories")
 parser.add_option("-c", "--config", dest="config_name", type="string", default="awfy.config",
                   help="Config file (default: awfy.config)")
+parser.add_option("-s", "--submitter", dest="submitter", type="string", default="remote",
+                  help="Submitter class ('remote' or 'print')")
 (options, args) = parser.parse_args()
 
 utils.config.init(options.config_name)
@@ -40,12 +44,15 @@ KnownEngines = [builders.MozillaInbound(),
                ]
 Engines, NumUpdated = builders.build(KnownEngines, not options.noupdate, options.force)
 
+submitter = getSubmitter(options.submitter)
+
 # No updates. Report to server and wait 60 seconds, before moving on
 if NumUpdated == 0 and not options.force:
-    for slave in slaves.init():
-        submit = submitter.Submitter(slave)
-        submit.Awake();
-    time.sleep(60)
+    if options.submitter == 'remote':
+        for slave in slaves.init():
+            submit = submitter(slave)
+            submit.Awake();
+        time.sleep(60)
     sys.exit(0)
 
 # The native compiler is a special thing, for now.
@@ -68,14 +75,14 @@ for engine in Engines:
         mode = Mode(shell, args, env, m['mode'], engine.cset)
         modes.append(mode)
 
-# Set of slaves that run the builds. 
+# Set of slaves that run the builds.
 KnownSlaves = slaves.init()
 
 for slave in KnownSlaves:
     slave.prepare(Engines)
 
     # Inform AWFY of each mode we found.
-    submit = submitter.Submitter(slave)
+    submit = submitter(slave)
     submit.Start()
     for mode in modes:
         submit.AddEngine(mode.name, mode.cset)
