@@ -100,6 +100,13 @@ class DBTable:
     return c.lastrowid
 
   @classmethod
+  def all(class_):
+    c = awfy.db.cursor()
+    c.execute("SELECT id FROM "+class_.table())
+    for row in c.fetchall():
+        yield class_(row[0])
+
+  @classmethod
   def maybeflush(class_):
     #TODO
     records = 0
@@ -181,6 +188,16 @@ class Mode(DBTable):
   def __init__(self, id):
     DBTable.__init__(self, id)
 
+  @classmethod
+  def allWith(class_, machine):
+    c = awfy.db.cursor()
+    c.execute("SELECT distinct(awfy_build.mode_id)                                   \
+               FROM awfy_build                                                       \
+               LEFT JOIN awfy_run ON awfy_build.run_id = awfy_run.id                 \
+               WHERE machine = %s", (machine.get("id"),))
+    for row in c.fetchall():
+      yield Mode(row[0])
+     
   @staticmethod
   def table():
     return "awfy_mode"
@@ -201,6 +218,38 @@ class RegressionScore(DBTable):
   def table():
     return "awfy_regression_score"
 
+class RegressionScoreNoise(DBTable):
+  def __init__(self, machine, suite, mode):
+    c = awfy.db.cursor()
+    c.execute("SELECT id FROM "+self.table()+"        \
+               WHERE machine_id = %s AND                \
+                     mode_id = %s AND                   \
+                     suite_version_id = %s", (machine.get("id"), mode.get("id"), suite.get("id")))
+    id = c.fetchone()[0]
+    DBTable.__init__(self, id)
+
+  @classmethod
+  def insertOrUpdate(class_, machine, suite, mode, noise):
+    try:
+       RegressionScoreNoise.insert({
+         "machine_id": machine.get("id"),
+         "suite_version_id": suite.get("id"),
+         "mode_id": mode.get("id"),
+         "noise": noise
+       })
+    except:
+        c = awfy.db.cursor()
+        c.execute("UPDATE "+class_.table()+"        \
+                   SET noise = %s                   \
+                   WHERE machine_id = %s AND        \
+                         mode_id = %s AND           \
+                         suite_version_id = %s", (noise, machine.get("id"), mode.get("id"),
+                                                  suite.get("id")))
+
+  @staticmethod
+  def table():
+    return "awfy_regression_score_noise"
+
 class RegressionBreakdown(DBTable):
   def __init__(self, id):
     DBTable.__init__(self, id)
@@ -208,6 +257,38 @@ class RegressionBreakdown(DBTable):
   @staticmethod
   def table():
     return "awfy_regression_breakdown"
+
+class RegressionBreakdownNoise(DBTable):
+  def __init__(self, machine, suite, mode):
+    c = awfy.db.cursor()
+    c.execute("SELECT id FROM "+self.table()+"        \
+               WHERE machine_id = %s AND                \
+                     mode_id = %s AND                   \
+                     suite_test_id = %s", (machine.get("id"), mode.get("id"), suite.get("id")))
+    id = c.fetchone()[0]
+    DBTable.__init__(self, id)
+
+  @classmethod
+  def insertOrUpdate(class_, machine, suite, mode, noise):
+    try:
+       RegressionBreakdownNoise.insert({
+         "machine_id": machine.get("id"),
+         "suite_test_id": suite.get("id"),
+         "mode_id": mode.get("id"),
+         "noise": noise
+       })
+    except:
+        c = awfy.db.cursor()
+        c.execute("UPDATE "+class_.table()+"        \
+                   SET noise = %s                   \
+                   WHERE machine_id = %s AND        \
+                         mode_id = %s AND           \
+                         suite_test_id = %s", (noise, machine.get("id"), mode.get("id"),
+                                               suite.get("id")))
+
+  @staticmethod
+  def table():
+    return "awfy_regression_breakdown_noise"
 
 class RegressionStatus(DBTable):
   def __init__(self, id):
@@ -314,13 +395,13 @@ class RegressionTools(DBTable):
         nexts.append(point)
     return nexts
 
-  def change(self):
+  def avg_prevs_nexts(self):
     self.initialize()
-    if "change" not in self.cached:
-        self.cached["change"] = self.compute_change()
-    return self.cached["change"]
+    if "avg_prevs" not in self.cached:
+        self.cached["avg_prevs"], self.cached["avg_nexts"] = self.compute_avg_prevs_nexts()
+    return self.cached["avg_prevs"], self.cached["avg_nexts"]
 
-  def compute_change(self):
+  def compute_avg_prevs_nexts(self):
     "Compute the change in runs before and after the current run"
     # How many runs do we need to test?
     runs = self.runs()
@@ -336,24 +417,37 @@ class RegressionTools(DBTable):
 
     # Not enough data to compute change.
     if len(nexts) != runs:
-        return None
+        return None, None
+
+    avg_prevs = sum(prevs)
+    avg_nexts = sum(nexts)
     
     # Handle edge cases.
-    if sum(prevs) == 0 and sum(nexts) == 0:
-        return 0
-    if sum(prevs) == 0 or sum(nexts) == 0:
+    if avg_prevs != 0:
+        avg_prevs /= sum(p_weight) 
+    if avg_nexts != 0:
+        avg_nexts /= sum(n_weight) 
+
+    return avg_prevs, avg_nexts
+
+  def change(self):
+    prevs, nexts = self.avg_prevs_nexts()
+    if not prevs or not nexts:
+        return None
+    
+    return abs(prevs - nexts)
+
+  def avg_change(self):
+    prevs, nexts = self.avg_prevs_nexts()
+    if not prevs or not nexts:
+        return None
+
+    if prevs == 0:
         return float("inf")
 
-    avg_prevs = sum(prevs)/len(prevs)
-    avg_nexts = sum(nexts)/len(nexts)
-
-    avg_prevs /= sum(p_weight) 
-    avg_nexts /= sum(n_weight) 
-
-    change = (avg_prevs - avg_nexts) / (avg_prevs + avg_nexts)
-    change = (avg_prevs - avg_nexts) / (avg_prevs)
-    #return abs(change)
+    change = (prevs - nexts) / (prevs)
     return change
+
 
 class Score(RegressionTools):
   def __init__(self, id):
@@ -412,8 +506,33 @@ class Score(RegressionTools):
     return runs
 
   def noise(self):
-    return 1.0
+    noise = RegressionScoreNoise(self.get('build').get('run').get('machine'),
+                                 self.get('suite_version'),
+                                 self.get('build').get('mode')).get('noise')
+    return 2*noise
 
+  @classmethod
+  def first(class_, machine, suite, mode):
+    assert machine.__class__ == Machine
+    assert suite.__class__ == SuiteVersion
+    assert mode.__class__ == Mode
+
+    c = awfy.db.cursor()
+    c.execute("SELECT awfy_score.id                                                   \
+               FROM awfy_score                                                        \
+               INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
+               INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
+               WHERE machine = %s AND                                                 \
+                     mode_id = %s AND                                                 \
+                     suite_version_id = %s AND                                        \
+                     status = 1                                                       \
+               ORDER BY stamp ASC                                                     \
+               LIMIT 1", (machine.get("id"), mode.get("id"), suite.get("id")))
+    row = c.fetchone()
+    if row:
+      return Score(row[0])
+    return None
+    
   def dump(self):
     if self.get("build").get("mode").get("name") != "Ion":
         return
@@ -423,7 +542,7 @@ class Score(RegressionTools):
     ).strftime('%Y-%m-%d %H:%M:%S'),
     print "", self.get("build").get("run").get("machine").get("description"), 
     print "", self.get("build").get("mode").get("name"),
-    print "", self.get("suite_version").get("name")+":", self.change(),
+    print "", self.get("suite_version").get("name")+":", self.avg_change(),
     print "", self.prev().get("score") if self.prev() else "", self.get("score"),
     print " ("+str(self.runs())+" runs, "+str(self.noise())+")"
 
@@ -477,6 +596,28 @@ class Breakdown(RegressionTools):
     rows = c.fetchall()
     return [Breakdown(row[0]) for row in rows]
 
+  @classmethod
+  def first(class_, machine, suite, mode):
+    assert machine.__class__ == Machine
+    assert suite.__class__ == SuiteTest
+    assert mode.__class__ == Mode
+
+    c = awfy.db.cursor()
+    c.execute("SELECT awfy_breakdown.id                                               \
+               FROM awfy_breakdown                                                    \
+               INNER JOIN awfy_build ON awfy_build.id = awfy_breakdown.build_id       \
+               INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
+               WHERE machine = %s AND                                                 \
+                     mode_id = %s AND                                                 \
+                     suite_test_id = %s AND                                           \
+                     status = 1                                                       \
+               ORDER BY stamp ASC                                                     \
+               LIMIT 1", (machine.get("id"), mode.get("id"), suite.get("id")))
+    row = c.fetchone()
+    if row:
+      return Breakdown(row[0])
+    return None
+
   def runs(self):
     runs = max(1, self.get('build').get('run').get('machine').get("confidence_runs"))
     runs *= self.get('suite_test').get("confidence_factor")
@@ -484,15 +625,18 @@ class Breakdown(RegressionTools):
     return runs
 
   def noise(self):
-    return self.get('suite_test').get("noise") * 1.
+    noise = RegressionBreakdownNoise(self.get('build').get('run').get('machine'),
+                                     self.get('suite_test'),
+                                     self.get('build').get('mode')).get('noise')
+    return 2*noise
 
   def dump(self):
     import datetime
     print datetime.datetime.fromtimestamp(
         int(self.get("build").get("run").get("stamp"))
     ).strftime('%Y-%m-%d %H:%M:%S'),
-    print "", self.get("build").get("run").get("machine").get("description"), 
+    #print "", self.get("build").get("run").get("machine").get("description"), 
     print "", self.get("build").get("mode").get("name"),
-    print "", self.get("suite_test").get("suite_version").get("name")+":", self.get("suite_test").get("name")+":", self.change(),
+    print "", self.get("suite_test").get("suite_version").get("name")+":", self.get("suite_test").get("name")+":", self.avg_change(),
     print "", self.prev().get("score") if self.prev() else "", self.get("score"),
-    print " ("+str(self.runs())+" runs, "+str(self.noise())+")"
+    print " ("+str(self.runs())+" runs, "+str(self.noise())+", "+str(self.change())+")"

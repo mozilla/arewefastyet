@@ -20,31 +20,35 @@ def notProcessedRuns():
   return runs
    
 def regressed(score):
+  # Lower than threshold, no regression.
   change = score.change()
+  if not change:
+    return None
+  if abs(change) <= score.noise():
+    return False
+
+  # average change over multiple runs.
+  change = score.avg_change()
 
   # No change, so wait for more data before reporting.
   if not change:
     return None
-
-  # Lower than threshold, no regression.
-  if abs(change) <= score.noise():
-    return False
 
   # Next is not available. Wait for that before reporting.
   if not score.next():
     return None
 
   # Next has a bigger change. Regression is more likely to be that.
-  if change >= 0 and score.next().change() > change:
+  if change >= 0 and score.next().avg_change() > change:
     return False
-  if change <= 0 and score.next().change() < change:
+  if change <= 0 and score.next().avg_change() < change:
     return False
 
   # If there is a prev, test that prev change is smaller
   if score.prev(): 
-    if change >= 0 and score.prev().change() >= change:
+    if change >= 0 and score.prev().avg_change() >= change:
       return False
-    if change <= 0 and score.prev().change() <= change:
+    if change <= 0 and score.prev().avg_change() <= change:
       return False
 
   return True
@@ -60,6 +64,9 @@ for run in notProcessedRuns():
   finish = True
   print "run:", run.get("id")
   for score in scores:
+    if score.__class__ == tables.Score:
+      continue
+
     regressed_ = regressed(score)
 
     # Not enough info yet
@@ -71,7 +78,7 @@ for run in notProcessedRuns():
       build = score.get("build_id")
       try:
         id_ = tables.Regression.insert({"build_id": build})
-        tables.RegressionStatus.insert({"regression_id": id_, "name": "awfy", "status": "unconfirmed", "stamp":"UNIX_TIMESTAMP()"})
+        tables.RegressionStatus.insert({"regression_id": id_, "name": "awfy", "extra": "Submitted", "stamp":"UNIX_TIMESTAMP()"})
       except:
         pass
       try:

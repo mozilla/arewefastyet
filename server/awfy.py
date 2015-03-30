@@ -19,8 +19,18 @@ path = None
 
 queries = 0
 class DB:
-  def __init__(self, db):
-    self.db = db
+  def __init__(self, host, user, pw, name):
+    self.host = host
+    self.user = user
+    self.pw = pw
+    self.name = name
+    self.connect()
+  def connect(self):
+    if self.host[0] == '/':
+      self.db = mdb.connect(unix_socket=self.host, user=self.user, passwd=self.pw,
+                            db=self.name, use_unicode=True)
+    else:
+      self.db = mdb.connect(self.host, self.user, self.pw, self.name, use_unicode=True)
   def cursor(self):
     return DBCursor(self.db.cursor())
   def commit(self):
@@ -51,12 +61,7 @@ def Startup():
     pw = config.get('mysql', 'pass')
     name = config.get('mysql', 'name')
 
-    if host[0] == '/':
-        db = mdb.connect(unix_socket=host, user=user, passwd=pw, db=name, use_unicode=True)
-    else:
-        db = mdb.connect(host, user, pw, name, use_unicode=True)
-
-    db = DB(db)
+    db = DB(host, user, pw, name)
     c = db.cursor()
     c.execute("SELECT `value` FROM awfy_config WHERE `key` = 'version'")
     row = c.fetchone()
