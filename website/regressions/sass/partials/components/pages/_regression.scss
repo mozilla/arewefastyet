@@ -1,0 +1,40 @@
+.details table {
+  width: 900px;
+  border: 1px SOLID get($_box, border);
+  background-color: get($_box, header);
+  color: get($_box, color);
+  padding: $unit;
+  float: left;
+  margin-right: 2%;
+  margin-bottom: $unit*5;
+
+  td {
+    background-color: get($_box, bg);
+    padding: $unit;
+  }
+
+  th {
+	text-align: left;
+  }
+
+  .status td {
+    text-transform: uppercase;
+  }
+
+  .edit {
+  	font-family: 'Glyphicons Halflings';
+  	font-style: normal;
+  	font-weight: normal;
+  	margin-left: $unit;
+  	margin-right: $unit;
+	float:right;
+	cursor:pointer;
+  }
+}
+
+.range {
+  iframe {
+    width: 100%;
+    height: 750px;
+  }
+}

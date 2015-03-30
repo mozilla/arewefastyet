@@ -20,6 +20,17 @@ awfyApp.config(['$routeProvider',
   }
 ]);
 
+awfyApp.config(['$sceDelegateProvider',
+  function($sceDelegateProvider) {
+    $sceDelegateProvider.resourceUrlWhitelist([
+      'self',
+      'https://chromium.googlesource.com/v8/v8/+log/**',
+	  'http://hg.mozilla.org/**',
+	  'http://trac.webkit.org/log/**'
+    ]);
+  }
+]);
+
 awfyApp.factory('MasterService', function() {
 	return AWFYMaster;
 });

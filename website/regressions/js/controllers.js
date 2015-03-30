@@ -153,6 +153,7 @@ awfyCtrl.service('RegressionService', ["MasterService",
 	this.normalize = function(regression) {
 	  regression["machine_id"] = regression["machine"]
 	  regression["machine"] = master["machines"][regression["machine"]]["description"]
+	  regression["mode_id"] = regression["mode"]
 	  regression["mode"] = master["modes"][regression["mode"]]["name"]
 	  regression["stamp"] = regression["stamp"] * 1000
 
@@ -179,6 +180,12 @@ awfyCtrl.service('RegressionService', ["MasterService",
 	    }
 
 	    regression["prev_cset"] = prev_cset
+
+		var vendor_id = master["modes"][regression["mode_id"]]["vendor_id"]
+        var range_url = master["vendors"][vendor_id]["rangeURL"]
+        range_url = range_url.replace('{from}', prev_cset);
+        range_url = range_url.replace('{to}', regression["cset"]);
+        regression["range_url"] = range_url
 	  }
 	  return regression;
 	}

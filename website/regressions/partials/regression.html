@@ -59,22 +59,30 @@
   	</tr>
   	</table>
   </div>
-  <div>
-    <div class='box'>
-	  <div class='header'>
-		Detected regressions/improvements
+
+  <div class='box'>
+    <div class='header'>
+  	Detected regressions/improvements
+    </div>
+    <div class='content'>
+      <div ng-repeat="score in regression.scores | orderBy:'suiteversion + suitetest'" ng-click="showRegression(regression, score, 7)" class='regression'>
+  		<div class='suite'>{{score.suiteversion}}<span ng-if="score.suitetest">:
+  			{{score.suitetest}}</span>
+  	    </div>
+  		<div class='percent' ng-class="(score.regression) ? 'regression' : 'improvement'">
+  			{{score.percent}} %
+  		</div>
+  		<div class='score'>{{score.prev_score}} to {{score.score}}</div>
       </div>
-      <div class='content'>
-        <div ng-repeat="score in regression.scores | orderBy:'suiteversion + suitetest'" ng-click="showRegression(regression, score, 7)" class='regression'>
-			<div class='suite'>{{score.suiteversion}}<span ng-if="score.suitetest">:
-				{{score.suitetest}}</span>
-		    </div>
-			<div class='percent' ng-class="(score.regression) ? 'regression' : 'improvement'">
-				{{score.percent}} %
-			</div>
-			<div class='score'>{{score.prev_score}} to {{score.score}}</div>
-        </div>
-      </div>
+    </div>
+  </div>
+
+  <div class='box range'>
+    <div class='header'>
+      Regression range:
+    </div>
+    <div class='content'>
+      <iframe ng-src='{{regression.range_url}}'></iframe>
     </div>
   </div>
 </div>
