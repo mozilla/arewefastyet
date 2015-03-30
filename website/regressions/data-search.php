@@ -16,6 +16,9 @@ $machines = join(",", $request->machines);
 for ($i=0; $i < count($request->modes); $i++)
 	$request->modes[$i] = (int)$request->modes[$i]; 
 $modes = join(",", $request->modes);
+for ($i=0; $i < count($request->states); $i++)
+	$request->states[$i] = "'".mysql_real_escape_string($request->states[$i])."'"; 
+$states = join(",", $request->states);
 
 #TODO
 date_default_timezone_set("Europe/Brussels");
@@ -25,6 +28,8 @@ if (!empty($machines))
 	$where[] = "machine in ($machines)"; 
 if (!empty($modes))
 	$where[] = "mode_id in ($modes)"; 
+if (!empty($states))
+	$where[] = "awfy_regression.status in ($states)"; 
 
 $query = mysql_query("SELECT awfy_regression.id, machine, mode_id, awfy_run.stamp, build_id, cset, bug
                       FROM awfy_regression
@@ -35,14 +40,6 @@ $query = mysql_query("SELECT awfy_regression.id, machine, mode_id, awfy_run.stam
                       LIMIT 100") or die(mysql_error());
 $data = Array();
 while ($output = mysql_fetch_assoc($query)) {
-	$qStatus = mysql_query("SELECT status from awfy_regression_status
-							WHERE regression_id = ".$output["id"]."
-							ORDER BY stamp DESC
-							LIMIT 1") or die(mysql_error());
-	$status = mysql_fetch_assoc($qStatus);
-	if (!in_array($status["status"], $request->states))
-		continue;
-
 	$data[] = $output["id"];
 }
 

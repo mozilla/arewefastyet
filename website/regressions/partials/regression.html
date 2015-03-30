@@ -1,4 +1,4 @@
-<div ng-controller="overviewCtrl" class='overview'>
+<div ng-controller="overviewCtrl" class='regression'>
   <div class='subheader'>
     <div class='button' ng-repeat="software in softwares">
       <div class='title'>{{software.name}}</div>
@@ -11,15 +11,61 @@
 
   <h2>Regression: @{{regression.id}}</h2>
 
+  <div class='details'>
+  	<table>
+	<tr class='machine'><th>Machine</th><td>{{regression.machine}}</td></tr>
+    <tr class='mode'><th>Mode</th><td>{{regression.mode}}</td></tr>
+    <tr class='stamp'><th>Date</th><td>{{regression.stamp | date:'dd MMM yy HH:mm'}}</td></tr>
+  	<tr class='status'>
+		<th>Status</th>
+		<td>
+			<span ng-if="!editStatus" ng-click="editStatusFn()">
+				{{regression.status}}
+				<span class="edit" ng-if="currentUser!=undefined">&#x270f;</span>
+			</span>
+			<span ng-if="editStatus">
+				<select ng-model="newstatus" ng-options="status.name for status in availablestates"></select>
+				<input type='button' value='Save' ng-click='saveStatusFn(newstatus.name)'>
+			</span>
+		</td>
+	</tr>
+  	<tr class='bug'>
+	  <th>Bug</th>
+	  <td>
+	    <span ng-if="!editBug">
+		  <span ng-if="regression.bug">
+		    <a ng-href="https://bugzilla.mozilla.org/show_bug.cgi?id={{regression.bug}}">
+		      #{{regression.bug}}
+			</a>
+		  </span>
+		  <span ng-if="regression.bug==0">-</span>
+          <span class="edit" ng-click="editBugFn()" ng-if="currentUser!=undefined">&#x270f;</span>
+		</span>
+		<span ng-if="editBug">
+		  <input type='text' ng-model='newbug'>
+		  <input type='button' value='Save' ng-click='saveBugFn(newbug)'>
+		</span>
+	  </td>
+	</tr>
+  	</table>
+  </div>
+
+  <div class='status'>
+  	<table class='box'>
+  	<tr ng-repeat="status in states">
+  		<td class='stamp'>{{status.stamp | date:'dd MMM yy HH:mm'}}</td>
+  		<td class='name'>{{status.name}}</td>
+  		<td class='extra'>{{status.extra}}</td>
+  	</tr>
+  	</table>
+  </div>
   <div>
     <div class='box'>
 	  <div class='header'>
-        <div class='machine'>{{regression.machine}}</div>
-        <div class='mode'>{{regression.mode}}</div>
-        <div class='stamp'>{{regression.stamp | date:'dd MMM yy HH:mm'}}</div>
+		Detected regressions/improvements
       </div>
       <div class='content'>
-        <div ng-repeat="score in regression.scores | orderBy:'suiteversion + suitetest'" ng-click="showRegression(regression, score, 7)">
+        <div ng-repeat="score in regression.scores | orderBy:'suiteversion + suitetest'" ng-click="showRegression(regression, score, 7)" class='regression'>
 			<div class='suite'>{{score.suiteversion}}<span ng-if="score.suitetest">:
 				{{score.suitetest}}</span>
 		    </div>
@@ -28,19 +74,6 @@
 			</div>
 			<div class='score'>{{score.prev_score}} to {{score.score}}</div>
         </div>
-      </div>
-      <div class='footer'>
-        <a class='bug' ng-click='bugPopup(regression.id, regression)' ng-if="currentUser!=undefined">
-			<span class="edit">&#x270f;</span>
-			<span ng-if="regression.bug==0">Link to bug</span>
-		</a>
-        <a class='bug' ng-href="https://bugzilla.mozilla.org/show_bug.cgi?id={{regression.bug}}" ng-if="regression.bug!=0">
-			#{{regression.bug}}
-		</a>
-        <a class='status' ng-click='statusPopup(regression)'>Status: 
-			<span class='status'>{{regression.status}}</span>
-			<span ng-if='regression.status_extra'>: {{regression.status_extra}}</span>
-		</a>
       </div>
     </div>
   </div>

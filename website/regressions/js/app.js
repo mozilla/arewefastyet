@@ -20,6 +20,11 @@ awfyApp.config(['$routeProvider',
   }
 ]);
 
+awfyApp.factory('MasterService', function() {
+	return AWFYMaster;
+});
+
+
 awfyApp.service("modalDialog", function() {
   this.open = function(template, data) {
 	this.template = template
@@ -55,16 +60,21 @@ awfyApp.controller('dialogCtrl', ['$scope', 'modalDialog',
 			modalDialog.close();
 	}
   }
-])
+]);
 
-awfyApp.controller('pageCtrl', ['$scope', '$http', '$q', '$location', 'modalDialog',
-  function ($scope, $http, $q, $location, modalDialog) {
+awfyApp.controller('pageCtrl', ['$scope', 'MasterService',
+  function ($scope, master) {
 
-	for (var id in AWFYMaster.machines) {
-		AWFYMaster.machines[id].selected = true;
+	var machines = []
+	for (var id in master.machines) {
+		machines[id] = master.machines[id];
+		machines[id]["selected"] = true;
 	}
 
-	$scope.master = AWFYMaster;
+	$scope.master = {
+		"modes": master.modes,
+		"machines": machines
+	};
 	$scope.currentUser = currentUser;
 	$scope.availablestates = [{"name":"unconfirmed"},
                               {"name":"confirmed"},
