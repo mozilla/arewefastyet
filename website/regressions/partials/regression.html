@@ -81,8 +81,11 @@
     <div class='header'>
       Regression range:
     </div>
-    <div class='content'>
+    <div class='content' ng-if='regression.range_url'>
       <iframe ng-src='{{regression.range_url}}'></iframe>
+    </div>
+    <div class='content' ng-if='!regression.range_url'>
+      <center>- There are different regression ranges for the different scores. To see the regression range click on a specific score and on the graph click the regressed point. Click on the 'changelog' there. -</center>
     </div>
   </div>
 </div>
