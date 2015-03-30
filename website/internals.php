@@ -19,7 +19,7 @@ function has_permissions()
 	# Test here which persons have permission to see all benchmarks
 	if ($_SESSION['persona'] == "hv1989@gmail.com")
 		return true;
-	if ($_SESSION['persona'] == "hverschore@mozilla.com")
+	if (preg_match("/^[0-9A-Za-z.]*@mozilla\.com$/", $_SESSION['persona']))
 		return true;
 
 	return false;
@@ -88,6 +88,12 @@ function find_or_add_suite_version($suite, $version)
     $suite_id = find_suite($suite);
     if ($suite_id == -1)
         return -1;
+	if ($suite == "octane" && $version == "octane")
+		$version = "octane 2.0.1";
+	if ($suite == "ss" && $version == "ss")
+		$version = "ss 1.0.1";
+	if ($suite == "kraken" && $version == "kraken")
+		$version = "kraken 1.1";
     $query = "select id from awfy_suite_version where suite_id = $suite_id and name = '$version'";
     $results = mysql_query($query);
     if (!$results || mysql_num_rows($results) < 1) {
