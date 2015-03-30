@@ -16,6 +16,7 @@ import builders
 import puller
 import slaves
 import submitter
+from remotecontroller import RemoteController
 
 parser = OptionParser(usage="usage: %prog [options]")
 parser.add_option("-c", "--config", dest="config_name", type="string", default="awfy.config",
@@ -40,8 +41,8 @@ native = builders.NativeCompiler()
 
 # No updates. Report to server and wait 60 seconds, before moving on
 for slave in slaves.init():
-    submit = submitter.Submitter(slave)
-    revs = submit.RequestedRevs();
+    remotecontroller = RemoteController(slave)
+    revs = remotecontroller.RequestedRevs();
 
     for rev in revs:
         Engines, NumUpdated = builders.build(KnownEngines, rev = rev["cset"])
@@ -63,7 +64,7 @@ for slave in slaves.init():
         slave.prepare(Engines)
 
         # Inform AWFY of each mode we found.
-        submit = submitter.Submitter(slave)
+        submit = submitter.RemoteSubmitter(slave)
         submit.Start(rev["stamp"])
         for mode in modes:
             submit.AddEngine(mode.name, mode.cset)
