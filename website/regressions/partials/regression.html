@@ -47,6 +47,10 @@
 		</span>
 	  </td>
 	</tr>
+    <tr class='finished'><th>Detection finished</th><td>
+		<span ng-if="regression.detector">Yes</span>
+		<span ng-if="regression.detector==0">No (new regression might still get detected in the future.)</span>
+    </td></tr>
   	</table>
   </div>
 

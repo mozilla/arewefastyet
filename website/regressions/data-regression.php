@@ -23,7 +23,7 @@ if (isset($request->ids)) {
 $data = array();
 for ($i=0; $i < count($ids); $i++) {
 	$query = mysql_query("SELECT awfy_regression.id, machine, mode_id, awfy_run.stamp,
-                                 build_id, cset, bug, awfy_regression.status
+                                 build_id, cset, bug, awfy_regression.status, detector
 						  FROM awfy_regression
 						  INNER JOIN awfy_build ON build_id = awfy_build.id
 						  INNER JOIN awfy_run ON run_id = awfy_run.id
@@ -39,6 +39,7 @@ for ($i=0; $i < count($ids); $i++) {
 		"bug" => $output["bug"],
 		"status" => $output["status"],
 		"build_id" => $output["build_id"],
+		"detector" => $output["detector"],
 		"scores" => array()
 	);
 	$qScores = mysql_query("SELECT * FROM awfy_regression_score
