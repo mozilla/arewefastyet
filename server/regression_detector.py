@@ -12,8 +12,10 @@ def notProcessedRuns():
   c = awfy.db.cursor()
   c.execute("SELECT id                                                          \
              FROM awfy_run                                                      \
-             WHERE id > 223536                                                  \
-             AND status = 1 AND machine=28")
+             WHERE id > 225536 AND                                              \
+                   status = 1 AND                                               \
+                   detector != 1 AND                                            \
+                   machine=28")
   runs = []
   for row in c.fetchall():
     runs.append(tables.Run(row[0]))
@@ -22,7 +24,7 @@ def notProcessedRuns():
 def regressed(score):
   # Lower than threshold, no regression.
   change = score.change()
-  if not change:
+  if change is None:
     return None
   if abs(change) <= score.noise():
     return False
@@ -31,7 +33,7 @@ def regressed(score):
   change = score.avg_change()
 
   # No change, so wait for more data before reporting.
-  if not change:
+  if change is None:
     return None
 
   # Next is not available. Wait for that before reporting.
@@ -64,9 +66,6 @@ for run in notProcessedRuns():
   finish = True
   print "run:", run.get("id")
   for score in scores:
-    if score.__class__ == tables.Score:
-      continue
-
     regressed_ = regressed(score)
 
     # Not enough info yet
@@ -90,8 +89,8 @@ for run in notProcessedRuns():
             assert False
       except:
         pass
-  #if finish:
-  #  run.update({"detector": "1"})
+  if finish:
+    run.update({"detector": "1"})
   tables.DBTable.maybeflush()
 
 awfy.db.commit()
