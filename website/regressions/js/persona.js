@@ -17,14 +17,6 @@ navigator.id.watch({
   }
 });
 
-// Set default login
-if(currentUser) {
-  $(function() {
-    document.getElementById("personaLogout").style.display = "block";
-    document.getElementById("personaLogin").style.display = "none";
-  });
-}
-
 // Do login in
 var doPersonaLogin = function() {
   request = true;

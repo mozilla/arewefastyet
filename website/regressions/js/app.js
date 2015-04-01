@@ -86,7 +86,6 @@ awfyApp.controller('pageCtrl', ['$scope', 'MasterService',
 		"modes": master.modes,
 		"machines": machines
 	};
-	$scope.currentUser = currentUser;
 	$scope.availablestates = [{"name":"unconfirmed"},
                               {"name":"confirmed"},
                               {"name":"improvement"},
@@ -95,4 +94,7 @@ awfyApp.controller('pageCtrl', ['$scope', 'MasterService',
 							  {"name":"noise"},
 							  {"name":"infrastructure"}];
 
+	$http.get('../auth.php?persona&check').then(function(data) {
+      $scope.currentUser = data.data
+	}
 }]);

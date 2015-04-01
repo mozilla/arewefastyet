@@ -24,12 +24,17 @@ awfyApp.controller('pageCtrl', ['$scope', '$http', '$q', '$location',
   function ($scope, $http, $q, $location) {
 
     // Get master data
-    $http.get('../data.php?file=master.js').then(function(data) {
+    $q.all([
+		$http.get('../data.php?file=master.js'),
+		$http.get('../auth.php?persona&check'),
+	]).then(function(data) {
+
+      $scope.currentUser = data[1].data
 
       // Extract master data into JSON data.
-      var offset = data.data.indexOf("{");
-      var endOffset = data.data.lastIndexOf("}");
-      master = data.data.substring(offset, endOffset+1);
+      var offset = data[0].data.indexOf("{");
+      var endOffset = data[0].data.lastIndexOf("}");
+      master = data[0].data.substring(offset, endOffset+1);
       master = JSON.parse(master);
 
       // Add all machines (remove key)

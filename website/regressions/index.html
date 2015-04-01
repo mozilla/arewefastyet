@@ -27,8 +27,8 @@
     <h1>AreWeFastYet</h1>
     <div class='rightSide'>
       <div class='userMenu'>
-        <a id='personaLogin' href="javascript:doPersonaLogin()"><span>Login</span></a>
-        <a id='personaLogout' href="javascript:doPersonaLogout()" style='display: none;'><span>Logout</span></a>
+        <a href="javascript:doPersonaLogin()" ng-if='!currentUser'><span>Login</span></a>
+        <a href="javascript:doPersonaLogout()" ng-if='!currentUser'><span>Logout</span></a>
       </div>
     </div>
   </div>
