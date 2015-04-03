@@ -8,18 +8,28 @@ import sys
 import time
 import tables
 
+def median(x):
+    x.sort()
+    length = len(x)
+    if length % 2 == 1:
+        return x[length/2]
+    else:
+        return (x[(length-1)/2] + x[(length+1)/2]) / 2.0
+
 def avg_diff(machine, suite, mode, first):
     prev = first
     current = first.next()
-    total = 0
-    count = 0
+    diffs = []
     while current:
        diff = abs(prev.get('score') - current.get('score'))
-       total += diff
-       count += 1
+       if diff != 0:
+           diffs.append(diff)
+
        prev = current
        current = current.next()
-    return total/count
+    if len(diffs) == 0:
+       return None
+    return median(diffs)
 
 for machine in tables.Machine.all():
   if machine.get("description") != "Mac OS X 10.10 32-bit (Mac Pro, shell)":
@@ -31,6 +41,8 @@ for machine in tables.Machine.all():
         if not first:
             continue
         diff = avg_diff(machine, suite, mode, first)
+        if not diff:
+            continue
         tables.RegressionScoreNoise.insertOrUpdate(machine, suite, mode, diff)
         print suite.get('name'), mode.get('name'), diff
         awfy.db.commit()
@@ -39,6 +51,8 @@ for machine in tables.Machine.all():
         if not first:
             continue
         diff = avg_diff(machine, suite, mode, first)
+        if not diff:
+            continue
         tables.RegressionBreakdownNoise.insertOrUpdate(machine, suite, mode, diff)
         print suite.get('name'), mode.get('name'), diff
         awfy.db.commit()

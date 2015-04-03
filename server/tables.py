@@ -265,7 +265,8 @@ class RegressionBreakdownNoise(DBTable):
                WHERE machine_id = %s AND                \
                      mode_id = %s AND                   \
                      suite_test_id = %s", (machine.get("id"), mode.get("id"), suite.get("id")))
-    id = c.fetchone()[0]
+    row = c.fetchone()
+    id = row[0] if row else 0
     DBTable.__init__(self, id)
 
   @classmethod
@@ -509,7 +510,7 @@ class Score(RegressionTools):
     noise = RegressionScoreNoise(self.get('build').get('run').get('machine'),
                                  self.get('suite_version'),
                                  self.get('build').get('mode')).get('noise')
-    return 2*noise
+    return 2.2*noise
 
   @classmethod
   def first(class_, machine, suite, mode):
@@ -628,7 +629,7 @@ class Breakdown(RegressionTools):
     noise = RegressionBreakdownNoise(self.get('build').get('run').get('machine'),
                                      self.get('suite_test'),
                                      self.get('build').get('mode')).get('noise')
-    return 2*noise
+    return 2.2*noise
 
   def dump(self):
     import datetime
