@@ -308,7 +308,6 @@ html, body {
   background-color: #f2f2f2;
   color: #222222;
   padding: 6px;
-  float: left;
   margin-right: 2%;
   margin-bottom: 30px; }
   .regression .details table td {
@@ -326,9 +325,39 @@ html, body {
     margin-right: 6px;
     float: right;
     cursor: pointer; }
+.regression .link {
+  text-decoration: underline;
+  cursor: pointer; }
+.regression .status td {
+  padding-left: 6px;
+  padding-right: 6px; }
+.regression .status .stamp, .regression .status .name {
+  white-space: nowrap; }
+.regression .status .extra {
+  width: 75%; }
+  .regression .status .extra input[type=text] {
+    width: 85%; }
 .regression .range iframe {
   width: 100%;
   height: 750px; }
+.regression .add {
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  margin-left: 6px;
+  margin-right: 6px;
+  float: right;
+  cursor: pointer; }
+.regression .scores .score {
+  cursor: pointer;
+  position: relative; }
+.regression .scores .score.editNoise {
+  margin-left: 25px; }
+.regression .scores .txt {
+  float: right;
+  padding-top: 6px;
+  padding-bottom: 12px;
+  margin-right: 6px; }
 
 .box .regression .percent {
   float: right;

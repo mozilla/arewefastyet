@@ -13,20 +13,12 @@ if (!has_permissions())
 $postdata = file_get_contents("php://input");
 $request = json_decode($postdata);
 
-$regression_id = (int)$request->regression_id;
+$regression_id = mysql_real_escape_string($request->regression_id);
 $name = mysql_real_escape_string($_SESSION['persona']);
-$bug = (int)$request->bug;
+$extra = mysql_real_escape_string($request->extra);
 
-$query = mysql_query("UPDATE awfy_regression SET bug = $bug WHERE id = $regression_id
-                      ") or die(mysql_error());
-
-if ($bug == 0) 
-	$extra = "Removed the linked bug.";
-else
-	$extra = "Linked regression to #".$bug;
 $query = mysql_query("INSERT INTO awfy_regression_status
                       (regression_id, name, extra, stamp)
 					  VALUES
 					  ('$regression_id', '$name', '$extra', UNIX_TIMESTAMP())
                       ") or die(mysql_error());
-

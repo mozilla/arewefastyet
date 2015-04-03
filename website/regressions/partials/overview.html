@@ -46,7 +46,7 @@
   </div>
 
   <div>
-    <div class='box' ng-repeat="regression in regressions | orderBy:'-stamp'" ng-click="open(regression.id)">
+    <div class='box' ng-repeat="regression in regressions" ng-click="open(regression.id)">
 	  <div class='header'>
         <div class='machine'>{{regression.machine}}</div>
         <div class='mode'>{{regression.mode}}</div>
@@ -54,6 +54,7 @@
       </div>
       <div class='content'>
         <div ng-repeat="score in regression.scores | orderBy:'-age'" class='regression'>
+          <span ng-if="!(score.noise*1)">
 			<div class='suite'>{{score.suiteversion}}<span ng-if="score.suitetest">:
 				{{score.suitetest}}</span>
 		    </div>
@@ -61,6 +62,7 @@
 				{{score.percent}} %
 			</div>
 			<div class='score'>{{score.prev_score}} to {{score.score}}</div>
+          </span>
         </div>
       </div>
       <div class='footer'>

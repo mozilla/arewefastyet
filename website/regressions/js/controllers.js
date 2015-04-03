@@ -25,6 +25,18 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
     $q.all(requests).then(function(data) {
       $scope.regression = regression.normalize(data[0].data);
       $scope.states = regression.normalize_states(data[1].data);
+      var noise = {"score": {}, "breakdown":{}}
+	  for (var i=0; i<$scope.regression["scores"].length; i++) {
+		if (data[0].data["scores"][i]["breakdown_id"]) {
+		  var id = data[0].data["scores"][i]["breakdown_id"]
+		  noise["breakdown"][id] = data[0].data["scores"][i]["noise"];
+		} else{
+		  var id = data[0].data["scores"][i]["score_id"]
+		  noise["score"][id] = data[0].data["scores"][i]["noise"];
+		}
+      }
+      $scope.noise = noise
+      updateNoiseCount();
     });
 
     $scope.statusPopup = function(regression) {
@@ -53,18 +65,9 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
             modalDialog.open("partials/status.html", data);
         });
     }
-    /*$scope.bugPopup = function(id, data) {
-        data["submit"] = function(data) {
-            $http.post('change-bug.php', {
-                "regression_id": id,
-                "bug": data.bug
-            }).then(function () {
-                // TODO update item!!
-                modalDialog.close();
-            });
-        }
-        modalDialog.open("partials/bug.html", data);
-    }*/
+    $scope.showBugPopup = function(regression) {
+        modalDialog.open("partials/bug.html", regression);
+    }
 
     $scope.showRegression = function(regression, score, amount) {
         modalDialog.open("partials/loading.html");
@@ -125,7 +128,6 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
     $scope.saveBugFn = function(bug) {
         $http.post('change-bug.php', {
             "regression_id": regression_id,
-            "name": $scope.currentUser,
             "bug": bug
         }).success(function() {
             $scope.regression.bug = bug;
@@ -139,12 +141,65 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
         $scope.editBug = true;
         $scope.newbug = $scope.regression.bug;
     }
+    $scope.addCommentFn = function() {
+        $scope.addComment = true;
+        $scope.newcomment = ""
+    }
+    $scope.saveCommentFn = function(status) {
+        $http.post('add-comment.php', {
+            "regression_id": regression_id,
+            "extra": status
+        }).success(function() {
+			$scope.addComment = false;
+            updateLogs();
+        }).error(function() {
+            alert("failed");
+        });
+    }
+    $scope.editNoiseFn = function() {
+		$scope.editNoise = true;
+	}
+    $scope.saveNoiseFn = function() {
+        $http.post('change-noise.php', {
+            "build_id": $scope.regression["build_id"],
+            "noise": $scope.noise
+        }).success(function() {
+		  $scope.editNoise = false;
+		  updateNoiseCount();
+        }).error(function() {
+            alert("failed");
+        });
+	}
+    $scope.showNoiseFn = function() {
+		$scope.showNoise = true;
+	}
+    $scope.hideNoiseFn = function() {
+		$scope.showNoise = false;
+	}
 
     function updateLogs() {
       $http.post('data-regression-status.php', {id:regression_id}).then(function(data) {
         $scope.states = regression.normalize_states(data.data);
       });
     }
+
+    function updateNoiseCount() {
+      var count = 0;
+      for (var j = 0; j < $scope.regression["scores"].length; j++) {
+        if ($scope.regression["scores"][j]["suitetest"]) {
+          var id = $scope.regression["scores"][j]["breakdown_id"];
+		  $scope.regression["scores"][j]["noise"] = $scope.noise.breakdown[id]
+          if ($scope.noise.breakdown[id])
+            count++;
+		} else { 
+          var id = $scope.regression["scores"][j]["score_id"];
+		  $scope.regression["scores"][j]["noise"] = $scope.noise.score[id]
+          if ($scope.noise.score[id])
+            count++;
+		}
+      }
+      $scope.noiseCount = count;
+	}
   }
 ]);
 
@@ -177,6 +232,7 @@ awfyCtrl.service('RegressionService', ["MasterService",
             regression["scores"][j]["suitetest"] = score["suite_test"]
             regression["scores"][j]["percent"] = percent
             regression["scores"][j]["regression"] = regressed
+			regression["scores"][j]["noise"] = regression["scores"][j]["noise"] == "1"
         }
 
         regression["prev_cset"] = prev_cset

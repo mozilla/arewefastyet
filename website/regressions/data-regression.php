@@ -49,7 +49,8 @@ for ($i=0; $i < count($ids); $i++) {
 		$score = array(
 			"score_id" => $scores["score_id"],
 			"suite_version" => $suite_version_id,
-			"score" => get("score", $scores["score_id"], "score")
+			"score" => get("score", $scores["score_id"], "score"),
+            "noise" => $scores["noise"]
 		);
 
         $prev = prev_($output["stamp"], $output["machine"],
@@ -70,7 +71,8 @@ for ($i=0; $i < count($ids); $i++) {
 			"breakdown_id" => $scores["breakdown_id"],
 			"suite_version" => $suite_version_id,
 			"suite_test" => get("suite_test", $suite_test_id, "name"),
-			"score" => get("breakdown", $scores["breakdown_id"], "score")
+			"score" => get("breakdown", $scores["breakdown_id"], "score"),
+            "noise" => $scores["noise"]
 		);
 
         $prev = prev_suite_test($output["stamp"], $output["machine"],

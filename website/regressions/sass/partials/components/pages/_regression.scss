@@ -4,7 +4,6 @@
   background-color: get($_box, header);
   color: get($_box, color);
   padding: $unit;
-  float: left;
   margin-right: 2%;
   margin-bottom: $unit*5;
 
@@ -30,11 +29,68 @@
 	float:right;
 	cursor:pointer;
   }
+
+}
+
+.link {
+  text-decoration: underline; 
+  cursor: pointer;
+}
+
+.status {
+
+  td {
+    padding-left: $unit;
+    padding-right: $unit;
+  }
+
+  .stamp, .name {
+    white-space: nowrap;
+  }
+
+  .extra {
+
+    input[type=text] {
+      width:85%;
+	}
+
+    width: 75%;
+  }
 }
 
 .range {
+
   iframe {
     width: 100%;
     height: 750px;
+  }
+}
+
+.add {
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  margin-left: $unit;
+  margin-right: $unit;
+  float:right;
+  cursor:pointer;
+}
+
+.scores {
+
+  .score {
+	cursor: pointer;
+    position: relative;
+  }
+
+  .score.editNoise {
+    margin-left: 25px;
+  }
+
+  .txt {
+    float: right;
+    padding-top: $unit;
+    padding-bottom: $unit*2;
+    margin-right: $unit;
   }
 }

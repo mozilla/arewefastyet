@@ -28,7 +28,7 @@
     <div class='rightSide'>
       <div class='userMenu'>
         <a href="javascript:doPersonaLogin()" ng-if='!currentUser'><span>Login</span></a>
-        <a href="javascript:doPersonaLogout()" ng-if='!currentUser'><span>Logout</span></a>
+        <a href="javascript:doPersonaLogout()" ng-if='currentUser'><span>Logout</span></a>
       </div>
     </div>
   </div>

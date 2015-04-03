@@ -73,8 +73,8 @@ awfyApp.controller('dialogCtrl', ['$scope', 'modalDialog',
   }
 ]);
 
-awfyApp.controller('pageCtrl', ['$scope', 'MasterService',
-  function ($scope, master) {
+awfyApp.controller('pageCtrl', ['$scope', 'MasterService', '$http',
+  function ($scope, master, $http) {
 
 	var machines = []
 	for (var id in master.machines) {
@@ -96,5 +96,5 @@ awfyApp.controller('pageCtrl', ['$scope', 'MasterService',
 
 	$http.get('../auth.php?persona&check').then(function(data) {
       $scope.currentUser = data.data
-	}
+	});
 }]);
