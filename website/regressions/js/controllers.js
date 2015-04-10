@@ -12,10 +12,17 @@ var isFF = function(name) {
   }
   return false;
 }
+awfyCtrl.filter('linkify', function($sce, $parse) {
+  return function(input) {
+    input = input.replace(/#([0-9]+)/, "<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=$1'>#$1</a>");
+    input = input.replace(/@([0-9]+)/, "<a href='http://arewefastyet.com/regressions/#/regression/$1'>@$1</a>");
+    return $sce.trustAsHtml(input);
+  };
+})
 
 awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 'modalDialog',
-                                       'RegressionService',
-  function ($scope, $http, $routeParams, $q, modalDialog, regression) {
+                                       'RegressionService', '$sce',
+  function ($scope, $http, $routeParams, $q, modalDialog, regression, $sce) {
     var regression_id = $routeParams.id * 1;
     var requests = [
         $http.post('data-regression.php', {id:regression_id}),

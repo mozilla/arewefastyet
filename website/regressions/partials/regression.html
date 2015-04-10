@@ -70,7 +70,7 @@
   	<tr ng-repeat="status in states">
   		<td class='stamp'>{{status.stamp | date:'dd MMM yy HH:mm'}}</td>
   		<td class='name'>{{status.name}}</td>
-  		<td class='extra'>{{status.extra}}</td>
+  		<td class='extra' ng-bind-html="status.extra | linkify"></td>
   	</tr>
   	</table>
   </div>
