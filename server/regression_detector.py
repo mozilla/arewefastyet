@@ -39,6 +39,8 @@ def regressed(score):
   # Next is not available. Wait for that before reporting.
   if not score.next():
     return None
+  if score.next().avg_change() is None:
+    return None
 
   # Next has a bigger change. Regression is more likely to be that.
   if change >= 0 and score.next().avg_change() > change:
