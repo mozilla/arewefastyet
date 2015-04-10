@@ -27,19 +27,66 @@ html {
   }
 
   h2 {
-    line-height: $unit*8;
+
     font-weight: normal;
 
+    .machine {
+      select {
+	    vertical-align: top;
+        -moz-appearance: none;
+        -webkit-appearance: none;
+        text-overflow: '';
+        &::-ms-expand {
+          display: none;
+        }
+
+        background-color: #F2F2F2;
+        border: 1px solid #DDD;
+        padding-left: 18px;
+        padding-right: 18px;
+        padding-top: $unit*3;
+        padding-bottom: $unit*6;
+        display: inline-block;
+        color: #222;
+        padding-right: $unit*3 + 18;
+		font-weight: bold;
+        min-width: 300px;
+      }
+
+      &:after {
+        position: absolute;
+        content: "\e114";
+        display: inline-block;
+        vertical-align: middle;
+        font-family: 'Glyphicons Halflings';
+        font-style: normal;
+        font-weight: normal;
+        font-size: 0.5em;
+        height: 2.0em;
+        margin-left: -$unit*2 - 18px;
+        line-height: 2.0em;
+        pointer-events: none;
+        padding-top: $unit*3;
+        padding-bottom: $unit*6;
+      }
+    }
+
+    .extra {
+        line-height:75px;
+	}
     a {
       color: #000000;
       text-decoration: none;
     }
 
-    &:after {
-      content: "";
-      display: block;
-      clear: both;
-    }
+  } 
+
+  #dates {
+     color: $_darkgrey;
+	 margin-top: -$unit*9;
+	 margin-bottom: $unit*6;
+     margin-left: 20px;
+	 font-style:italic
   }
 }
 

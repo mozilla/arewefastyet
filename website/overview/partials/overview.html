@@ -23,13 +23,19 @@
     </div>-->
   </div>
 
-  <h2 ng-if='!hasSuite'>
-    Overview
+  <h2>
+    <span class='machine'>
+    <select ng-model="selectedMachine"
+            ng-options="machine.id as machine.description for machine in machines track by machine.id"
+            class='button'>
+    </select>
+    </span>
+    <span class='extra' ng-if='!hasSuite'> > Overview</span>
+    <span class='extra' ng-if='hasSuite'> > {{name}}</span>
   </h2>
-
-  <h2 ng-if='hasSuite'>
-    <a class='overview' ng-href='#/machine/{{machineId}}'>Overview</a> > {{name}}
-  </h2>
+  <div id='dates'>
+    <div>tested on {{date | date:'dd MMM yy HH:mm'}}</div>
+  </div>
 
   <div>
     <div class='box' ng-repeat="testsuite in testsuites">

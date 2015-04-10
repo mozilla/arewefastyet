@@ -13,15 +13,75 @@ var isFF = function(name) {
   return false;
 }
 
-awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
-  function ($scope, $http, $routeParams, $q) {
+awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', '$location', 'MasterService',
+  function ($scope, $http, $routeParams, $q, $location, master) {
+    // Add all machines (remove key)
+    var createMachines = function(frontpage) {
+      $scope.machines = [];
+      for(var i in master["machines"]) {
+        if(!frontpage || master["machines"][i]["frontpage"]) {
+          master["machines"][i]["id"] += "";
+          $scope.machines.push(master["machines"][i]);
+        }
+      }
+    }
+    createMachines(true);  
 
-    var dataRequests = [];
+    // Watch on location change
+    var locationChangeSuccess = function(event) {
+      var path = $location.path().split("/");
+      if(!$scope.selectedMachine || path[2] != $scope.selectedMachine.id) {
+        if(path[2].indexOf(",") == -1) {
+          // Check if machine is in full set or in frontpage set
+          createMachines(master["machines"][parseInt(path[2])]["frontpage"]);
 
-    // Get master data
-    dataRequests.push($http.get('../data.php?file=master.js'));
+        } else {
+
+          // Check if "multiple machine" has already been made
+          var has = false;
+          for(var i in $scope.machines) {
+            if($scope.machines[i].id == path[2]) {
+              has = true;
+            }
+          }
+
+          // Create "multiple machine"
+          if(!has) {
+            $scope.machines.push({
+              id: path[2],
+              description: "Multipe machines",
+            });
+          }
+        }
+
+        $scope.selectedMachine = {id: path[2]};
+      }
+    };
+    $scope.$on('$locationChangeSuccess', locationChangeSuccess);
+    locationChangeSuccess();
+
     
+    // Watch for changes of selection
+    $scope.$watch('selectedMachine', function (machine, id) { 
+      if(!machine) {
+        return;
+      }
+
+      if(machine.id) {
+        machine = machine.id;
+      }
+
+      // Update location
+      var path = $location.path().split("/");
+      if(machine != path[2]) { 
+        path[2] = machine;
+        $location.path(path.join("/"));
+      }
+    });
+
+
     // Get machine data
+    var dataRequests = [];
     var machines = $routeParams.machine.split(",");
     for(var i=0; i!=machines.length; i++) {
       if(!$routeParams.suite) {
@@ -33,15 +93,9 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
     
     $q.all(dataRequests).then(function(data) {
 
-      // Extract master data into JSON data.
-      var offset = data[0].data.indexOf("{");
-      var endOffset = data[0].data.lastIndexOf("}");
-      master = data[0].data.substring(offset, endOffset+1);
-      master = JSON.parse(master);
-
       // Extract machine data
       var machines = [];
-      for(var i=1; i!=data.length; i++) {
+      for(var i=0; i!=data.length; i++) {
         var offset = data[i].data.indexOf("{");
         var endOffset = data[i].data.lastIndexOf("}");
         machine = data[i].data.substring(offset, endOffset+1);
@@ -50,7 +104,7 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q',
       }
 
       // Show date
-      $scope.$parent.date = machines[0].stamp*1000;
+      $scope.date = machines[0].stamp*1000;
 
       if($routeParams.suite) {
         $scope.name = master["suiteversions"][$routeParams.suite]["name"];
