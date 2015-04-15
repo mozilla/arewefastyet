@@ -73,23 +73,57 @@ class Submitter:
             urllib2.urlopen(url)
 
     def AddTests(self, tests, suite, suiteversion, mode):
-        for test in tests:
-            self.SubmitTest(test['name'], suite, suiteversion, mode, test['time'])
-
-    def SubmitTest(self, name, suite, suiteversion, mode, time):
         for i in range(len(self.urls)):
             if not self.runIds[i]:
                 continue
 
-            args = { 'name': name,
-                     'run': str(self.runIds[i]),
+            score = None
+            submiturl = self.urls[i]
+            run = self.runIds[i]
+            for test in tests:
+                if test['name'] == "__total__":
+                    score = self.SubmitTest(submiturl, run, suite, suiteversion, mode, test['time'])
+                    break
+
+            assert score != None
+            if score is None:
+                return
+        for test in tests:
+            if test['name'] != "__total__":
+                self.SubmitBreakdown(submiturl, run, score, test['name'], suite, suiteversion, mode, test['time'])
+
+    def SubmitTest(self, submiturl, run, suite, suiteversion, mode, time):
+        try:
+            args = { 'name': '__total__',
+                     'run': str(run),
                      'suite': suite,
                      'version': suiteversion,
                      'mode': mode,
                      'time': str(time)
                    }
-            url = self.urls[i] + '?' + urllib.urlencode(args)
-            urllib2.urlopen(url)
+            url = submiturl + '?' + urllib.urlencode(args)
+            url = urllib2.urlopen(url)
+            contents = url.read()
+            m = re.search('id=(\d+)', contents)
+            if m == None:
+                return None
+            else:
+                return int(m.group(1))
+        except urllib2.URLError:
+            return None
+
+    def SubmitBreakdown(self, submiturl, run, score, name, suite, suiteversion, mode, time):
+        # TODO: remove mode. Breakdown doesn't need it
+        args = { 'name': name,
+                 'run': str(run),
+                 'score': str(score),
+                 'suite': suite,
+                 'version': suiteversion,
+                 'mode': mode,
+                 'time': str(time)
+               }
+        url = submiturl + '?' + urllib.urlencode(args)
+        urllib2.urlopen(url)
 
     def Finish(self, status):
         for i in range(len(self.urls)):
