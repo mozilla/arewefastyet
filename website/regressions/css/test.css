@@ -238,6 +238,40 @@ body {
   font-family: lato;
   background-color: #e6e6e6; }
 
+.modal {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.5); }
+  .modal .container {
+    margin: 100px auto;
+    background-color: #fff;
+    border: 1px solid #000;
+    padding: 15px; }
+    .modal .container .status table {
+      width: 100%; }
+    .modal .container .status select {
+      text-transform: uppercase; }
+    .modal .container .status .input_extra {
+      width: 80%; }
+    .modal .container .status .button_submit {
+      width: 19%; }
+    .modal .container .status .status {
+      text-transform: uppercase; }
+    .modal .container .status .extra {
+      width: 50%; }
+    .modal .container .bug pre {
+      text-align: left; }
+    .modal .container .graph {
+      height: 80vh; }
+    .modal .container .graph iframe {
+      width: 100%;
+      height: 95%; }
+
 html, body {
   margin: 0px;
   padding: 0px; }
@@ -248,60 +282,12 @@ html, body {
   margin-left: auto;
   margin-right: auto; }
 
-.modal {
-  position: fixed;
-  left: 0px;
-  top: 0px;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  z-index: 1000;
-  background-color: rgba(0, 0, 0, 0.5); }
-.modal .container {
-  margin: 100px auto;
-  background-color: #fff;
-  border: 1px solid #000;
-  padding: 15px; }
-  .modal .container .status table {
-    width: 100%; }
-  .modal .container .status select {
-    text-transform: uppercase; }
-  .modal .container .status .input_extra {
-    width: 80%; }
-  .modal .container .status .button_submit {
-    width: 19%; }
-  .modal .container .status .status {
-    text-transform: uppercase; }
-  .modal .container .status .extra {
-    width: 50%; }
-  .modal .container .bug pre {
-    text-align: left; }
-  .modal .container .graph {
-    height: 80vh; }
-  .modal .container .graph iframe {
-    width: 100%;
-    height: 95%; }
-
 .overview .subnav {
   float: right;
   line-height: 48px; }
-.overview .box .percent {
-  float: right;
-  font-size: 1.4em;
-  margin-top: -0.2em; }
-.overview .box .suite {
-  float: left;
-  position: absolute; }
-.overview .box .regression {
-  color: #d12600; }
-.overview .box .improvement {
-  color: #2f7836; }
 .overview .box .title {
   text-transform: uppercase;
   margin-top: 0.4em; }
-.overview .box .score {
-  text-align: center;
-  height: 1.5em; }
 .overview .box .stamp {
   display: block;
   font-size: 12px; }
@@ -315,3 +301,75 @@ html, body {
     font-weight: normal;
     margin-left: 6px;
     margin-right: 6px; }
+
+.regression .details table {
+  width: 900px;
+  border: 1px SOLID #dddddd;
+  background-color: #f2f2f2;
+  color: #222222;
+  padding: 6px;
+  margin-right: 2%;
+  margin-bottom: 30px; }
+  .regression .details table td {
+    background-color: white;
+    padding: 6px; }
+  .regression .details table th {
+    text-align: left; }
+  .regression .details table .status td {
+    text-transform: uppercase; }
+  .regression .details table .edit {
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: normal;
+    margin-left: 6px;
+    margin-right: 6px;
+    float: right;
+    cursor: pointer; }
+.regression .link {
+  text-decoration: underline;
+  cursor: pointer; }
+.regression .status td {
+  padding-left: 6px;
+  padding-right: 6px; }
+.regression .status .stamp, .regression .status .name {
+  white-space: nowrap; }
+.regression .status .extra {
+  width: 75%; }
+  .regression .status .extra input[type=text] {
+    width: 85%; }
+.regression .range iframe {
+  width: 100%;
+  height: 750px; }
+.regression .add {
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  margin-left: 6px;
+  margin-right: 6px;
+  float: right;
+  cursor: pointer; }
+.regression .scores .score {
+  cursor: pointer;
+  position: relative; }
+.regression .scores .score.editNoise {
+  margin-left: 25px; }
+.regression .scores .txt {
+  float: right;
+  padding-top: 6px;
+  padding-bottom: 12px;
+  margin-right: 6px; }
+
+.box .regression .percent {
+  float: right;
+  font-size: 1.4em;
+  margin-top: -0.2em; }
+.box .regression .regression {
+  color: #d12600; }
+.box .regression .improvement {
+  color: #2f7836; }
+.box .regression .suite {
+  float: left;
+  position: absolute; }
+.box .regression .score {
+  text-align: center;
+  height: 1.5em; }

@@ -7,9 +7,13 @@ require_once("../internals.php");
 
 init_database();
 
+$postdata = file_get_contents("php://input");
+$request = json_decode($postdata);
+
+
 $query = mysql_query("SELECT *
                       FROM awfy_regression_status
-					  WHERE regression_id = '".(int)$_GET["regression_id"]."'
+					  WHERE regression_id = '".(int)$request->id."'
                       ORDER BY stamp DESC") or die(mysql_error());
 $data = array();
 while ($output = mysql_fetch_assoc($query)) {

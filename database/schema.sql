@@ -174,7 +174,7 @@ CREATE TABLE `awfy_breakdown` (
   `score` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `build_id` (`build_id`),
-  KEY `suite_test_id` (`suite_test_id`),
+  KEY `suite_test_id` (`suite_test_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------

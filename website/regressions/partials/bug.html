@@ -1,19 +1,16 @@
 <div class='bug'>
-	Bug nummer: <input type='text' ng-model="modal.bug" class='input_bug'>
-	<input type='button' value='Adjust' class='button_submit' ng-click="modal.submit(modal)">
-
-	<p>Textual version that can be included in bug:</p>
+	<p>Textual version that can be included in a bug:</p>
 	<pre>
 AWFY detected a regression/improvement on:
 - slave: {{modal.machine}}
 - mode: {{modal.mode}}
 
-Regression(s):
-<span ng-repeat="score in modal.scores">- {{score.suite}}: {{score.percent}}% ({{score.regression ? 'regression' : 'improvement'}})<br></span>
+Regression(s)/Improvement(s):
+<span ng-repeat="score in modal.scores"><span ng-if="!score.noise">- {{score.suite}}: {{score.percent}}% ({{score.regression ? 'regression' : 'improvement'}})<br></span></span>
 Recorded range:
 <span ng-if="modal.prev_cset!=''">- http://hg.mozilla.org/integration/mozilla-inbound/pushloghtml?fromchange={{modal.prev_cset}}&tochange={{modal.cset}}</span>
 
-More details: http://arewefastyet.com/regressions/#regression:ID
+More details: http://arewefastyet.com/regressions/#/regression/{{modal.id}}
     </pre>
 
 </div>

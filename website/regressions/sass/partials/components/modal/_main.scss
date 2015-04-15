@@ -1,4 +1,4 @@
-& {
+.modal {
      position: fixed;
      left: 0px;
      top: 0px;
@@ -7,23 +7,21 @@
      text-align:center;
      z-index: 1000;
 	 background-color:rgba(0.5, 0.5, 0.5, 0.5);
+
+	 .container {
+		margin: 100px auto;
+		background-color: #fff;
+		border:1px solid #000;
+		padding:15px;
+
+		.status {
+			@import "_status";
+		}
+		.bug {
+			@import "_bug";
+		}
+		.graph {
+			@import "_graph";
+		}
+	}
 }
-
-.container {
-	margin: 100px auto;
-	background-color: #fff;
-	border:1px solid #000;
-	padding:15px;
-
-	.status {
-		@import "_status";
-	}
-	.bug {
-		@import "_bug";
-	}
-	.graph {
-		@import "_graph";
-	}
-}
-
-

@@ -6,6 +6,10 @@ var awfyApp = angular.module('awfyApp', [
 awfyApp.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
+      when('/regression/:id', {
+        templateUrl: 'partials/regression.html',
+        controller: 'regressionCtrl'
+      }).
       when('/:search', {
         templateUrl: 'partials/overview.html',
         controller: 'overviewCtrl'
@@ -15,6 +19,22 @@ awfyApp.config(['$routeProvider',
       });
   }
 ]);
+
+awfyApp.config(['$sceDelegateProvider',
+  function($sceDelegateProvider) {
+    $sceDelegateProvider.resourceUrlWhitelist([
+      'self',
+      'https://chromium.googlesource.com/v8/v8/+log/**',
+	  'http://hg.mozilla.org/**',
+	  'http://trac.webkit.org/log/**'
+    ]);
+  }
+]);
+
+awfyApp.factory('MasterService', function() {
+	return AWFYMaster;
+});
+
 
 awfyApp.service("modalDialog", function() {
   this.open = function(template, data) {
@@ -51,22 +71,30 @@ awfyApp.controller('dialogCtrl', ['$scope', 'modalDialog',
 			modalDialog.close();
 	}
   }
-])
+]);
 
-awfyApp.controller('pageCtrl', ['$scope', '$http', '$q', '$location', 'modalDialog',
-  function ($scope, $http, $q, $location, modalDialog) {
+awfyApp.controller('pageCtrl', ['$scope', 'MasterService', '$http',
+  function ($scope, master, $http) {
 
-	for (var id in AWFYMaster.machines) {
-		AWFYMaster.machines[id].selected = true;
+	var machines = []
+	for (var id in master.machines) {
+		machines[id] = master.machines[id];
+		machines[id]["selected"] = true;
 	}
 
-	$scope.master = AWFYMaster;
-	$scope.currentUser = currentUser;
+	$scope.master = {
+		"modes": master.modes,
+		"machines": machines
+	};
 	$scope.availablestates = [{"name":"unconfirmed"},
                               {"name":"confirmed"},
                               {"name":"improvement"},
 							  {"name":"fixed"},
 							  {"name":"wontfix"},
+							  {"name":"noise"},
 							  {"name":"infrastructure"}];
 
+	$http.get('../auth.php?persona&check').then(function(data) {
+      $scope.currentUser = data.data
+	});
 }]);

@@ -1,0 +1,125 @@
+<div ng-controller="overviewCtrl" class='regression'>
+  <div class='subheader'>
+    <div class='button' ng-repeat="software in softwares">
+      <div class='title'>{{software.name}}</div>
+      <div class='result'>Base</div>
+    </div>
+    <div class='button' ng-if='hasSuite'>
+      <a class='up' ng-href='#/machine/{{machineId}}'></a>
+    </div>
+  </div>
+
+  <h2>Regression: @{{regression.id}}</h2>
+
+  <div class='details'>
+  	<table>
+	<tr class='machine'><th>Machine</th><td>{{regression.machine}}</td></tr>
+    <tr class='mode'><th>Mode</th><td>{{regression.mode}}</td></tr>
+    <tr class='stamp'><th>Date</th><td>{{regression.stamp | date:'dd MMM yy HH:mm'}}</td></tr>
+  	<tr class='status'>
+		<th>Status</th>
+		<td>
+			<span ng-if="!editStatus" ng-click="editStatusFn()">
+				{{regression.status}}
+				<span class="edit" ng-if="currentUser">&#x270f;</span>
+			</span>
+			<span ng-if="editStatus">
+				<select ng-model="newstatus" ng-options="status.name for status in availablestates"></select>
+				<input type='button' value='Save' ng-click='saveStatusFn(newstatus.name)'>
+			</span>
+		</td>
+	</tr>
+  	<tr class='bug'>
+	  <th>Bug</th>
+	  <td>
+	    <span ng-if="!editBug">
+		  <span ng-if="regression.bug">
+		    <a ng-href="https://bugzilla.mozilla.org/show_bug.cgi?id={{regression.bug}}">
+		      #{{regression.bug}}
+			</a>
+		  </span>
+		  <span ng-if="regression.bug==0">-
+			<a ng-click="showBugPopup(regression)" class='link'>(Create bug)</a>
+          </span>
+          <span class="edit" ng-click="editBugFn()" ng-if="currentUser">&#x270f;</span>
+		</span>
+		<span ng-if="editBug">
+		  <input type='text' ng-model='newbug'>
+		  <input type='button' value='Save' ng-click='saveBugFn(newbug)'>
+		</span>
+	  </td>
+	</tr>
+    <tr class='finished'><th>Detection finished</th><td>
+		<span ng-if="regression.detector">Yes</span>
+		<span ng-if="regression.detector==0">No (new regression might still get detected in the future.)</span>
+    </td></tr>
+  	</table>
+  </div>
+
+  <div class='status'>
+    <span class="add" ng-if="currentUser&&!addComment" ng-click="addCommentFn()">&#xe081;</span>
+  	<table class='box'>
+  	<tr ng-if="addComment">
+  		<td class='stamp'></td>
+  		<td class='name'>{{currentUser}}</td>
+  		<td class='extra'>
+          <input type='text' ng-model='newcomment'>
+          <input type='button' value='Save' ng-click='saveCommentFn(newcomment)'>
+        </td>
+  	</tr>
+  	<tr ng-repeat="status in states">
+  		<td class='stamp'>{{status.stamp | date:'dd MMM yy HH:mm'}}</td>
+  		<td class='name'>{{status.name}}</td>
+  		<td class='extra' ng-bind-html="status.extra | linkify"></td>
+  	</tr>
+  	</table>
+  </div>
+
+  <div class='box scores'>
+    <a ng-click="showBugPopup(regression)" class='link txt'>txt</a>
+    <a ng-click="editNoiseFn()" class='link txt' ng-if="currentUser&&!editNoise">mark noise</a>
+    <a ng-click="showNoiseFn()" class='link txt' ng-if="!showNoise&&!editNoise&&noiseCount">show scores marked as noise ({{noiseCount}})</a>
+    <a ng-click="hideNoiseFn()" class='link txt' ng-if="showNoise&&!editNoise&&noiseCount">hide scores marked as noise ({{noiseCount}})</a>
+    <div class='header'>
+  	Detected regressions/improvements
+    </div>
+    <div class='content'>
+      <div ng-repeat="score in regression.scores | orderBy:'suiteversion + suitetest'"
+		   class='regression'>
+        <span ng-if="!score.noise||editNoise||showNoise">
+  		  <div class='suite'>
+		  	<input type='checkbox' ng-if="editNoise&&!score.suitetest"
+                     ng-model="noise.score[score.score_id]">
+		  	<input type='checkbox' ng-if="editNoise&&score.suitetest"
+                     ng-model="noise.breakdown[score.breakdown_id]">
+		  	{{score.suiteversion}}
+		  	<span ng-if="score.suitetest">:
+		  		{{score.suitetest}}
+		  	</span>
+  	      </div>
+  		  <div class='percent' ng-class="{regression: score.regression, improvement: !score.regression}"
+		       >
+  		  	{{score.percent}} %
+  		  </div>
+  		  <div class='score' ng-class="{editNoise: editNoise}"
+               ng-click="showRegression(regression, score, 7)" >
+		  	{{score.prev_score}} to {{score.score}}
+		  </div>
+        </span>
+      </div>
+      <input type='button' ng-if='editNoise' value='Mark as noise' ng-click="saveNoiseFn()">
+    </div>
+  </div>
+
+  <div class='box range'>
+    <div class='header'>
+      Regression range:
+    </div>
+    <div class='content' ng-if='regression.range_url'>
+      <iframe ng-src='{{regression.range_url}}'></iframe>
+    </div>
+    <div class='content' ng-if='!regression.range_url'>
+      <center>- There are different regression ranges for the different scores. To see the regression range click on a specific score and on the graph click the regressed point. Click on the 'changelog' there. -</center>
+    </div>
+  </div>
+</div>

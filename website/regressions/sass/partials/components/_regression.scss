@@ -1,0 +1,29 @@
+
+.box .regression {
+  .percent {
+    float: right;
+    font-size: 1.4em;
+    margin-top: -0.2em;
+  }
+
+  .regression {
+    color: $_red;
+  }
+
+  .improvement {
+    color: $_green;
+  }
+
+
+  .suite {
+    float: left;
+    position: absolute;
+  }
+
+  .score {
+    text-align: center;
+    height: 1.5em;
+  }
+
+}
+

@@ -46,7 +46,8 @@ for engine in KnownEngines:
 class Slave:
     def __init__(self, machine):
         self.machine = machine
-submit = submitter.Submitter(Slave(utils.config.get('main', 'machine')))
+submitter = submitter.getSubmitter("remote")
+submit = submitter(Slave(utils.config.get('main', 'machine')))
 
 # No updates. Report to server and wait 60 seconds, before moving on
 if NumUpdated == 0 and not options.force:

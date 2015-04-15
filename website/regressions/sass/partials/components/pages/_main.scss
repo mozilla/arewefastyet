@@ -10,10 +10,10 @@ html, body {
   margin-right: auto;
 }
 
-.modal {
-	@import "../modal/main";
-}
-
 .overview {
 	@import "overview";
+}
+
+.regression {
+	@import "regression";
 }

@@ -10,6 +10,7 @@
   <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
   <link rel="shortcut icon" href="../awfy_favicon.png">
 
+  <script src="../data.php?file=master.js"></script>
   <script type="text/javascript" src="../jquery/jquery-1.8.3.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular-route.js"></script>
@@ -26,16 +27,10 @@
     <h1>AreWeFastYet</h1>
     <div class='rightSide'>
       <div class='query'>
-        <div id='machines'>
-          <select ng-model="selectedMachine" ng-options="machine.id as machine.description for machine in machines track by machine.id"></select>
-        </div>
-        <div id='dates'>
-          <div>tested on {{date | date:'dd MMM yy HH:mm'}}</div>
-        </div>
       </div>
       <div class='userMenu'>
-        <a id='personaLogin' href="javascript:doPersonaLogin()"><span>Login</span></a>
-        <a id='personaLogout' href="javascript:doPersonaLogout()" style='display: none;'><span>Logout</span></a>
+        <a href="javascript:doPersonaLogin()" ng-if="!currentUser"><span>Login</span></a>
+        <a href="javascript:doPersonaLogout()" ng-if='currentUser'><span>Logout</span></a>
       </div>
     </div>
   </div>
