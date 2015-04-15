@@ -88,6 +88,7 @@ $time = mysql_real_escape_string(GET_string('time'));
 $mode_id = find_mode(GET_string('mode'));
 $run = GET_run_id('run');
 $version = GET_string('suite');
+$score = GET_int('score');
 $build = find_build($run, $mode_id);
 if (isset($_GET['version']))
     $version = GET_string('version');
@@ -98,11 +99,12 @@ if (GET_string('name') == '__total__') {
                  VALUES
                  ($build, $suite_version_id, $time)")
         or die("ERROR: " . mysql_error());
+    print("id=" . mysql_insert_id());
 } else {
     $test_id = find_or_add_test($suite_version_id, GET_string('name'));
     mysql_query("INSERT INTO awfy_breakdown
-                 (build_id, suite_test_id, score)
+                 (score_id, build_id, suite_test_id, score)
                  VALUES
-                 ($build, $test_id, $time)")
+                 ($score,$build, $test_id, $time)")
         or die("ERROR: " . mysql_error());
 }
