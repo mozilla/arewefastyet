@@ -169,12 +169,14 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 CREATE TABLE `awfy_breakdown` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `score_id` int(10) unsigned NOT NULL,
   `build_id` int(11) DEFAULT NULL,
   `suite_test_id` int(10) DEFAULT NULL,
-  `score` varchar(45) DEFAULT NULL,
+  `score` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `build_id` (`build_id`),
-  KEY `suite_test_id` (`suite_test_id`)
+  KEY `suite_test_id` (`suite_test_id`),
+  KEY `score_id` (`score_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
