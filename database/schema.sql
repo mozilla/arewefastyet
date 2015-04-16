@@ -82,6 +82,7 @@ CREATE TABLE `awfy_suite` (
   `description` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `better_direction` int(11) DEFAULT NULL,
   `sort_order` int(11) NOT NULL,
+  `visible` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
