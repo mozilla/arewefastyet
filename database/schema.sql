@@ -82,24 +82,32 @@ CREATE TABLE `awfy_suite` (
   `description` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `better_direction` int(11) DEFAULT NULL,
   `sort_order` int(11) NOT NULL,
+  `visible` int(2) NOT NULL,
+  `confidence_factor` float NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
 
-CREATE TABLE IF NOT EXISTS `awfy_suite_test` (
+CREATE TABLE `awfy_suite_test` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `suite_version_id` int(11) NOT NULL,
   `name` varchar(128) NOT NULL,
   `visible` int(1) NOT NULL DEFAULT '1',
+  `confidence_factor` float NOT NULL DEFAULT '1',
+  `noise` float NOT NULL DEFAULT '0.02',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `suite_id` (`suite_version_id`,`name`)
+  UNIQUE KEY `suite_version_id` (`suite_version_id`,`name`),
+  KEY `name` (`name`),
+  KEY `suite_version_id_2` (`suite_version_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
-CREATE TABLE IF NOT EXISTS `awfy_suite_version` (
+
+CREATE TABLE `awfy_suite_version` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `suite_id` int(10) unsigned NOT NULL,
   `name` varchar(45) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `suite_id` (`suite_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
@@ -169,12 +177,14 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 CREATE TABLE `awfy_breakdown` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `build_id` int(11) DEFAULT NULL,
-  `suite_test_id` int(10) DEFAULT NULL,
-  `score` varchar(45) DEFAULT NULL,
+  `score_id` int(10) unsigned NOT NULL,
+  `build_id` int(10) unsigned NOT NULL,
+  `score` double DEFAULT NULL,
+  `suite_test_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
+  KEY `test_id` (`suite_test_id`),
   KEY `build_id` (`build_id`),
-  KEY `suite_test_id` (`suite_test_id`)
+  KEY `score_id` (`score_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -206,10 +216,11 @@ CREATE TABLE `awfy_machine` (
   `active` tinyint(1) NOT NULL,
   `frontpage` tinyint(1) NOT NULL DEFAULT '1',
   `pushed_separate` tinyint(1) NOT NULL,
-  `last_checked` int(10) unsigned NOT NULL,
+  `last_checked` int(11) unsigned NOT NULL,
   `timeout` int(11) unsigned NOT NULL,
-  `contact` mediumtext NOT NULL,
+  `contact` text NOT NULL,
   `message` text NOT NULL,
+  `confidence_runs` tinyint(4) NOT NULL DEFAULT '5',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
@@ -221,12 +232,12 @@ CREATE TABLE `awfy_machine` (
 
 CREATE TABLE `awfy_score` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `build_id` int(11) DEFAULT NULL,
+  `build_id` int(10) unsigned NOT NULL,
   `suite_version_id` int(11) DEFAULT NULL,
   `score` double DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `build_id` (`build_id`),
-  KEY `suite_id` (`suite_version_id`)
+  KEY `suite_id` (`suite_version_id`),
+  KEY `build_id` (`build_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -239,13 +250,18 @@ CREATE TABLE `awfy_run` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `machine` int(10) unsigned NOT NULL,
   `stamp` int(10) unsigned NOT NULL,
-  `status` int(11) NOT NULL,
+  `finish_stamp` int(10) unsigned NOT NULL,
+  `status` int(1) NOT NULL,
   `error` mediumtext NOT NULL,
+  `detector` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `machine` (`machine`),
-  KEY `status` (`status`)
+  KEY `status` (`status`),
+  KEY `stamp` (`stamp`),
+  KEY `finish_stamp` (`finish_stamp`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `awfy_regression`
@@ -255,8 +271,38 @@ CREATE TABLE `awfy_regression` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `build_id` int(11) unsigned NOT NULL,
   `bug` int(11) NOT NULL DEFAULT '0',
+  `status` enum('unconfirmed','confirmed','improvement','fixed','wontfix','infrastructure','noise') NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `build_id` (`build_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `awfy_regression_breakdown`
+--
+
+CREATE TABLE `awfy_regression_breakdown` (
+  `build_id` int(11) unsigned NOT NULL,
+  `breakdown_id` int(10) unsigned NOT NULL,
+  `noise` tinyint(1) NOT NULL DEFAULT '0',
+  UNIQUE KEY `build_id` (`build_id`,`breakdown_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `awfy_regression_breakdown_noise`
+--
+
+CREATE TABLE `awfy_regression_breakdown_noise` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `machine_id` int(10) unsigned NOT NULL,
+  `mode_id` int(10) unsigned NOT NULL,
+  `suite_test_id` int(10) unsigned NOT NULL,
+  `noise` double NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `machine_id` (`machine_id`,`mode_id`,`suite_test_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -268,8 +314,24 @@ CREATE TABLE `awfy_regression` (
 CREATE TABLE `awfy_regression_score` (
   `build_id` int(11) unsigned NOT NULL,
   `score_id` int(10) unsigned NOT NULL,
+  `noise` tinyint(1) NOT NULL DEFAULT '0',
   UNIQUE KEY `build_id` (`build_id`,`score_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `awfy_regression_score_noise`
+--
+
+CREATE TABLE `awfy_regression_score_noise` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `machine_id` int(10) unsigned NOT NULL,
+  `mode_id` int(10) unsigned NOT NULL,
+  `suite_version_id` int(10) unsigned NOT NULL,
+  `noise` double NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -283,19 +345,7 @@ CREATE TABLE `awfy_regression_status` (
   `name` varchar(50) NOT NULL,
   `extra` text NOT NULL,
   `stamp` int(11) unsigned NOT NULL,
-  `status` enum('unconfirmed','confirmed','improvement','fixed','wontfix','infrastructure') NOT NULL,
   PRIMARY KEY (`id`),
   KEY `regression_id` (`regression_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
--- phpMyAdmin SQL Dump
--- version 3.4.10.1deb1
--- http://www.phpmyadmin.net
---
--- Host: localhost
--- Generation Time: Mar 17, 2015 at 03:51 AM
--- Server version: 5.5.41
--- PHP Version: 5.3.10-1ubuntu3.16
-
-SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
