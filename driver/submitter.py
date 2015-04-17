@@ -59,12 +59,11 @@ class RemoteSubmitter(RemoteController):
                     score = self.SubmitTest(submiturl, run, suite, suiteversion, mode, test['time'])
                     break
 
-            assert score != None
             if score is None:
-                return
-        for test in tests:
-            if test['name'] != "__total__":
-                self.SubmitBreakdown(submiturl, run, score, test['name'], suite, suiteversion, mode, test['time'])
+                score = self.SubmitTest(submiturl, run, suite, suiteversion, mode, 0)
+            for test in tests:
+                if test['name'] != "__total__":
+                    self.SubmitBreakdown(submiturl, run, score, test['name'], suite, suiteversion, mode, test['time'])
 
     def SubmitTest(self, submiturl, run, suite, suiteversion, mode, time):
         try:
