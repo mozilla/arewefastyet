@@ -1,0 +1,6 @@
+1) Tests are located in "tests/assorted/"
+2) Create js file like misc-foo.js
+3) Create some dom by creating file misc-foo-dom.html. This will get injected in body
+4) Add "misc-foo" in "tests/assorted/LIST"
+5) Run python make-hosted.py
+6) Run benchmark by going to "hosted/index.html"
