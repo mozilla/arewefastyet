@@ -187,8 +187,10 @@ class Mozilla(Engine):
     def kill(self):
         if self.slaveType == "android":
             print subprocess.check_output(["adb", "shell", "pm", "clear", "org.mozilla.fennec"]);
-        else:
+        elif self.slaveType == "linux-desktop":
             subprocess.Popen(["killall", "plugin-container"])
+            Engine.kill(self)
+        else:
             Engine.kill(self)
 
 class MozillaPGO(Mozilla):
