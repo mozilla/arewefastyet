@@ -47,12 +47,20 @@ function record(time) {
     }
 }
 
-var _sunSpiderStartDate = new Date();
+var _sunSpiderStartDate = 0;
+function startMeasuring() {
+    _sunSpiderStartDate = new Date();
+}
+
+function stopMeasuring() {
+    var _sunSpiderInterval = new Date() - _sunSpiderStartDate;
+    record(_sunSpiderInterval);
+}
+
+startMeasuring();
 
 @SCRIPT@
 
-var _sunSpiderInterval = new Date() - _sunSpiderStartDate;
-record(_sunSpiderInterval);
 
 </script>
 
