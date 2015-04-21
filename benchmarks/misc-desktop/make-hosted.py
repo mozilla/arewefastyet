@@ -45,6 +45,13 @@ def testListForSuite(suite):
             tests.append(line.strip())
     return tests
 
+def resourceListForSuite(suite):
+    resources = []
+    with open(os.path.join(".", "tests", suite, "RESOURCES"), "r") as f:
+        for line in f.readlines():
+            resources.append(line.strip())
+    return resources
+
 def categoriesFromTests(tests):
     categories = set()
     for test in tests:
@@ -103,12 +110,16 @@ for suite in suites:
 
     prefix = "var tests = [ " + ", ".join(['"%s"' % s for s in tests]) + " ];\n"
     prefix += "var categories = [ " + ", ".join(['"%s"' % s for s in categories]) + " ];\n"
-    with open("hosted/" + suite + "/test-prefix.js", "w") as f:
+    with open(os.path.join(suiteDir, "test-prefix.js"), "w") as f:
         f.write(prefix)
 
     contents = "var testContents = [ " + ", ".join(['"%s"' % s for s in testContents]) + " ];\n"
-    with open("hosted/" + suite + "/test-contents.js", "w") as f:
+    with open(os.path.join(suiteDir, "test-contents.js"), "w") as f:
         f.write(contents)
+
+    for resource in resourceListForSuite(suite):
+        shutil.copyfile(os.path.join(".", "tests", suite, resource),
+                        os.path.join(suiteDir, resource))
 
 shutil.copyfile("resources/analyze-results.js", "hosted/analyze-results.js")
 shutil.copyfile("resources/compare-results.js", "hosted/compare-results.js")
