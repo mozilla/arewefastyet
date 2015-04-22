@@ -40,7 +40,7 @@
 @DATADOM@
 
 <script>
-function record(time) {
+function recordMeasurement(time) {
     document.getElementById("console").innerHTML = time + "ms";
     if (window.parent) {
         parent.recordResult(time);
@@ -54,7 +54,7 @@ function startMeasuring() {
 
 function stopMeasuring() {
     var _sunSpiderInterval = new Date() - _sunSpiderStartDate;
-    record(_sunSpiderInterval);
+    recordMeasurement(_sunSpiderInterval);
 }
 
 startMeasuring();

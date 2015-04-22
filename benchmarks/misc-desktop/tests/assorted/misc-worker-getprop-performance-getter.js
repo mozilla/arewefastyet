@@ -1,4 +1,4 @@
 var w = new Worker("getprop-performance-getter-helper.js")
 w.onmessage = function (e) {
-    record(e.data);
+    recordMeasurement(e.data);
 }

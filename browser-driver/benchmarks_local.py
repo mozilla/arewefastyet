@@ -22,7 +22,9 @@ class Benchmark:
                 os.unlink("results")
 
             host = utils.config.get('main', 'serverUrl')
-            engine.run(host+"/"+self.page, modeInfo)
+            if host[-1] != "/":
+                host += "/"
+            engine.run(host+self.page, modeInfo)
 
             timeout = int(utils.config.get('main', 'timeout')) * 60
             while not os.path.exists("results") and timeout > 0:
@@ -68,6 +70,30 @@ class Kraken(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "kraken", "1.1", "browser-driver/kraken.html")
 
+class AssortedDOM(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "assorteddom", "0.1", "benchmarks/misc-desktop/hosted/assorted/driver.html")
+        with utils.FolderChanger(os.path.join(utils.config.BenchmarkPath, "misc-desktop")):
+            print subprocess.check_output(["python", "make-hosted.py"])
+
+    def processResults(self, results):
+        ret = []
+        total = 0
+        for item in results:
+            if item == "v":
+                continue
+
+            avg = 0.0
+            for score in results[item]:
+                avg += score
+
+            avg = avg / len(results[item])
+            total += avg
+            ret.append({'name': item, 'time': avg })
+
+        ret.append({'name': "__total__", 'time': total })
+        return ret
+
 class WebGLSamples(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "webglsamples", "0.1", "browser-driver/webglsamples.html")
@@ -81,6 +107,8 @@ def getBenchmark(name):
         return Kraken()
     if name == "webglsamples":
         return WebGLSamples()
+    if name == "assorteddom":
+        return AssortedDOM()
     raise Exception("Unknown benchmark")
 
 # Test if server is running and start server if needed.

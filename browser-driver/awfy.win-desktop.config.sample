@@ -17,7 +17,8 @@ browserList = benchmark.local.octane,
               benchmark.local.kraken,
               benchmark.local.sunspider,
               benchmark.local.webglsamples,
-              benchmark.remote.dromaeo
+              benchmark.remote.dromaeo,
+              benchmark.local.assorteddom
 shellList = benchmark.shell.octane,
             benchmark.shell.kraken,
             benchmark.shell.sunspider 

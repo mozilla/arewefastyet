@@ -35,7 +35,16 @@ class FakeHandler(SimpleHTTPRequestHandler):
             return self.captureResults(query)
         elif self.path.startswith("/sunspider.js"):
             return self.returnSunspiderJS(query)
-        return SimpleHTTPRequestHandler.do_GET(self)
+        else:
+            return self.retrieveOffline();
+
+    def retrieveOffline(self):
+        f = SimpleHTTPRequestHandler.send_head(self)
+        if f:
+            content = f.read()
+            content = self.injectData("localhost", self.path, content)
+            self.wfile.write(bytes(content))
+            f.close()
 
     def captureResults(self, query):
         queryParsed = urlparse.parse_qs(query)
@@ -247,6 +256,10 @@ class FakeHandler(SimpleHTTPRequestHandler):
                                     'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
         if host.startswith("sunspider."):
             if path == "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html":
+                return data.replace('location = "results.html?" + encodeURI(outputString);',
+                                    'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
+        if host == "localhost":
+            if path == "/benchmarks/misc-desktop/hosted/assorted/driver.html":
                 return data.replace('location = "results.html?" + encodeURI(outputString);',
                                     'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
         if host.startswith("dromaeo."):

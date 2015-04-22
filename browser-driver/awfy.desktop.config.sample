@@ -12,14 +12,15 @@ updateURL = http://www.arewefastyet.com/???
 list = mozilla
 
 [benchmarks]
-dir = /Users/mozilla/awfy/benchmarks
+dir = /home/h4writer/Build/arewefastyet/benchmarks
 browserList = benchmark.remote.octane,
               benchmark.remote.massive,
               benchmark.remote.jetstream,
               benchmark.remote.speedometer,
               benchmark.remote.kraken,
               benchmark.remote.sunspider,
-              benchmark.remote.browsermark
+              benchmark.remote.browsermark,
+              benchmark.local.assorteddom
 shellList = 
 
 [mozilla]
