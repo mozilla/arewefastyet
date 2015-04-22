@@ -20,6 +20,8 @@ parser.add_option("-n", "--no-update", dest="noupdate", action="store_true", def
                   help="Skip updating source repositories")
 parser.add_option("-c", "--config", dest="config_name", type="string", default="awfy.config",
                   help="Config file (default: awfy.config)")
+parser.add_option("-s", "--submitter", dest="submitter", type="string", default="remote",
+                  help="Submitter class ('remote' or 'print')")
 
 (options, args) = parser.parse_args()
 
@@ -46,7 +48,7 @@ for engine in KnownEngines:
 class Slave:
     def __init__(self, machine):
         self.machine = machine
-submitter = submitter.getSubmitter("remote")
+submitter = getSubmitter(options.submitter)
 submit = submitter(Slave(utils.config.get('main', 'machine')))
 
 # No updates. Report to server and wait 60 seconds, before moving on
