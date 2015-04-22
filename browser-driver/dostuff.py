@@ -48,7 +48,7 @@ for engine in KnownEngines:
 class Slave:
     def __init__(self, machine):
         self.machine = machine
-submitter = getSubmitter(options.submitter)
+submitter = submitter.getSubmitter(options.submitter)
 submit = submitter(Slave(utils.config.get('main', 'machine')))
 
 # No updates. Report to server and wait 60 seconds, before moving on
