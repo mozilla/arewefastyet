@@ -15,8 +15,9 @@ if(isset($_GET['persona'])) {
     $result = $verifier->verifyAssertion($_GET['assertion']);
 
     if ($result->status === 'okay') {
-      $_SESSION["persona"] = $result->email;
-      setcookie ("persona", $result->email, 0, "/");
+      $email = htmlentities($result->email, ENT_QUOTES);
+      $_SESSION["persona"] = $email;
+      setcookie ("persona", $email, 0, "/");
     }
   }
   
@@ -24,6 +25,11 @@ if(isset($_GET['persona'])) {
   if(isset($_GET['logout'])) {
     unset($_SESSION['persona']);
     setcookie ("persona", "", 1, "/");
+  }
+
+  if(isset($_GET['check'])) {
+    echo isset($_SESSION['persona'])?$_SESSION['persona']:"";
+    exit();
   }
   
   echo "<script>history.back();</script>";
