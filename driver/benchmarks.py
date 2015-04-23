@@ -190,6 +190,24 @@ class Shumway(Benchmark):
                             "/tmp/shumway-shell.zip")
         utils.unzip("/tmp/", "shumway-shell.zip")
 
+    def omit(self, mode):
+        if "shumway_interp" not in mode.name:
+            # JIT is broken atm. Disable running
+            return True
+        else if mode.name not in ["jsc_shumway_interp", "jmim_shumway_interp", "v8_shumway_interp"]:
+            # Only run interpreter for some modes
+            return True
+
+    def _run(self, submit, native, modes):
+        # Run the full shumway jit.
+        super(Shumway, self)._run(submit, native, modes)
+
+        # Run the shumway interpreter.
+        for mode in modes:
+            mode._replace(name = mode.name+"_shumway_interp"
+        super(Shumway, self)._run(submit, native, modes)
+
+
     def benchmark(self, shell, env, args):
         with utils.chdir("/tmp/"):
             full_args = [shell]
@@ -221,7 +239,7 @@ class Shumway(Benchmark):
                     print(score + '    - ' + name)
 
             if len(tests) > 0:
-	        tests.append({ 'name': '__total__', 'time': totalscore / len(tests)})
+                tests.append({ 'name': '__total__', 'time': totalscore / len(tests)})
             return tests
 
 Benchmarks = [AsmJSApps(),
