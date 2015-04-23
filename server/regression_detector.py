@@ -12,10 +12,10 @@ def notProcessedRuns():
   c = awfy.db.cursor()
   c.execute("SELECT id                                                          \
              FROM awfy_run                                                      \
-             WHERE id > 225536 AND                                              \
+             WHERE id > 241420 AND                                              \
                    status = 1 AND                                               \
                    detector != 1 AND                                            \
-                   machine=28")
+                   machine in (28,29)")
   runs = []
   for row in c.fetchall():
     runs.append(tables.Run(row[0]))
