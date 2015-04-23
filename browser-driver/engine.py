@@ -198,7 +198,8 @@ class MozillaPGO(Mozilla):
         Mozilla.__init__(self)
         self.nightly_dir = utils.config.get('mozilla', 'pgoDir')
         self.modes = [{
-            'name': 'pgo'
+            'name': 'pgo',
+            'env': { 'JSGC_DISABLE_POISONING': '1' }
         }]
         self.folder = "firefox-pgo"
 
