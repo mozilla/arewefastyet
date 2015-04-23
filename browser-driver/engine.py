@@ -48,6 +48,10 @@ class Mozilla(Engine):
         self.modes = [{
             'name': 'jmim',
             'env': { 'JSGC_DISABLE_POISONING': '1' }
+        }, {
+            'name': 'unboxedobjects',
+            'env': { 'JSGC_DISABLE_POISONING': '1',
+                     'JS_OPTION_USE_UNBOXED_OBJECTS': '1' }
         }]
         self.folder = "firefox"
         if not os.path.isdir(self.tmp_dir + self.folder):
