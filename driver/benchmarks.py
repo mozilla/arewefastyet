@@ -194,7 +194,7 @@ class Shumway(Benchmark):
         if "shumway_interp" not in mode.name:
             # JIT is broken atm. Disable running
             return True
-        else if mode.name not in ["jsc_shumway_interp", "jmim_shumway_interp", "v8_shumway_interp"]:
+        elif mode.name not in ["jsc_shumway_interp", "jmim_shumway_interp", "v8_shumway_interp"]:
             # Only run interpreter for some modes
             return True
 
@@ -203,9 +203,10 @@ class Shumway(Benchmark):
         super(Shumway, self)._run(submit, native, modes)
 
         # Run the shumway interpreter.
+        interp_modes = []
         for mode in modes:
-            mode._replace(name = mode.name+"_shumway_interp"
-        super(Shumway, self)._run(submit, native, modes)
+            interp_modes.append(mode._replace(name = mode.name+"_shumway_interp"))
+        super(Shumway, self)._run(submit, native, interp_modes)
 
 
     def benchmark(self, shell, env, args):
