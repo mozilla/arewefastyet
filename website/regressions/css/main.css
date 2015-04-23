@@ -20,403 +20,365 @@
 /* Tips and source from:                                              */
 /* http://hugogiraudel.com/2013/08/12/sass-functions/#mapping         */
 /**********************************************************************/
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\000032}}
 .box {
   border: 1px SOLID #dddddd;
   background-color: #f2f2f2;
   color: #222222;
   padding: 6px;
   float: left;
-  width: 32%;
-  margin-right: 2%;
-  margin-bottom: 30px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000312}}
-.box:nth-child(3n) {
-  margin-right: 0%;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000316}}
-.box .header {
-  text-transform: uppercase;
-  padding-left: 12px;
-  font-weight: bold;
-  padding-top: 6px;
-  padding-bottom: 12px;
-  text-align: center;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000325}}
-.box h3 {
-  color: #AAAAAA;
-  font-size: 15px;
-  font-weight: normal;
-  text-align: center;
-  margin-top: 6px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000333}}
-.box .content {
-  background-color: white;
-  padding: 12px;
-  color: #42637b;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000345}}
-.box .legend {
-  text-align: right;
-  font-size: 9px;
-  text-transform: uppercase;
-  margin-top: 18px;
-  color: #AAAAAA;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000353}}
-.box .score {
-  float: right;
-  font-size: 1.4em;
-  margin-top: -0.2em;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000359}}
-.box .title {
-  text-transform: uppercase;
-  margin-top: 0.4em;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000364}}
-.box .stamp {
-  display: block;
-  font-size: 12px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000369}}
-.box progress {
   width: 100%;
-  height: 6px;
-  appearance: none;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  margin-bottom: 18px;
-  margin-top: 6px;
-  border: none;
-  background: #f2f2f2;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000362}}
-.box progress::-moz-progress-bar {
-  background-color: #42637b;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000365}}
-.box progress::-webkit-progress-value {
-  background-color: #42637b;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000387}}
-.box progress::-webkit-progress-bar {
-  background: #f2f2f2;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000393}}
-.box progress.ff::-moz-progress-bar {
-  background-color: #f39c32;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000374}}
-.box progress.ff::-webkit-progress-value {
-  background-color: #f39c32;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000379}}
-.box .footer {
-  text-align: center;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000382}}
-.box .footer a, .box .footer button {
-  display: inline-block;
-  width: 49%;
-  margin: 0px;
-  background-color: transparent;
-  border: 0px SOLID #FFFFFF;
-  padding-top: 18px;
-  padding-bottom: 12px;
-  cursor: pointer;
-  text-align: center;
-  color: #222222;
-  text-decoration: none;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\0000395}}
-.box .footer a.history:before, .box .footer button.history:before {
-  display: inline-block;
-  vertical-align: middle;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  margin-left: 6px;
-  margin-right: 6px;
-  content: "\e023";
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_box\.scss}line{font-family:\00003106}}
-.box .footer a.subtests:before, .box .footer button.subtests:before {
-  display: inline-block;
-  vertical-align: middle;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  margin-left: 6px;
-  margin-right: 6px;
-  content: "\e137";
-}
+  margin-right: 2%;
+  margin-bottom: 30px; }
+  .box:nth-child(3n) {
+    margin-right: 0%; }
+  .box .header {
+    text-transform: uppercase;
+    padding-left: 12px;
+    font-weight: bold;
+    padding-top: 6px;
+    padding-bottom: 12px; }
+  .box h3 {
+    color: #AAAAAA;
+    font-size: 15px;
+    font-weight: normal;
+    text-align: center;
+    margin-top: 6px; }
+  .box .content {
+    background-color: white;
+    padding: 12px;
+    color: #42637b; }
+  .box .footer {
+    padding-left: 12px;
+    padding-right: 12px; }
+    .box .footer a, .box .footer button {
+      display: block;
+      margin: 0px;
+      background-color: transparent;
+      border: 0px SOLID #FFFFFF;
+      padding-top: 18px;
+      padding-bottom: 12px;
+      cursor: pointer;
+      color: #222222;
+      text-decoration: none; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_base\.scss}line{font-family:\000031}}
 html {
-  overflow-y: scroll;
-}
+  overflow-y: scroll; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_base\.scss}line{font-family:\000035}}
 * {
-  box-sizing: border-box;
-}
+  box-sizing: border-box; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_base\.scss}line{font-family:\000039}}
 .container.content {
   position: relative;
-  padding-top: 0px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_base\.scss}line{font-family:\0000313}}
-body.ff .container.content:after {
-  position: absolute;
-  content: "";
-  display: block;
-  top: -260px;
-  left: -130px;
-  background-image: url("../img/tail.png");
-  background-size: 90%;
-  background-repeat: no-repeat;
-  background-position: 0px 0px;
-  width: 500px;
-  height: 900px;
-  transform: rotate(-35deg);
-  z-index: -1;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_base\.scss}line{font-family:\0000329}}
-.container.content h2 {
-  line-height: 48px;
-  font-weight: normal;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_base\.scss}line{font-family:\0000333}}
-.container.content h2 a {
-  color: #000000;
-  text-decoration: none;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_base\.scss}line{font-family:\0000338}}
-.container.content h2:after {
-  content: "";
-  display: block;
-  clear: both;
-}
+  padding-top: 0px; }
+  body.ff .container.content:after {
+    position: absolute;
+    content: "";
+    display: block;
+    top: -260px;
+    left: -130px;
+    background-image: url("../img/tail.png");
+    background-size: 90%;
+    background-repeat: no-repeat;
+    background-position: 0px 0px;
+    width: 500px;
+    height: 900px;
+    transform: rotate(-35deg);
+    z-index: -1; }
+  .container.content h2 {
+    line-height: 48px;
+    font-weight: normal; }
+    .container.content h2 a {
+      color: #000000;
+      text-decoration: none; }
+    .container.content h2:after {
+      content: "";
+      display: block;
+      clear: both; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\000032}}
 header {
   background-color: #42637b;
   color: white;
   -webkit-box-shadow: 0px 0px 15px 0px black;
   -moz-box-shadow: 0px 0px 15px 0px black;
-  box-shadow: 0px 0px 15px 0px black;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000310}}
-header .container {
-  display: table;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000314}}
-header select {
-  color: white;
-  background-color: #42637b;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000319}}
-header #machines, header #types, header #dates {
-  margin-left: 6px;
-  margin-right: 6px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_select\.scss}line{font-family:\000037}}
-header #machines select, header #machines input, header #machines div, header #types select, header #types input, header #types div, header #dates select, header #dates input, header #dates div {
-  -moz-appearance: toolbox;
-  -webkit-appearance: none;
-  text-indent: 0.01px;
-  text-overflow: '';
-  display: inline-block;
-  vertical-align: middle;
-  padding-right: 18px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_select\.scss}line{font-family:\0000316}}
-header #machines select::-ms-expand, header #machines input::-ms-expand, header #machines div::-ms-expand, header #types select::-ms-expand, header #types input::-ms-expand, header #types div::-ms-expand, header #dates select::-ms-expand, header #dates input::-ms-expand, header #dates div::-ms-expand {
-  display: none;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/utility\/abstractions\/_select\.scss}line{font-family:\0000321}}
-header #machines:after, header #types:after, header #dates:after {
-  position: absolute;
-  content: "\e114";
-  display: inline-block;
-  vertical-align: middle;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  font-size: 0.5em;
-  height: 2.0em;
-  margin-left: -12px;
-  line-height: 2.0em;
-  pointer-events: none;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000323}}
-header #dates:after {
-  display: none;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000328}}
-header div {
-  display: inline-block;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000332}}
-header h1 {
-  position: relative;
-  text-transform: uppercase;
-  font-size: 18px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000337}}
-body.ff header h1:after {
-  background-image: url("../img/firefox.png");
-  background-size: 75%;
-  background-repeat: no-repeat;
-  background-position: 0px -35px;
-  width: 250px;
-  top: -15px;
-  bottom: -15px;
-  content: "";
-  display: block;
-  left: -180px;
-  position: absolute;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000352}}
-header h1, header .rightSide {
-  display: table-cell;
-  vertical-align: middle;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000357}}
-header .rightSide {
-  text-align: right;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000361}}
-header .query {
-  margin-right: 24px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000365}}
-header a {
-  text-decoration: none;
-  color: white;
-}
+  box-shadow: 0px 0px 15px 0px black; }
+  header .container {
+    display: table; }
+  header select {
+    color: white;
+    background-color: #42637b; }
+  header #machines, header #types, header #dates {
+    margin-left: 6px;
+    margin-right: 6px; }
+    header #machines select, header #machines input, header #machines div, header #types select, header #types input, header #types div, header #dates select, header #dates input, header #dates div {
+      -moz-appearance: toolbox;
+      -webkit-appearance: none;
+      text-indent: 0.01px;
+      text-overflow: '';
+      display: inline-block;
+      vertical-align: middle;
+      padding-right: 18px; }
+      header #machines select::-ms-expand, header #machines input::-ms-expand, header #machines div::-ms-expand, header #types select::-ms-expand, header #types input::-ms-expand, header #types div::-ms-expand, header #dates select::-ms-expand, header #dates input::-ms-expand, header #dates div::-ms-expand {
+        display: none; }
+    header #machines:after, header #types:after, header #dates:after {
+      position: absolute;
+      content: "\e114";
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Glyphicons Halflings';
+      font-style: normal;
+      font-weight: normal;
+      font-size: 0.5em;
+      height: 2.0em;
+      margin-left: -12px;
+      line-height: 2.0em;
+      pointer-events: none; }
+  header #dates:after {
+    display: none; }
+  header div {
+    display: inline-block; }
+  header h1 {
+    position: relative;
+    text-transform: uppercase;
+    font-size: 18px; }
+    body.ff header h1:after {
+      background-image: url("../img/firefox.png");
+      background-size: 75%;
+      background-repeat: no-repeat;
+      background-position: 0px -35px;
+      width: 250px;
+      top: -15px;
+      bottom: -15px;
+      content: "";
+      display: block;
+      left: -180px;
+      position: absolute; }
+  header h1, header .rightSide {
+    display: table-cell;
+    vertical-align: middle; }
+  header .rightSide {
+    text-align: right; }
+  header .query {
+    margin-right: 24px; }
+  header a {
+    text-decoration: none;
+    color: white; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000371}}
 .subheader {
   float: right;
   vertical-align: bottom;
-  text-align: right;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000376}}
-.subheader .container {
-  padding-top: 0px;
-  padding-bottom: 0px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000381}}
-.subheader .history {
-  color: #222222;
-  text-decoration: none;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000385}}
-.subheader .history:before {
-  display: inline-block;
-  vertical-align: middle;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  margin-left: 6px;
-  margin-right: 6px;
-  content: "\e023";
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\0000397}}
-.subheader .up {
-  color: #222222;
-  text-decoration: none;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\00003101}}
-.subheader .up:before {
-  display: inline-block;
-  vertical-align: middle;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  margin-left: 6px;
-  margin-right: 6px;
-  content: "\e113";
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\00003113}}
-.subheader .button {
-  background-color: #f2f2f2;
-  border: 1px SOLID #dddddd;
-  padding: 12px 18px;
-  display: inline-block;
-  color: #222222;
-  margin-left: 12px;
-  margin-right: 12px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\00003122}}
-.subheader .button:last-child {
-  margin-right: 0px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\00003126}}
-.subheader .button .title, .subheader .button .result {
-  display: inline-block;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\00003130}}
-.subheader .button .title {
-  text-transform: uppercase;
-  font-size: 15px;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\00003135}}
-.subheader .button .result {
-  color: #222222;
-  font-weight: bold;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\00003139}}
-.subheader .button .result:before {
-  display: inline-block;
-  vertical-align: middle;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  margin-left: 6px;
-  margin-right: 6px;
-  content: "\2212";
-  color: #b67525;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\00003151}}
-.subheader .button .result.bad:before {
-  content: "\e114";
-  color: #d12600;
-}
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_header\.scss}line{font-family:\00003156}}
-.subheader .button .result.good:before {
-  content: "\e113";
-  color: #2f7836;
-}
+  text-align: right; }
+  .subheader .container {
+    padding-top: 0px;
+    padding-bottom: 0px; }
+  .subheader .history {
+    color: #222222;
+    text-decoration: none; }
+    .subheader .history:before {
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Glyphicons Halflings';
+      font-style: normal;
+      font-weight: normal;
+      margin-left: 6px;
+      margin-right: 6px;
+      content: "\e023"; }
+  .subheader .up {
+    color: #222222;
+    text-decoration: none; }
+    .subheader .up:before {
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Glyphicons Halflings';
+      font-style: normal;
+      font-weight: normal;
+      margin-left: 6px;
+      margin-right: 6px;
+      content: "\e113"; }
+  .subheader .button {
+    background-color: #f2f2f2;
+    border: 1px SOLID #dddddd;
+    padding: 12px 18px;
+    display: inline-block;
+    color: #222222;
+    margin-left: 12px;
+    margin-right: 12px; }
+    .subheader .button:last-child {
+      margin-right: 0px; }
+    .subheader .button .title, .subheader .button .result {
+      display: inline-block; }
+    .subheader .button .title {
+      text-transform: uppercase;
+      font-size: 15px; }
+    .subheader .button .result {
+      color: #222222;
+      font-weight: bold; }
+      .subheader .button .result:before {
+        display: inline-block;
+        vertical-align: middle;
+        font-family: 'Glyphicons Halflings';
+        font-style: normal;
+        font-weight: normal;
+        margin-left: 6px;
+        margin-right: 6px;
+        content: "\2212";
+        color: #b67525; }
+      .subheader .button .result.bad:before {
+        content: "\e114";
+        color: #d12600; }
+      .subheader .button .result.good:before {
+        content: "\e113";
+        color: #2f7836; }
 
 @font-face {
   font-family: 'Glyphicons Halflings';
   src: url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.eot");
-  src: url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.woff") format("woff"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.ttf") format("truetype"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.svg") format("svg");
-}
+  src: url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.woff") format("woff"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.ttf") format("truetype"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.svg") format("svg"); }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/base\/_typography\.scss}line{font-family:\0000311}}
 body {
   font-family: lato;
-  background-color: #e6e6e6;
-}
+  background-color: #e6e6e6; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/components\/pages\/_main\.scss}line{font-family:\000031}}
+.modal {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.5); }
+  .modal .container {
+    margin: 100px auto;
+    background-color: #fff;
+    border: 1px solid #000;
+    padding: 15px; }
+    .modal .container .status table {
+      width: 100%; }
+    .modal .container .status select {
+      text-transform: uppercase; }
+    .modal .container .status .input_extra {
+      width: 80%; }
+    .modal .container .status .button_submit {
+      width: 19%; }
+    .modal .container .status .status {
+      text-transform: uppercase; }
+    .modal .container .status .extra {
+      width: 50%; }
+    .modal .container .bug pre {
+      text-align: left; }
+    .modal .container .graph {
+      height: 80vh; }
+    .modal .container .graph iframe {
+      width: 100%;
+      height: 95%; }
+
 html, body {
   margin: 0px;
-  padding: 0px;
-}
+  padding: 0px; }
 
-@media -sass-debug-info{filename{font-family:file\:\/\/\/vagrant\/public\/arewefastyet\.firefox\.local\/arewefastyet\/website\/overview\/sass\/partials\/components\/pages\/_main\.scss}line{font-family:\000036}}
 .container {
   padding: 15px;
   width: 1200px;
   margin-left: auto;
-  margin-right: auto;
-}
+  margin-right: auto; }
+
+.overview .subnav {
+  float: right;
+  line-height: 48px; }
+.overview .box.regression:hover {
+  box-shadow: 1px 1px 2px #222; }
+.overview .regression {
+  cursor: pointer;
+  display: block;
+  text-decoration: none; }
+  .overview .regression .title {
+    text-transform: uppercase;
+    margin-top: 0.4em; }
+  .overview .regression .stamp {
+    display: block;
+    font-size: 12px; }
+  .overview .regression .footer {
+    padding-top: 12px;
+    padding-bottom: 6px; }
+    .overview .regression .footer .status .status {
+      text-transform: uppercase; }
+    .overview .regression .footer .bug {
+      float: right; }
+      .overview .regression .footer .bug .edit {
+        font-family: 'Glyphicons Halflings';
+        font-style: normal;
+        font-weight: normal;
+        margin-left: 6px;
+        margin-right: 6px; }
+
+.regression .details table {
+  width: 900px;
+  border: 1px SOLID #dddddd;
+  background-color: #f2f2f2;
+  color: #222222;
+  padding: 6px;
+  margin-right: 2%;
+  margin-bottom: 30px; }
+  .regression .details table td {
+    background-color: white;
+    padding: 6px; }
+  .regression .details table th {
+    text-align: left; }
+  .regression .details table .status td {
+    text-transform: uppercase; }
+  .regression .details table .edit {
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: normal;
+    margin-left: 6px;
+    margin-right: 6px;
+    float: right;
+    cursor: pointer; }
+.regression .link {
+  text-decoration: underline;
+  cursor: pointer; }
+.regression .status td {
+  padding-left: 6px;
+  padding-right: 6px; }
+.regression .status .stamp, .regression .status .name {
+  white-space: nowrap; }
+.regression .status .extra {
+  width: 75%; }
+  .regression .status .extra input[type=text] {
+    width: 85%; }
+.regression .range iframe {
+  width: 100%;
+  height: 750px; }
+.regression .add {
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  margin-left: 6px;
+  margin-right: 6px;
+  float: right;
+  cursor: pointer; }
+.regression .scores .score {
+  cursor: pointer;
+  position: relative; }
+.regression .scores .score.editNoise {
+  margin-left: 25px; }
+.regression .scores .txt {
+  float: right;
+  padding-top: 6px;
+  padding-bottom: 12px;
+  margin-right: 6px; }
+
+.box .regression .percent {
+  float: right;
+  font-size: 1.4em;
+  margin-top: -0.2em; }
+.box .regression .regression {
+  color: #d12600; }
+.box .regression .improvement {
+  color: #2f7836; }
+.box .regression .suite {
+  float: left;
+  position: absolute; }
+.box .regression .score {
+  text-align: center;
+  height: 1.5em; }

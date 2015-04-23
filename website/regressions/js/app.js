@@ -76,7 +76,7 @@ awfyApp.controller('dialogCtrl', ['$scope', 'modalDialog',
 awfyApp.controller('pageCtrl', ['$scope', 'MasterService', '$http',
   function ($scope, master, $http) {
 
-	var machines = []
+	var machines = {}
 	for (var id in master.machines) {
 		machines[id] = master.machines[id];
 		machines[id]["selected"] = true;

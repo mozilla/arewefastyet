@@ -268,38 +268,57 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
     function setDefaultModeAndMachine() {
         var machines = ["10","11","12","14","17","20","21","22","26","27","28","29","30"];
         var modes = ["14","16","20","21","22","23","25","26","27","28","29","31","32","33","35"];
-        for (var id in machines) {
-            $scope.master.machines[machines[id]].selected = true;
-        }
+		setMachines(machines);
+        setModes(modes);
+    }
+    function setModes(modes) {
         for (var id in modes) {
             $scope.master.modes[modes[id]].selected = true;
         }
     }
-    function setState(states) {
+    function getModes() {
+        var modes = []
+        for (var mode in $scope.master.modes) {
+            if ($scope.master.modes[mode].selected)
+				modes.push(mode);
+        }
+		return modes;
+    }
+    function setMachines(machines) {
+        for (var id in machines) {
+            $scope.master.machines[machines[id]].selected = true;
+        }
+    }
+    function getMachines() {
+        var machines = []
+        for (var machine in $scope.master.machines) {
+            if ($scope.master.machines[machine].selected)
+				machines.push(machine);
+        }
+		return machines;
+    }
+    function setStates(states) {
         for (var id in $scope.availablestates) {
             var state = $scope.availablestates[id];
             state.selected = states.indexOf(state.name) != -1;
         }
     }
-    $scope.setNonTriaged = function() {
-        setDefaultModeAndMachine();
-        setState(["unconfirmed"]);
-        $scope.search()
+    function getStates() {
+        var states = []
+        for (var id in $scope.availablestates) {
+            if ($scope.availablestates[id].selected)
+				states.push($scope.availablestates[id].name);
+        }
+		return states;
     }
-    $scope.setNotFixedRegressions = function() {
-        setDefaultModeAndMachine();
-        setState(["confirmed"]);
-        $scope.search()
-    }
-    $scope.setImprovements = function() {
-        setDefaultModeAndMachine();
-        setState(["improvement"]);
-        $scope.search()
-    }
-    $scope.advancedSearch = function() {
-        $scope.advanced = true;
-    }
-    $scope.search = function() {
+    function initAdvanced() {
+		var search = $location.search();
+        setMachines(search.machines || []);
+        setStates(search.states || []);
+        setModes(search.modes || []);
+        fetch()
+	}
+	function fetch() {
         var selected_machines = []
         for (var id in $scope.master.machines) {
             if ($scope.master.machines[id].selected)
@@ -332,22 +351,46 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
               }
 
               $scope.regressions = regressions;
-              $scope.advanced = false;
+			  $scope.advanced = ($routeParams.search == "advanced");
             });
         });
     }
 
-    $scope.open = function(id) {
-         $location.path("/regression/"+id);
+    $scope.setNonTriaged = function() {
+        setDefaultModeAndMachine();
+        setStates(["unconfirmed"]);
+        fetch()
     }
+    $scope.setNotFixedRegressions = function() {
+        setDefaultModeAndMachine();
+        setStates(["confirmed"]);
+        fetch()
+    }
+    $scope.setImprovements = function() {
+        setDefaultModeAndMachine();
+        setStates(["improvement"]);
+        fetch()
+    }
+    $scope.advancedSearch = function() {
+        $scope.advanced = true;
+    }
+    $scope.open = function(id) {
+        $location.path("/regression/"+id);
+    }
+    $scope.search = function() {
+		$location.path("advanced");
+        $location.search({machines: getMachines(), states: getStates(), modes: getModes()});
+	}
 
-    $scope.advanced = false;
+    $scope.advanced = ($routeParams.search == "advanced");
     $scope.regressions = [];
 
     if ($routeParams.search == "open")
         $scope.setNotFixedRegressions();
     else if ($routeParams.search == "improvements")
         $scope.setImprovements();
+    else if ($routeParams.search == "advanced")
+		initAdvanced();
     else
         $scope.setNonTriaged();
   }

@@ -3,7 +3,15 @@
     line-height: $unit*8;
 }
 
-.box {
+.box.regression:hover {
+  box-shadow: 1px 1px 2px #222;
+}
+
+.regression {
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+
 
   .title {
     text-transform: uppercase;
@@ -16,15 +24,14 @@
   }
 
   .footer {
-    .status {
-	  .status {
-		  text-transform: uppercase;
-	  }
+	padding-top: $unit*2;
+	padding-bottom: $unit;
+
+    .status .status {
+		text-transform: uppercase;
 	}
 
-    a, button {
-
-	  &.bug {
+	.bug {
 		float: right;
 
 		.edit {
@@ -34,7 +41,6 @@
 			margin-left: $unit;
 			margin-right: $unit;
 		}
-	  }
     }
   }
 }

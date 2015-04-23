@@ -29,6 +29,7 @@ html {
   h2 {
 
     font-weight: normal;
+    font-size: $unit*3;
 
     .machine {
       select {
@@ -40,10 +41,8 @@ html {
           display: none;
         }
 
-        background-color: #F2F2F2;
-        border: 1px solid #DDD;
-        padding-left: 18px;
-        padding-right: 18px;
+        background-color: inherit;
+        border: 0px;
         padding-top: $unit*3;
         padding-bottom: $unit*6;
         display: inline-block;
@@ -51,7 +50,13 @@ html {
         padding-right: $unit*3 + 18;
 		font-weight: bold;
         min-width: 300px;
+		font-size: $unit*2.6;
       }
+
+	  option {
+		font-weight: normal;
+		font-size: $unit*2.5;
+	  }
 
       &:after {
         position: absolute;
@@ -61,12 +66,10 @@ html {
         font-family: 'Glyphicons Halflings';
         font-style: normal;
         font-weight: normal;
-        font-size: 0.5em;
-        height: 2.0em;
+		font-size: $unit*2.6;
         margin-left: -$unit*2 - 18px;
-        line-height: 2.0em;
         pointer-events: none;
-        padding-top: $unit*3;
+        padding-top: $unit*3 + 2px;
         padding-bottom: $unit*6;
       }
     }
@@ -85,8 +88,9 @@ html {
      color: $_darkgrey;
 	 margin-top: -$unit*9;
 	 margin-bottom: $unit*6;
-     margin-left: 20px;
-	 font-style:italic
+     margin-left: 3px;
+	 font-style: italic;
+ 	 font-size: $unit*2.6;
   }
 }
 

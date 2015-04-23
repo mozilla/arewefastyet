@@ -139,25 +139,28 @@ html {
     transform: rotate(-35deg);
     z-index: -1; }
   .container.content h2 {
-    font-weight: normal; }
+    font-weight: normal;
+    font-size: 18px; }
     .container.content h2 .machine select {
       vertical-align: top;
       -moz-appearance: none;
       -webkit-appearance: none;
       text-overflow: '';
-      background-color: #F2F2F2;
-      border: 1px solid #DDD;
-      padding-left: 18px;
-      padding-right: 18px;
+      background-color: inherit;
+      border: 0px;
       padding-top: 18px;
       padding-bottom: 36px;
       display: inline-block;
       color: #222;
       padding-right: 36px;
       font-weight: bold;
-      min-width: 300px; }
+      min-width: 300px;
+      font-size: 15.6px; }
       .container.content h2 .machine select::-ms-expand {
         display: none; }
+    .container.content h2 .machine option {
+      font-weight: normal;
+      font-size: 15px; }
     .container.content h2 .machine:after {
       position: absolute;
       content: "\e114";
@@ -166,12 +169,10 @@ html {
       font-family: 'Glyphicons Halflings';
       font-style: normal;
       font-weight: normal;
-      font-size: 0.5em;
-      height: 2.0em;
+      font-size: 15.6px;
       margin-left: -30px;
-      line-height: 2.0em;
       pointer-events: none;
-      padding-top: 18px;
+      padding-top: 20px;
       padding-bottom: 36px; }
     .container.content h2 .extra {
       line-height: 75px; }
@@ -182,8 +183,9 @@ html {
     color: #222222;
     margin-top: -54px;
     margin-bottom: 36px;
-    margin-left: 20px;
-    font-style: italic; }
+    margin-left: 3px;
+    font-style: italic;
+    font-size: 15.6px; }
 
 header {
   background-color: #42637b;

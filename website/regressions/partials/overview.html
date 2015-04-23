@@ -46,7 +46,8 @@
   </div>
 
   <div>
-    <div class='box' ng-repeat="regression in regressions" ng-click="open(regression.id)">
+    <a class='box regression' ng-repeat="regression in regressions" ng-click="open(regression.id)"
+       ng-href='#/regression/{{regression.id}}'>
 	  <div class='header'>
         <div class='machine'>{{regression.machine}}</div>
         <div class='mode'>{{regression.mode}}</div>
@@ -66,15 +67,17 @@
         </div>
       </div>
       <div class='footer'>
-        <a class='bug' ng-href="https://bugzilla.mozilla.org/show_bug.cgi?id={{regression.bug}}" ng-if="regression.bug!=0">
+        <!--
+        <span class='bug' ng-if="regression.bug!=0">
 			#{{regression.bug}}
-		</a>
-        <a class='status'>Status: 
+		</span>
+        -->
+        <span class='status'>Status: 
 			<span class='status'>{{regression.status}}</span>
 			<span ng-if='regression.status_extra'>: {{regression.status_extra}}</span>
-		</a>
+		</span>
       </div>
-    </div>
+    </a>
   </div>
 </div>
 
