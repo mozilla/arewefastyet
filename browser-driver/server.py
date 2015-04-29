@@ -203,6 +203,9 @@ class FakeHandler(SimpleHTTPRequestHandler):
         return response.status, headers, data
 
     def injectData(self, host, path, data):
+        if host.startswith("massive."):
+            if path == "/Massive/driver.js":
+                return data.replace("job.calculate().toFixed(3)","normalize(job)")
         if host.startswith("octane."):
             if path == "/svn/latest/index.html":
                 return data.replace("</body>",
