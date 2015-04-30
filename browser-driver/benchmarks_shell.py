@@ -113,7 +113,7 @@ class Kraken(SunSpiderBased):
 
 class Assorted(SunSpiderBased):
     def __init__(self):
-        super(Assorted, self).__init__('misc', '0.1', 'misc', 3)
+        super(Assorted, self).__init__('misc', '0.4', 'misc', 3)
 
 def getBenchmark(name):
     if name == "octane":
