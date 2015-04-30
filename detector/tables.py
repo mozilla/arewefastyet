@@ -424,6 +424,14 @@ class RegressionTools(DBTable):
         nexts.append(point)
     return nexts
 
+  def avg_prevs(self):
+    avg_prevs, _ = self.avg_prevs_nexts()
+    return avg_prevs
+
+  def avg_nexts(self):
+    _, avg_nexts = self.avg_prevs_nexts()
+    return avg_nexts
+
   def avg_prevs_nexts(self):
     self.initialize()
     if "avg_prevs" not in self.cached:
@@ -538,7 +546,7 @@ class Score(RegressionTools):
     noise = RegressionScoreNoise(self.get('build').get('run').get('machine'),
                                  self.get('suite_version'),
                                  self.get('build').get('mode')).get('noise')
-    return 2.2*noise
+    return 2.0*noise
 
   @classmethod
   def first(class_, machine, suite, mode):
@@ -657,7 +665,7 @@ class Breakdown(RegressionTools):
     noise = RegressionBreakdownNoise(self.get('build').get('run').get('machine'),
                                      self.get('suite_test'),
                                      self.get('build').get('mode')).get('noise')
-    return 2.2*noise
+    return 2.0*noise
 
   def dump(self):
     import datetime

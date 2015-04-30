@@ -17,7 +17,7 @@ def testRuns():
              WHERE stamp > 1428624000 AND                                       \
                    status = 1 AND                                               \
                    detector = 1 AND                                             \
-                   machine in (28)")
+                   machine in (28, 29)")
   runs = []
   for row in c.fetchall():
     runs.append(tables.Run(row[0]))
@@ -53,6 +53,8 @@ for run in testRuns():
             status_now = "regressed"
     
         key = status_db+"-"+status_now
+        changes["db_"+status_db] += 1
+        changes["now_"+status_now] += 1
         changes[key] += 1  
         
         if key == "regressed-noregression" or key == "noregression-regressed":
@@ -70,5 +72,5 @@ print "Lost detections!:", changes["regressed-noregression"]
 print "Over active detection: ", changes["noregression-regressed"]
 print "% less detections: ", 1.0*int(changes["marked noregression-noregression"])/(int(changes["marked noregression-regressed"])+int(changes["marked noregression-noregression"]))
 
-
-
+print "Db regressions: ", int(changes["db_marked noregression"]) + int(changes["db_regressed"])
+print "Now regressions: ", int(changes["now_regressed"])

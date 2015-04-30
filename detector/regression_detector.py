@@ -29,6 +29,23 @@ def regressed(score):
   if abs(change) <= score.noise():
     return False
 
+  # Don't report outliner
+  if score.next() is None:
+    return None
+  prevs = score.avg_prevs()
+  nexts = score.next().avg_nexts()
+  if prevs is None or nexts is None:
+    return None
+  if abs(prevs-nexts) <= score.noise():
+    return False
+  if score.prev() is not None:
+    prevs = score.prev().avg_prevs()
+    nexts = score.avg_nexts()
+    if prevs is None or nexts is None:
+      return None
+    if abs(prevs-nexts) <= score.noise():
+      return False
+
   # average change over multiple runs.
   change = score.avg_change()
 
