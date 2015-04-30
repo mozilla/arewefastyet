@@ -32,7 +32,7 @@ def avg_diff(machine, suite, mode, first):
     return median(diffs)
 
 for machine in tables.Machine.all():
-  if machine.get("description") != "Mac OS X 10.10 32-bit (Mac Pro, shell)":
+  if machine.get("description") != "Mac OS X 10.10 64-bit (Mac Pro, shell)":
     continue
   
   for mode in tables.Mode.allWith(machine):

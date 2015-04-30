@@ -211,8 +211,22 @@ class Regression(DBTable):
     return "awfy_regression"
 
 class RegressionScore(DBTable):
-  def __init__(self, id):
+  def __init__(self, build, score):
+    c = awfy.db.cursor()
+    c.execute("SELECT id FROM "+self.table()+"        \
+               WHERE build_id = %s AND                \
+                     score_id = %s", (build.get("id"), score.get("id")))
+    row = c.fetchone()
+    id = row[0] if row else 0
     DBTable.__init__(self, id)
+
+  def regression(self):
+    c = awfy.db.cursor()
+    c.execute("SELECT id FROM awfy_regression        \
+               WHERE build_id = %s", (self.get("build_id"),))
+    row = c.fetchone()
+    id = row[0] if row else 0
+    return Regression(id)
 
   @staticmethod
   def table():
@@ -221,7 +235,7 @@ class RegressionScore(DBTable):
 class RegressionScoreNoise(DBTable):
   def __init__(self, machine, suite, mode):
     c = awfy.db.cursor()
-    c.execute("SELECT id FROM "+self.table()+"        \
+    c.execute("SELECT id FROM "+self.table()+"          \
                WHERE machine_id = %s AND                \
                      mode_id = %s AND                   \
                      suite_version_id = %s", (machine.get("id"), mode.get("id"), suite.get("id")))
@@ -251,8 +265,22 @@ class RegressionScoreNoise(DBTable):
     return "awfy_regression_score_noise"
 
 class RegressionBreakdown(DBTable):
-  def __init__(self, id):
+  def __init__(self, build, breakdown):
+    c = awfy.db.cursor()
+    c.execute("SELECT id FROM "+self.table()+"        \
+               WHERE build_id = %s AND                  \
+                     breakdown_id = %s", (build.get("id"), breakdown.get("id")))
+    row = c.fetchone()
+    id = row[0] if row else 0
     DBTable.__init__(self, id)
+
+  def regression(self):
+    c = awfy.db.cursor()
+    c.execute("SELECT id FROM awfy_regression        \
+               WHERE build_id = %s", (self.get("build_id"),))
+    row = c.fetchone()
+    id = row[0] if row else 0
+    return Regression(id)
 
   @staticmethod
   def table():
