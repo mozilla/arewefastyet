@@ -7,6 +7,12 @@ import awfy
 import sys
 import time
 import tables
+from optparse import OptionParser
+
+parser = OptionParser(usage="usage: %prog [options]")
+parser.add_option("-n", "--non-existing", dest="nonexistonly", action="store_true", default=False,
+                  help="Only compute noise of items that don't have one yet.")
+(options, args) = parser.parse_args()
 
 def median(x):
     x.sort()
@@ -32,11 +38,15 @@ def avg_diff(machine, suite, mode, first):
     return median(diffs)
 
 for machine in tables.Machine.all():
-  if machine.get("description") != "Mac OS X 10.10 64-bit (Mac Pro, shell)":
+  if machine.id != 28 and machine.id != 29:
     continue
   
   for mode in tables.Mode.allWith(machine):
     for suite in tables.SuiteVersion.all():
+        # Don't update, only insert new ones, if requested
+        if tables.RegressionScoreNoise(machine, suite, mode).id != 0 and options.nonexistonly:
+            continue
+
         first = tables.Score.first(machine, suite, mode)
         if not first:
             continue
@@ -47,6 +57,10 @@ for machine in tables.Machine.all():
         print suite.get('name'), mode.get('name'), diff
         awfy.db.commit()
     for suite in tables.SuiteTest.all():
+        # Don't update, only insert new ones, if requested
+        if tables.RegressionBreakdownNoise(machine, suite, mode).id != 0 and options.nonexistonly:
+            continue
+
         first = tables.Breakdown.first(machine, suite, mode)
         if not first:
             continue
