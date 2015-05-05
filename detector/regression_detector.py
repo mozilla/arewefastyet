@@ -8,11 +8,14 @@ import sys
 import time
 import tables
 
+
 def notProcessedRuns():
+  # Only look at reports in the last week
+  newer = int(time.time() - 60 * 60 * 24 * 7)
   c = awfy.db.cursor()
   c.execute("SELECT id                                                          \
              FROM awfy_run                                                      \
-             WHERE id > 241420 AND                                              \
+             WHERE stamp > "+str(newer)+" AND                                        \
                    status = 1 AND                                               \
                    detector != 1 AND                                            \
                    machine in (28,29)")
@@ -44,6 +47,11 @@ def regressed(score):
     if prevs is None or nexts is None:
       return None
     if abs(prevs-nexts) <= score.noise():
+      return False
+
+  # Don't report if same revision
+  if score.prev() is not None:
+    if score.get('build').get('cset') == score.prev().get('build').get('cset'):
       return False
 
   # average change over multiple runs.
