@@ -42,6 +42,8 @@ for run in testRuns():
                 status_db = "marked noregression"
             elif regression.regression().get('status') == "noise":
                 status_db = "marked noregression"
+            elif regression.regression().get('status') == "unconfirmed":
+                status_db = "unconfirmed"
             else:
                 status_db = "regressed"
         
@@ -62,6 +64,11 @@ for run in testRuns():
                 print 0,
             else:
                 print regression.regression().id, 
+            print score.get("build").get("run").get("machine_id"),
+            print score.get("build").get("mode").get("name"),
+            print score.change(),
+            print score.noise(),
+            print score.avg_change(),
             if score.__class__ == tables.Score:
                 print score.get("suite_version").get("name"),
             else:
