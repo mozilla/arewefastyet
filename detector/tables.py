@@ -239,7 +239,8 @@ class RegressionScoreNoise(DBTable):
                WHERE machine_id = %s AND                \
                      mode_id = %s AND                   \
                      suite_version_id = %s", (machine.get("id"), mode.get("id"), suite.get("id")))
-    id = c.fetchone()[0]
+    row = c.fetchone()
+    id = row[0] if row else 0
     DBTable.__init__(self, id)
 
   @classmethod
@@ -448,7 +449,7 @@ class RegressionTools(DBTable):
     nexts = [self.get('score')] + [i.get('score') for i in self.nexts(runs - 1)]
 
     p_weight = [len(prevs)-i for i in range(len(prevs))]
-    n_weight = [len(prevs)-i for i in range(len(prevs))]
+    n_weight = [len(nexts)-i for i in range(len(nexts))]
     prevs = [prevs[i]*p_weight[i] for i in range(len(prevs))]
     nexts = [nexts[i]*n_weight[i] for i in range(len(nexts))]
 
@@ -539,6 +540,7 @@ class Score(RegressionTools):
   def runs(self):
     runs = max(1, self.get('build').get('run').get('machine').get("confidence_runs"))
     runs *= self.get('suite_version').get('suite').get("confidence_factor")
+    runs *= 1.5
     runs = int(round(runs))
     return runs
 
@@ -546,7 +548,7 @@ class Score(RegressionTools):
     noise = RegressionScoreNoise(self.get('build').get('run').get('machine'),
                                  self.get('suite_version'),
                                  self.get('build').get('mode')).get('noise')
-    return 2.0*noise
+    return 2.2*noise
 
   @classmethod
   def first(class_, machine, suite, mode):
@@ -658,6 +660,7 @@ class Breakdown(RegressionTools):
   def runs(self):
     runs = max(1, self.get('build').get('run').get('machine').get("confidence_runs"))
     runs *= self.get('suite_test').get("confidence_factor")
+    runs *= 1.5
     runs = int(round(runs))
     return runs
 
@@ -665,7 +668,7 @@ class Breakdown(RegressionTools):
     noise = RegressionBreakdownNoise(self.get('build').get('run').get('machine'),
                                      self.get('suite_test'),
                                      self.get('build').get('mode')).get('noise')
-    return 2.0*noise
+    return 2.2*noise
 
   def dump(self):
     import datetime
