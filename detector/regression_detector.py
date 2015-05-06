@@ -25,6 +25,10 @@ def notProcessedRuns():
   return runs
    
 def regressed(score):
+  # Disabled. So no testing
+  if score.disabled():
+    return False
+
   # Lower than threshold, no regression.
   change = score.change()
   if change is None:

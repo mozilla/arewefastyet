@@ -38,7 +38,7 @@ def avg_diff(machine, suite, mode, first):
     return median(diffs)
 
 for machine in tables.Machine.all():
-  if machine.id != 28 and machine.id != 29:
+  if machine.id != 28 and machine.id != 29 and machine.id != 26:
     continue
   
   for mode in tables.Mode.allWith(machine):
@@ -47,7 +47,7 @@ for machine in tables.Machine.all():
         if tables.RegressionScoreNoise(machine, suite, mode).id != 0 and options.nonexistonly:
             continue
 
-        first = tables.Score.first(machine, suite, mode)
+        first = tables.Score.firstOfRecent(machine, suite, mode)
         if not first:
             continue
         diff = avg_diff(machine, suite, mode, first)
@@ -61,7 +61,7 @@ for machine in tables.Machine.all():
         if tables.RegressionBreakdownNoise(machine, suite, mode).id != 0 and options.nonexistonly:
             continue
 
-        first = tables.Breakdown.first(machine, suite, mode)
+        first = tables.Breakdown.firstOfRecent(machine, suite, mode)
         if not first:
             continue
         diff = avg_diff(machine, suite, mode, first)

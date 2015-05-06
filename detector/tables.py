@@ -621,6 +621,11 @@ class Score(RegressionTools):
     runs = int(round(runs))
     return runs
 
+  def disabled(self):
+    return RegressionScoreNoise(self.get('build').get('run').get('machine'),
+                                self.get('suite_version'),
+                                self.get('build').get('mode')).get('disabled')
+
   def noise(self):
     noise = RegressionScoreNoise(self.get('build').get('run').get('machine'),
                                  self.get('suite_version'),
@@ -628,21 +633,24 @@ class Score(RegressionTools):
     return NOISE_FACTOR*noise
 
   @classmethod
-  def first(class_, machine, suite, mode):
+  def firstOfRecent(class_, machine, suite, mode):
     assert machine.__class__ == Machine
     assert suite.__class__ == SuiteVersion
     assert mode.__class__ == Mode
 
     c = awfy.db.cursor()
-    c.execute("SELECT awfy_score.id                                                   \
-               FROM awfy_score                                                        \
-               INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
-               INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
-               WHERE machine = %s AND                                                 \
-                     mode_id = %s AND                                                 \
-                     suite_version_id = %s AND                                        \
-                     status = 1                                                       \
-               ORDER BY stamp ASC                                                     \
+    c.execute("SELECT id                                                                    \
+               FROM (SELECT awfy_score.id, stamp                                            \
+                     FROM awfy_score                                                        \
+                     INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
+                     INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
+                     WHERE machine = %s AND                                                 \
+                           mode_id = %s AND                                                 \
+                           suite_version_id = %s AND                                        \
+                           status = 1                                                       \
+                     ORDER BY stamp DESC                                                    \
+                     LIMIT 1000) tmp                                                        \
+               ORDER BY stamp ASC                                                           \
                LIMIT 1", (machine.get("id"), mode.get("id"), suite.get("id")))
     row = c.fetchone()
     if row:
@@ -713,21 +721,24 @@ class Breakdown(RegressionTools):
     return [Breakdown(row[0]) for row in rows]
 
   @classmethod
-  def first(class_, machine, suite, mode):
+  def firstOfRecent(class_, machine, suite, mode):
     assert machine.__class__ == Machine
     assert suite.__class__ == SuiteTest
     assert mode.__class__ == Mode
 
     c = awfy.db.cursor()
-    c.execute("SELECT awfy_breakdown.id                                               \
-               FROM awfy_breakdown                                                    \
-               INNER JOIN awfy_build ON awfy_build.id = awfy_breakdown.build_id       \
-               INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
-               WHERE machine = %s AND                                                 \
-                     mode_id = %s AND                                                 \
-                     suite_test_id = %s AND                                           \
-                     status = 1                                                       \
-               ORDER BY stamp ASC                                                     \
+    c.execute("SELECT id                                                                    \
+               FROM (SELECT awfy_breakdown.id, stamp                                        \
+                     FROM awfy_breakdown                                                    \
+                     INNER JOIN awfy_build ON awfy_build.id = awfy_breakdown.build_id       \
+                     INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
+                     WHERE machine = %s AND                                                 \
+                           mode_id = %s AND                                                 \
+                           suite_test_id = %s AND                                           \
+                           status = 1                                                       \
+                     ORDER BY stamp DESC                                                    \
+                     LIMIT 1000) tmp                                                        \
+               ORDER BY stamp ASC                                                           \
                LIMIT 1", (machine.get("id"), mode.get("id"), suite.get("id")))
     row = c.fetchone()
     if row:
@@ -740,6 +751,11 @@ class Breakdown(RegressionTools):
     runs *= RUNS_FACTOR
     runs = int(round(runs))
     return runs
+
+  def disabled(self):
+    return RegressionBreakdownNoise(self.get('build').get('run').get('machine'),
+                                    self.get('suite_test'),
+                                    self.get('build').get('mode')).get('disabled')
 
   def noise(self):
     noise = RegressionBreakdownNoise(self.get('build').get('run').get('machine'),
