@@ -18,5 +18,10 @@ for row in c.fetchall():
 			   WHERE regression_id = %s", row[0])
 	c.execute("DELETE FROM awfy_regression                                  \
 			   WHERE id = %s", row[0])
+	c.execute("UPDATE awfy_run                                              \
+               LEFT JOIN awfy_build ON awfy_run.id = awfy_build.run_id      \
+               SET detector = 0                                             \
+			   WHERE awfy_build.id = %s", row[1])
+    
 	print row[0]
 awfy.db.commit()
