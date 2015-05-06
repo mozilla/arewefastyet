@@ -6,7 +6,7 @@
 import awfy
 import sys
 import time
-import tables
+import tables_old as tables
 
 
 def notProcessedRuns():

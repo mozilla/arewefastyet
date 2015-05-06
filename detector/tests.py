@@ -7,14 +7,25 @@ import awfy
 import sys
 import time
 import tables
+import tables_old
 import regression_detector
+import regression_detector_old 
 from collections import defaultdict
+
+import os
+import time
+import datetime
+os.environ['TZ'] = "Europe/Amsterdam"
+time.tzset()
 
 def testRuns():
   c = awfy.db.cursor()
+  newer = int(time.time() - 60 * 60 * 24 * 30)
+  older = int(time.time() - 60 * 60 * 24 * 1)
   c.execute("SELECT id                                                          \
              FROM awfy_run                                                      \
-             WHERE stamp > 1428624000 AND                                       \
+             WHERE stamp > "+str(newer)+" AND                                   \
+                   stamp < "+str(older)+" AND                                   \
                    status = 1 AND                                               \
                    detector = 1 AND                                             \
                    machine in (28, 29)")
@@ -33,8 +44,10 @@ for run in testRuns():
 
         if score.__class__ == tables.Score:
             regression = tables.RegressionScore(score.get("build"), score)
+            score_old = tables_old.Score(score.id)
         elif score.__class__ == tables.Breakdown:
             regression = tables.RegressionBreakdown(score.get("build"), score)
+            score_old = tables_old.Breakdown(score.id)
 
         status_db = "noregression"
         if regression.id != 0:
@@ -47,19 +60,30 @@ for run in testRuns():
             else:
                 status_db = "regressed"
         
+        status_old = "noregression"
+        regressed_ = regression_detector_old.regressed(score_old)
+        if regressed_ is None:
+            status_old = "nodata"
+        elif regressed_:
+            status_old = "regressed"
+    
         status_now = "noregression"
         regressed_ = regression_detector.regressed(score)
         if regressed_ is None:
             status_now = "nodata"
         elif regressed_:
             status_now = "regressed"
-    
+
         key = status_db+"-"+status_now
         changes["db_"+status_db] += 1
         changes["now_"+status_now] += 1
+        changes["old_"+status_old] += 1
         changes[key] += 1  
         
-        if key == "regressed-noregression" or key == "noregression-regressed":
+        if key == "regressed-noregression" or key == "noregression-regressed" or status_now == "regressed":
+            print datetime.datetime.fromtimestamp(
+                int(score.get("build").get("run").get("stamp"))
+            ).strftime('%Y-%m-%d %H:%M:%S'),
             if regression.id == 0:
                 print 0,
             else:
@@ -79,5 +103,6 @@ print "Lost detections!:", changes["regressed-noregression"]
 print "Over active detection: ", changes["noregression-regressed"]
 print "% less detections: ", 1.0*int(changes["marked noregression-noregression"])/(int(changes["marked noregression-regressed"])+int(changes["marked noregression-noregression"]))
 
-print "Db regressions: ", int(changes["db_marked noregression"]) + int(changes["db_regressed"])
+print "Db regressions: ", int(changes["db_marked noregression"]) + int(changes["db_regressed"]) + int(changes["db_unconfirmed"])
+print "Old regressions: ", int(changes["old_regressed"])
 print "Now regressions: ", int(changes["now_regressed"])
