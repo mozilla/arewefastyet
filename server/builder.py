@@ -6,11 +6,12 @@ class Builder:
         self.lines = []
         self.timemap = {}
 
-    def addPoint(self, points, time, first, last, score, suite_version):
+    def addPoint(self, points, time, first, last, score, suite_version, id):
         point = { 'time': time,
                   'first': first,
                   'score': score,
-                  'suite_version': suite_version
+                  'suite_version': suite_version,
+                  'id': id
                 }
         if last:
             point['last'] = last
@@ -57,9 +58,9 @@ class Builder:
             for point in line['data']:
                 index = self.timemap[point['time']]
                 if 'last' in point:
-                    newlist[index] = [point['score'], point['first'], point['last'], point['suite_version']]
+                    newlist[index] = [point['score'], point['first'], point['last'], point['suite_version'], point['id']]
                 else:
-                    newlist[index] = [point['score'], point['first'], None, point['suite_version']]
+                    newlist[index] = [point['score'], point['first'], None, point['suite_version'], point['id']]
 
             line['data'] = newlist
         return

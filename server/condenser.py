@@ -86,6 +86,7 @@ def condense_graph(graph, regions):
             first = None
             last = None
             suite_version = None
+            id = None
             for i in range(start, end):
                 p = line['data'][i]
                 if not p or not p[0]:
@@ -96,11 +97,12 @@ def condense_graph(graph, regions):
                     first = p[1]
                 last = p[1]
                 suite_version = p[3]
+                id = p[4]
             if count == 0:
                 avg = 0
             else:
                 avg = total/count
-            points.append([avg, first, last, suite_version])
+            points.append([avg, first, last, suite_version, id if count is 1 else None])
 
         newline = { 'modeid': line['modeid'],
                     'data': points

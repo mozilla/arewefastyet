@@ -139,7 +139,8 @@ def update_cache(cx, suite, prefix, when, rows):
                              cset,
                              None,
                              score,
-                             row[5])
+                             row[5],
+                             row[0])
         line = { 'modeid': modeid,
                  'data': points
                }
