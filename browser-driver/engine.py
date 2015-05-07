@@ -120,7 +120,7 @@ class Mozilla(Engine):
             print subprocess.check_output(["adb", "install", "-r", self.tmp_dir + self.folder + "/fennec.apk"])
         elif self.slaveType == "mac-desktop":
             if os.path.exists("/Volumes/Nightly"):
-                print subprocess.check_output(["hdiutil", "detach", "/Volumes/Nightly"])
+                print subprocess.check_output(["hdiutil", "detach", "-force", "/Volumes/Nightly"])
             print subprocess.check_output(["hdiutil", "attach", self.tmp_dir + self.folder + "/firefox.dmg"])
         elif self.slaveType == "linux-desktop":
             utils.unzip(self.tmp_dir + self.folder, "firefox.tar.bz2")
