@@ -144,7 +144,7 @@ class Dart(Benchmark):
 
         total = 0.0
         for x in lines:
-            m = re.search("(.+): (\d+\.\d+)", x)
+            m = re.search("(.+)\(RunTime\): (\d+\.\d+)", x)
             if not m:
                 continue
             name = m.group(1)
