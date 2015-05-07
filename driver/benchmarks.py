@@ -126,6 +126,36 @@ class Octane(Benchmark):
 
         return tests
 
+class Dart(Benchmark):
+    def __init__(self):
+        super(Dart, self).__init__('dart', '0.1', 'dart')
+
+    def benchmark(self, shell, env, args):
+        full_args = [shell]
+        if args:
+            full_args.extend(args)
+        full_args.append('run.js')
+
+        print(os.getcwd())
+        output = utils.RunTimedCheckOutput(full_args, env=env)
+
+        tests = []
+        lines = output.splitlines()
+
+        total = 0.0
+        for x in lines:
+            m = re.search("(.+): (\d+\.\d+)", x)
+            if not m:
+                continue
+            name = m.group(1)
+            score = float(m.group(2))/1000
+            total += score
+            tests.append({ 'name': name, 'time': score})
+            print(str(score) + '    - ' + name)
+        tests.append({ 'name': '__total__', 'time': total })
+
+        return tests
+
 class SunSpiderBased(Benchmark):
     def __init__(self, suite, version, folder, runs):
         super(SunSpiderBased, self).__init__(suite, version, folder)
@@ -249,7 +279,8 @@ Benchmarks = [AsmJSApps(),
               Kraken(),
               Assorted(),
               Octane(),
-              Shumway()
+              Shumway(),
+              Dart()
              ]
 
 def run(submit, native, modes):
