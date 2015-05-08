@@ -44,7 +44,7 @@ def delete_metadata(prefix, data):
 def fetch_test_scores(machine_id, suite_id, name,
                       finish_stamp = (0,"UNIX_TIMESTAMP()"),
                       test_stamp = (0, "UNIX_TIMESTAMP()")):
-    query = "SELECT STRAIGHT_JOIN r.id, r.stamp, b.cset, s.score, b.mode_id, v.id   \
+    query = "SELECT STRAIGHT_JOIN r.id, r.stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
              FROM awfy_run r                                                        \
              JOIN awfy_build b ON r.id = b.run_id                                   \
              JOIN awfy_breakdown s ON s.build_id = b.id                             \
@@ -67,7 +67,7 @@ def fetch_test_scores(machine_id, suite_id, name,
 def fetch_suite_scores(machine_id, suite_id,
                        finish_stamp = (0,"UNIX_TIMESTAMP()"),
                        test_stamp = (0, "UNIX_TIMESTAMP()")):
-    query = "SELECT STRAIGHT_JOIN r.id, r.stamp, b.cset, s.score, b.mode_id, v.id   \
+    query = "SELECT STRAIGHT_JOIN r.id, r.stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
              FROM awfy_run r                                                        \
              JOIN awfy_build b ON r.id = b.run_id                                   \
              JOIN awfy_score s ON s.build_id = b.id                                 \
@@ -140,7 +140,7 @@ def update_cache(cx, suite, prefix, when, rows):
                              None,
                              score,
                              row[5],
-                             row[0])
+                             row[6])
         line = { 'modeid': modeid,
                  'data': points
                }

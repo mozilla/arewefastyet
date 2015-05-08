@@ -696,6 +696,20 @@ AWFY.showSingle = function (name, subtest, start, end) {
     this.lastRefresh = Date.now();
 }
 
+AWFY.isSubtest = function() {
+    if (this.view == 'overview')
+        return false;
+    if (this.view == 'breakdown')
+        return true;
+    if (this.view == 'single') {
+        if (this.subtest)
+            return true; 
+        else
+            return false;
+    }
+    throw new Exception();
+}
+
 AWFY.requestRedraw = function () {
     if (this.view == 'overview') {
         this.request(['aggregate-' + this.machineId],
