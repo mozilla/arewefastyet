@@ -7,7 +7,7 @@ import awfy
 import types
 
 RUNS_FACTOR = 1
-NOISE_FACTOR = 3
+NOISE_FACTOR = 1.5
 
 def get_class(field):
     try:
@@ -366,6 +366,8 @@ class RegressionTools(DBTable):
   def outliner(self):
     if self.next() is None:
       return False
+    if self.prev() is None:
+      return False
     prevs, _ = self.avg_prevs_nexts()
     _, nexts = self.next().avg_prevs_nexts()
     if prevs is None or nexts is None:
@@ -572,6 +574,18 @@ class Score(RegressionTools):
   def table():
     return "awfy_score"
   
+  def sane(self):
+    if self.get("suite_version_id") == -1:
+        return False
+    if self.get("suite_version_id") == 0:
+        return False
+    try:
+        self.noise()
+    except:
+        print "no noise?"
+        return False
+    return True
+
   def prefetch_next(self, limit = 1):
     stamp = self.get("build").get("run").get("stamp")
     machine = self.get("build").get("run").get("machine_id")
@@ -658,8 +672,6 @@ class Score(RegressionTools):
     return None
   
   def dump(self):
-    if self.get("build").get("mode").get("name") != "Ion":
-        return
     import datetime
     print datetime.datetime.fromtimestamp(
         int(self.get("build").get("run").get("stamp"))
@@ -677,6 +689,22 @@ class Breakdown(RegressionTools):
   @staticmethod
   def table():
     return "awfy_breakdown"
+
+  def sane(self):
+    if self.get("suite_test_id") == 0:
+        return False
+    if self.get("suite_test_id") == -1:
+        return False
+    if self.get("suite_test").get("suite_version_id") == -1:
+        return False
+    if self.get("suite_test").get("suite_version_id") == 0:
+        return False
+    try:
+        self.noise()
+    except:
+        print "no noise?"
+        return False
+    return True
   
   def prefetch_next(self, limit = 1):
     stamp = self.get("build").get("run").get("stamp")

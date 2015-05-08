@@ -15,10 +15,10 @@ def notProcessedRuns():
   c = awfy.db.cursor()
   c.execute("SELECT id                                                          \
              FROM awfy_run                                                      \
-             WHERE stamp > "+str(newer)+" AND                                        \
+             WHERE stamp > "+str(newer)+" AND                                   \
                    status = 1 AND                                               \
                    detector != 1 AND                                            \
-                   machine in (28,29)")
+                   machine in (28,29,26)")
   runs = []
   for row in c.fetchall():
     runs.append(tables.Run(row[0]))
@@ -74,42 +74,44 @@ def regressed(score):
   return True
 
 if __name__ == "__main__":
-	import os
-	import time
-	os.environ['TZ'] = "Europe/Amsterdam"
-	time.tzset()
+    import os
+    import time
+    os.environ['TZ'] = "Europe/Amsterdam"
+    time.tzset()
 
-	start = time.time()
-	for run in notProcessedRuns():
-	  scores = run.getScoresAndBreakdowns()
-	  finish = True
-	  print "run:", run.get("id")
-	  for score in scores:
-		regressed_ = regressed(score)
+    start = time.time()
+    for run in notProcessedRuns():
+      scores = run.getScoresAndBreakdowns()
+      finish = True
+      print "run:", run.get("id")
+      for score in scores:
+        if not score.sane():
+            continue
+        regressed_ = regressed(score)
 
-		# Not enough info yet
-		if regressed_ is None:
-		  finish = False
+        # Not enough info yet
+        if regressed_ is None:
+          finish = False
 
-		if regressed_ is True: 
-		  score.dump()
-		  build = score.get("build_id")
-		  try:
-			id_ = tables.Regression.insert({"build_id": build})
-			tables.RegressionStatus.insert({"regression_id": id_, "name": "awfy", "extra": "Submitted", "stamp":"UNIX_TIMESTAMP()"})
-		  except:
-			pass
-		  try:
-			if score.__class__ == tables.Score:
-				tables.RegressionScore.insert({"build_id": build, "score_id": score.get("id")})
-			elif score.__class__ == tables.Breakdown:
-				tables.RegressionBreakdown.insert({"build_id": build, "breakdown_id": score.get("id")})
-			else:
-				assert False
-		  except:
-			pass
-	  if finish:
-		run.update({"detector": "1"})
-	  tables.DBTable.maybeflush()
+        if regressed_ is True: 
+          score.dump()
+          build = score.get("build_id")
+          try:
+            id_ = tables.Regression.insert({"build_id": build})
+            tables.RegressionStatus.insert({"regression_id": id_, "name": "awfy", "extra": "Submitted", "stamp":"UNIX_TIMESTAMP()"})
+          except:
+            pass
+          try:
+            if score.__class__ == tables.Score:
+                tables.RegressionScore.insert({"build_id": build, "score_id": score.get("id")})
+            elif score.__class__ == tables.Breakdown:
+                tables.RegressionBreakdown.insert({"build_id": build, "breakdown_id": score.get("id")})
+            else:
+                assert False
+          except:
+            pass
+      if finish:
+        run.update({"detector": "1"})
+      tables.DBTable.maybeflush()
 
-	awfy.db.commit()
+    awfy.db.commit()
