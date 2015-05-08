@@ -20,6 +20,25 @@ awfyCtrl.filter('linkify', function($sce, $parse) {
   };
 })
 
+awfyCtrl.controller('addCtrl', ['$scope', '$http', '$routeParams', 'RegressionService', '$location',
+  function ($scope, $http, $routeParams, regression, $location) {
+	var data = {};
+	data["id"] = $routeParams.id * 1;
+	if ($routeParams.subtest)
+		data["subtest"] = 1;
+
+    $http.post('data-score.php', data).then(function(data) {
+		$scope.regression = regression.normalize_score(data.data);
+	});
+
+	$scope.submit = function() {
+		$http.post('data-submit.php', data).then(function(data) {
+			$location.path("/regression/"+(data.data*1));
+		});
+	};
+  }
+]);
+
 awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 'modalDialog',
                                        'RegressionService', '$sce',
   function ($scope, $http, $routeParams, $q, modalDialog, regression, $sce) {
@@ -95,7 +114,7 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
         ];
 
         $q.all(requests).then(function(data) {
-            modalDialog.open("partials/graph.html", {
+            modalDialog.open("partials/graph-popup.html", {
                 "url": "http://arewefastyet.com/#"+
                        "machine="+regression.machine_id+"&"+
                        "view=single&"+
@@ -212,14 +231,37 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
 
 awfyCtrl.service('RegressionService', ["MasterService",
   function (master) {
+    this.normalize_score = function(score) {
+      score["machine_id"] = score["machine"]
+      score["machine"] = master["machines"][score["machine"]]["description"]
+      if (score["mode"])
+		score["mode_id"] = score["mode"]
+      score["mode"] = master["modes"][score["mode_id"]]["name"]
+      score["stamp"] = score["stamp"] * 1000
+
+	  var suite_version = score["suite_version_id"]
+	  var percent = ((score["score"] / score["prev_score"]) - 1) * 100
+	  percent = Math.round(percent * 100)/100;
+	  var suite = master["suiteversions"][suite_version]["suite"];
+	  var direction = master["suites"][suite]["direction"];
+	  var regressed = (direction == 1) ^ (percent > 0)
+
+	  score["suite"] = master["suiteversions"][suite_version]["suite"]
+	  score["suiteversion"] = master["suiteversions"][suite_version]["name"]
+	  score["suitetest"] = score["suite_test"]
+	  score["percent"] = percent
+	  score["regression"] = regressed
+      return score;
+	}
     this.normalize = function(regression) {
       regression["machine_id"] = regression["machine"]
       regression["machine"] = master["machines"][regression["machine"]]["description"]
-      regression["mode_id"] = regression["mode"]
-      regression["mode"] = master["modes"][regression["mode"]]["name"]
+      if (regression["mode"])
+		regression["mode_id"] = regression["mode"]
+      regression["mode"] = master["modes"][regression["mode_id"]]["name"]
       regression["stamp"] = regression["stamp"] * 1000
 
-      if (regression["scores"].length > 0) {
+      if (regression["scores"] && regression["scores"].length > 0) {
         var prev_cset = regression["scores"][0]["prev_cset"];
         for (var j = 0; j < regression["scores"].length; j++) {
             var score = regression["scores"][j]
@@ -413,3 +455,28 @@ awfyCtrl.controller('ffIconCtrl', function ($scope) {
     }
   });
 });
+
+awfyCtrl.controller('graphCtrl', ['$scope', '$http',
+  function ($scope, $http) {
+    $http.get('data-graph.php').then(function(data) {
+
+      $scope.chart = {
+        "type": "Calendar",
+        "cssStyle": "height:350px; width:1200px;",
+        "data": {
+          "cols": [
+            { type: 'date', id: 'Date' },
+      	  { type: 'number', id: 'Won/Loss' }
+      	],
+          "rows": data.data
+        },
+        "options": {
+          title: "Reported noisy benchmark",
+          height: 350,
+        }
+      
+      }
+
+	});
+  }
+]);

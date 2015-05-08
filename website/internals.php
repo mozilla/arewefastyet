@@ -11,6 +11,14 @@ function init_database()
     mysql_select_db("dvander") or die("ERROR: " . mysql_error());
 }
 
+function username()
+{
+    if (!isset($_SESSION['persona']))
+        return "guest";
+    else
+        return $_SESSION['persona'];
+}
+
 function has_permissions()
 {
 	if (!isset($_SESSION['persona']))
@@ -23,6 +31,13 @@ function has_permissions()
 		return true;
 
 	return false;
+}
+
+function GET_bool($name)
+{
+    if (isset($_GET[$name]))
+        return $_GET[$name] === "true" || $_GET[$name] === '1';
+    return false;
 }
 
 function GET_int($name)

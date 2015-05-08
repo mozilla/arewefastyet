@@ -1,6 +1,7 @@
 var awfyApp = angular.module('awfyApp', [
   'ngRoute',
-  'awfyControllers'
+  'awfyControllers',
+  'googlechart'
 ]);
 
 awfyApp.config(['$routeProvider',
@@ -9,6 +10,14 @@ awfyApp.config(['$routeProvider',
       when('/regression/:id', {
         templateUrl: 'partials/regression.html',
         controller: 'regressionCtrl'
+      }).
+      when('/add/:subtest?/:id', {
+        templateUrl: 'partials/add.html',
+        controller: 'addCtrl'
+      }).
+      when('/graph', {
+        templateUrl: 'partials/graph.html',
+        controller: 'graphCtrl'
       }).
       when('/:search', {
         templateUrl: 'partials/overview.html',

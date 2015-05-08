@@ -1,0 +1,31 @@
+  <h2>Report regression:</h2>
+  <div class='details'>
+  	<table>
+	<tr class='machine'><th>Machine</th><td>{{regression.machine}}</td></tr>
+    <tr class='mode'><th>Mode</th><td>{{regression.mode}}</td></tr>
+    <tr class='stamp'><th>Date</th><td>{{regression.stamp | date:'dd MMM yy HH:mm'}}</td></tr>
+  	</table>
+  </div>
+
+  <div class='box scores'>
+    <div class='content'>
+      <div class='regression'>
+  		  <div class='suite'>
+		  	{{regression.suiteversion}}
+		  	<span ng-if="regression.suitetest">:
+		  		{{regression.suitetest}}
+		  	</span>
+  	      </div>
+  		  <div class='percent' ng-class="{regression: regression.regression, improvement: !regression.regression}"
+		       >
+  		  	{{regression.percent}} %
+  		  </div>
+  		  <div class='score' ng-click="showRegression(regression, score, 7)" >
+		  	{{regression.prev_score}} to {{regression.score}}
+		  </div>
+      </div>
+    </div>
+   
+  </div>
+   <div><input type='button' value='Report' ng-click="submit()"></div>
+</div>

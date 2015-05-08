@@ -1,16 +1,1 @@
-<div class="graph">
-<div>
-	{{modal.regression.mode}} -
-    {{modal.regression.stamp | date:'dd MMM yy HH:mm'}} -
-	<span class='percent' ng-class="(score.regression) ? 'regression' : 'improvement'">
-		{{modal.score.percent}} %
-	</span>
-	<span class='score'>{{modal.score.prev_score}} to {{modal.score.score}}</span>
-	<div style='float:right'>
-	<a ng-click="modal.showRegression(modal.regression, modal.score, 7)">show 15 points</a> -
-	<a ng-click="modal.showRegression(modal.regression, modal.score, 25)">show 50 points</a> -
-	<a ng-click="modal.showRegression(modal.regression, modal.score, 100)">show 200 points</a>
-	</div>
-</div>
-<iframe ng-src="{{modal.url}}"></iframe>
-</div>
+<div google-chart chart="chart" style="{{chart.cssStyle}}"/>
