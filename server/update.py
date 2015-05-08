@@ -44,6 +44,14 @@ def delete_metadata(prefix, data):
 def fetch_test_scores(machine_id, suite_id, name,
                       finish_stamp = (0,"UNIX_TIMESTAMP()"),
                       test_stamp = (0, "UNIX_TIMESTAMP()")):
+    c = awfy.db.cursor()
+    query = "SELECT id FROM awfy_suite_test \
+             WHERE name = %s"
+    c.execute(query, [name])
+    suite_ids = ['0']
+    for row in c.fetchall():
+      suite_ids.append(str(row[0]))
+
     query = "SELECT STRAIGHT_JOIN r.id, r.stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
              FROM awfy_run r                                                        \
              JOIN awfy_build b ON r.id = b.run_id                                   \
@@ -51,7 +59,7 @@ def fetch_test_scores(machine_id, suite_id, name,
              JOIN awfy_suite_test t ON s.suite_test_id = t.id                       \
              JOIN awfy_suite_version v ON v.id = t.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \
-             AND t.name = %s                                                        \
+             AND t.id in ("+(",".join(suite_ids))+")                                \
              AND r.status > 0                                                       \
              AND r.machine = %s                                                     \
              AND r.finish_stamp >= "+str(finish_stamp[0])+"                         \
@@ -60,8 +68,7 @@ def fetch_test_scores(machine_id, suite_id, name,
              AND r.stamp <= "+str(test_stamp[1])+"                                  \
              ORDER BY r.stamp ASC                                                   \
              "
-    c = awfy.db.cursor()
-    c.execute(query, [suite_id, name, machine_id])
+    c.execute(query, [suite_id, machine_id])
     return c.fetchall()
 
 def fetch_suite_scores(machine_id, suite_id,
