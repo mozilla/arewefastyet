@@ -126,6 +126,9 @@ class V8(Engine):
         self.modes = [{
                         'mode': 'v8',
                         'args': None
+                      }, {
+                        'mode': 'v8-turbofan',
+                        'args': ['--turbo']
                       }]
 
     def build(self):
