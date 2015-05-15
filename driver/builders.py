@@ -49,6 +49,20 @@ class Engine(object):
             print(shell)
             raise Exception('could not find shell')
 
+        # Throw away any modes that fail.
+        modes = []
+        for m in self.modes:
+            engineArgs = self.args if self.args else []
+            modeArgs = m['args'] if m['args'] else []
+            args = engineArgs + modeArgs + ["-e","print('1234567890abcdef')"]
+
+            output = utils.RunTimedCheckOutput([shell] + args, env=self.env())
+            if "1234567890abcdef" in output:
+                modes.append(m)
+            else:
+                print "Error: Couldn't run mode "+m['mode']
+        self.modes = modes
+
     def reconf(self):
         return False
 
@@ -71,9 +85,10 @@ class Nitro(Engine):
             ]
 
     def env(self):
-        env = os.environ.copy()
-        env['DYLD_FRAMEWORK_PATH'] = os.path.abspath(os.path.join('WebKitBuild', 'Release'))
-        return env
+        with utils.chdir(os.path.join(utils.config.RepoPath, self.source)):
+            env = os.environ.copy()
+            env['DYLD_FRAMEWORK_PATH'] = os.path.abspath(os.path.join('WebKitBuild', 'Release'))
+            return env
 
     def build(self):
         # Hack 1: Remove reporting errors for warnings that currently are present.
