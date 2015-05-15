@@ -21,16 +21,16 @@ function username()
 
 function has_permissions()
 {
-	if (!isset($_SESSION['persona']))
-		return false;
+    if (!isset($_SESSION['persona']))
+        return false;
 
-	# Test here which persons have permission to see all benchmarks
-	if ($_SESSION['persona'] == "hv1989@gmail.com")
-		return true;
-	if (preg_match("/^[0-9A-Za-z.]*@mozilla\.com$/", $_SESSION['persona']))
-		return true;
+    # Test here which persons have permission to see all benchmarks
+    if ($_SESSION['persona'] == "hv1989@gmail.com")
+        return true;
+    if (preg_match("/^[0-9A-Za-z.]*@mozilla\.com$/", $_SESSION['persona']))
+        return true;
 
-	return false;
+    return false;
 }
 
 function GET_bool($name)
@@ -98,17 +98,25 @@ function find_suite($suite)
     return intval($row[0]);
 }
 
+function normalize($string)
+{
+    return preg_replace("/[^a-zA-Z0-9\s\.-]/", "", $string);
+}
+
 function find_or_add_suite_version($suite, $version)
 {
+    $suite = normalize($suite);
+    $version = normalize($version);
+
     $suite_id = find_suite($suite);
     if ($suite_id == -1)
         return -1;
-	if ($suite == "octane" && $version == "octane")
-		$version = "octane 2.0.1";
-	if ($suite == "ss" && $version == "ss")
-		$version = "ss 1.0.1";
-	if ($suite == "kraken" && $version == "kraken")
-		$version = "kraken 1.1";
+    if ($suite == "octane" && $version == "octane")
+        $version = "octane 2.0.1";
+    if ($suite == "ss" && $version == "ss")
+        $version = "ss 1.0.1";
+    if ($suite == "kraken" && $version == "kraken")
+        $version = "kraken 1.1";
     $query = "select id from awfy_suite_version where suite_id = $suite_id and name = '$version'";
     $results = mysql_query($query);
     if (!$results || mysql_num_rows($results) < 1) {
@@ -122,6 +130,8 @@ function find_or_add_suite_version($suite, $version)
 
 function find_or_add_test($suite_version_id, $name)
 {
+    $name = normalize($name);
+
     $name = mysql_real_escape_string($name);
     $query = "select id from awfy_suite_test where suite_version_id = $suite_version_id and name = '$name'";
     $results = mysql_query($query);
