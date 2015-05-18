@@ -65,9 +65,7 @@ Mode = namedtuple('Mode', ['shell', 'args', 'env', 'name', 'cset'])
 modes = []
 for engine in Engines:
     shell = os.path.join(utils.config.RepoPath, engine.source, engine.shell())
-    env = None
-    with utils.chdir(os.path.join(utils.config.RepoPath, engine.source)):
-        env = engine.env()
+    env = engine.env()
     for m in engine.modes:
         engineArgs = engine.args if engine.args else []
         modeArgs = m['args'] if m['args'] else []

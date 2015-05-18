@@ -7,7 +7,7 @@ import awfy
 import types
 
 RUNS_FACTOR = 1
-NOISE_FACTOR = 1.5
+NOISE_FACTOR = 2
 
 def get_class(field):
     try:
@@ -796,7 +796,7 @@ class Breakdown(RegressionTools):
     print datetime.datetime.fromtimestamp(
         int(self.get("build").get("run").get("stamp"))
     ).strftime('%Y-%m-%d %H:%M:%S'),
-    #print "", self.get("build").get("run").get("machine").get("description"), 
+    print "", self.get("build").get("run").get("machine").get("description"), 
     print "", self.get("build").get("mode").get("name"),
     print "", self.get("suite_test").get("suite_version").get("name")+":", self.get("suite_test").get("name")+":", self.avg_change(),
     print "", self.prev().get("score") if self.prev() else "", self.get("score"),
