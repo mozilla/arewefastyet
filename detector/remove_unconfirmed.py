@@ -6,6 +6,7 @@
 import awfy
 
 c = awfy.db.cursor()
+#TODO: ONLY DELETE IF REPORTED BY REGRESSION DETECTOR
 c.execute("SELECT id, build_id                                              \
 		   FROM awfy_regression                                             \
 		   WHERE status = 'unconfirmed'")
@@ -24,4 +25,8 @@ for row in c.fetchall():
 			   WHERE awfy_build.id = %s", row[1])
     
 	print row[0]
+#TODO: remove detector status from all itmes higher than the lowest run id
+#c.execute("UPDATE awfy_run                                              \
+#           SET detector = 0                                             \
+#           WHERE id > 249273")
 awfy.db.commit()
