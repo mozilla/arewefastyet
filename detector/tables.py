@@ -199,6 +199,8 @@ class Mode(DBTable):
                LEFT JOIN awfy_run ON awfy_build.run_id = awfy_run.id                 \
                WHERE machine = %s", (machine.get("id"),))
     for row in c.fetchall():
+      if row[0] == 0:
+         continue
       yield Mode(row[0])
      
   @staticmethod
