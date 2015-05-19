@@ -3,7 +3,7 @@ function assertEq(result, expected) {
     throw "Assertion: Expected " + expected + ", got " + result;
 }
 
-// Same values as in misc-basic-array-forof.js
+// Same values as in misc-basic-array.js
 var outer = 500;
 var len = 10000;
 
@@ -19,8 +19,8 @@ function fill_array(len) {
 function use_array(a) {
     var x = 0;
     for (var i = 0; i < outer; i++) {
-	for (var j = 0; j < a.length; j++)
-	    x += a[j];
+	for (var val of a)
+	    x += val;
     }
     return x;
 }
