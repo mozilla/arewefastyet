@@ -2,6 +2,7 @@ misc-basic-emptyloop
 misc-basic-intops
 misc-basic-fpops
 misc-basic-array
+misc-basic-array-forof
 misc-basic-strcat
 misc-basic-arguments
 misc-basic-closures
