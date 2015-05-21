@@ -8,6 +8,12 @@ import sys
 import time
 import tables
 
+from optparse import OptionParser
+
+parser = OptionParser(usage="usage: %prog [options]")
+parser.add_option( "--dry-run", dest="dryrun", action="store_true", default=False,
+                  help="Don't cmomit the new regressions to the database yet.")
+(options, args) = parser.parse_args()
 
 def notProcessedRuns():
   # Only look at reports in the last week
@@ -95,22 +101,23 @@ if __name__ == "__main__":
 
         if regressed_ is True: 
           score.dump()
-          build = score.get("build_id")
-          try:
-            id_ = tables.Regression.insert({"build_id": build})
-            tables.RegressionStatus.insert({"regression_id": id_, "name": "awfy", "extra": "Submitted", "stamp":"UNIX_TIMESTAMP()"})
-          except:
-            pass
-          try:
-            if score.__class__ == tables.Score:
-                tables.RegressionScore.insert({"build_id": build, "score_id": score.get("id")})
-            elif score.__class__ == tables.Breakdown:
-                tables.RegressionBreakdown.insert({"build_id": build, "breakdown_id": score.get("id")})
-            else:
-                assert False
-          except:
-            pass
-      if finish:
+          if not options.dryrun:
+            build = score.get("build_id")
+            try:
+              id_ = tables.Regression.insert({"build_id": build})
+              tables.RegressionStatus.insert({"regression_id": id_, "name": "awfy", "extra": "Submitted", "stamp":"UNIX_TIMESTAMP()"})
+            except:
+              pass
+            try:
+              if score.__class__ == tables.Score:
+                  tables.RegressionScore.insert({"build_id": build, "score_id": score.get("id")})
+              elif score.__class__ == tables.Breakdown:
+                  tables.RegressionBreakdown.insert({"build_id": build, "breakdown_id": score.get("id")})
+              else:
+                  assert False
+            except:
+              pass
+      if finish and not options.dryrun:
         run.update({"detector": "1"})
       tables.DBTable.maybeflush()
 
