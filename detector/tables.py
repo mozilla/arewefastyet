@@ -83,7 +83,7 @@ class DBTable:
     c.execute("UPDATE "+self.table()+"                                          \
                SET "+",".join(sets)+"                                           \
                WHERE id = %s", (self.id, ))
-     
+
   @staticmethod
   def valuefy(value):
     if "'" in str(value):
@@ -202,7 +202,7 @@ class Mode(DBTable):
       if row[0] == 0:
          continue
       yield Mode(row[0])
-     
+
   @staticmethod
   def table():
     return "awfy_mode"
@@ -370,16 +370,20 @@ class RegressionTools(DBTable):
       return False
     if self.prev() is None:
       return False
+    if abs(self.next().get("score") - self.prev().get("score")) < self.noise():
+      if (abs(self.next().get("score") - self.get("score")) > self.noise() and
+          abs(self.prev().get("score") - self.get("score")) > self.noise()):
+        return True
     prevs, _ = self.avg_prevs_nexts()
     _, nexts = self.next().avg_prevs_nexts()
     if prevs is None or nexts is None:
       return False
     if abs(prevs-nexts) <= self.noise():
-      if (abs(self.get('score') - self.prev().get('score')) > self.noise() and 
+      if (abs(self.get('score') - self.prev().get('score')) > self.noise() and
           abs(self.get('score') - self.next().get('score')) > self.noise()):
         return True
     return False
-    
+
   def next(self):
     self.initialize()
     if "next" not in self.cached:
@@ -388,7 +392,7 @@ class RegressionTools(DBTable):
 
   def compute_next(self):
     nexts = self.prefetch_next(10)
-    
+
     prev = self
     prev.cached["next"] = None
     for score in nexts:
@@ -413,7 +417,7 @@ class RegressionTools(DBTable):
 
   def compute_prev(self):
     prevs = self.prefetch_prev(10)
-    
+
     next_ = self
     next_.cached["prev"] = None
     for score in prevs:
@@ -496,7 +500,7 @@ class RegressionTools(DBTable):
     # How many runs do we need to test?
     runs = self.runs()
 
-    # Get scores before and after this run.    
+    # Get scores before and after this run.
     prevs = [i.get('score') for i in self.prevs_no_outliners(runs)]
     nexts = [self.get('score')] + [i.get('score') for i in self.nexts_no_outliners(runs - 1)]
 
@@ -511,12 +515,12 @@ class RegressionTools(DBTable):
 
     avg_prevs = sum(prevs)
     avg_nexts = sum(nexts)
-    
+
     # Handle edge cases.
     if avg_prevs != 0:
-        avg_prevs /= sum(p_weight) 
+        avg_prevs /= sum(p_weight)
     if avg_nexts != 0:
-        avg_nexts /= sum(n_weight) 
+        avg_nexts /= sum(n_weight)
 
     return avg_prevs, avg_nexts
 
@@ -525,7 +529,7 @@ class RegressionTools(DBTable):
     # How many runs do we need to test?
     runs = self.runs()
 
-    # Get scores before and after this run.    
+    # Get scores before and after this run.
     prevs = [i.get('score') for i in self.prevs(runs)]
     nexts = [self.get('score')] + [i.get('score') for i in self.nexts(runs - 1)]
 
@@ -540,12 +544,12 @@ class RegressionTools(DBTable):
 
     avg_prevs = sum(prevs)
     avg_nexts = sum(nexts)
-    
+
     # Handle edge cases.
     if avg_prevs != 0:
-        avg_prevs /= sum(p_weight) 
+        avg_prevs /= sum(p_weight)
     if avg_nexts != 0:
-        avg_nexts /= sum(n_weight) 
+        avg_nexts /= sum(n_weight)
 
     return avg_prevs, avg_nexts
 
@@ -553,7 +557,7 @@ class RegressionTools(DBTable):
     prevs, nexts = self.avg_prevs_nexts_no_outliners()
     if not prevs or not nexts:
         return None
-    
+
     return abs(prevs - nexts)
 
   def avg_change(self):
@@ -575,7 +579,7 @@ class Score(RegressionTools):
   @staticmethod
   def table():
     return "awfy_score"
-  
+
   def sane(self):
     if self.get("suite_version_id") == -1:
         return False
@@ -672,13 +676,13 @@ class Score(RegressionTools):
     if row:
       return Score(row[0])
     return None
-  
+
   def dump(self):
     import datetime
     print datetime.datetime.fromtimestamp(
         int(self.get("build").get("run").get("stamp"))
     ).strftime('%Y-%m-%d %H:%M:%S'),
-    print "", self.get("build").get("run").get("machine").get("description"), 
+    print "", self.get("build").get("run").get("machine").get("description"),
     print "", self.get("build").get("mode").get("name"),
     print "", self.get("suite_version").get("name")+":", self.avg_change(),
     print "", self.prev().get("score") if self.prev() else "", self.get("score"),
@@ -707,7 +711,7 @@ class Breakdown(RegressionTools):
         print "no noise?"
         return False
     return True
-  
+
   def prefetch_next(self, limit = 1):
     stamp = self.get("build").get("run").get("stamp")
     machine = self.get("build").get("run").get("machine_id")
@@ -798,7 +802,7 @@ class Breakdown(RegressionTools):
     print datetime.datetime.fromtimestamp(
         int(self.get("build").get("run").get("stamp"))
     ).strftime('%Y-%m-%d %H:%M:%S'),
-    print "", self.get("build").get("run").get("machine").get("description"), 
+    print "", self.get("build").get("run").get("machine").get("description"),
     print "", self.get("build").get("mode").get("name"),
     print "", self.get("suite_test").get("suite_version").get("name")+":", self.get("suite_test").get("name")+":", self.avg_change(),
     print "", self.prev().get("score") if self.prev() else "", self.get("score"),
