@@ -67,8 +67,11 @@ def avg_consequent_diff(machine, suite, mode, first):
     return median(diffs)
 
 for machine in tables.Machine.all():
-  if machine.id != 28 and machine.id != 29 and machine.id != 26:
-  #if machine.id != 28:
+  if (machine.id != 28 and # mac os x 32 bit shell
+      machine.id != 29 and # mac os x 64 bit shell 
+      machine.id != 26 and # ffos flame browser
+      machine.id != 30 and # mac os x browser 
+      machine.id != 17):   # windows 8 browser
     continue
   
   for mode in tables.Mode.allWith(machine):
