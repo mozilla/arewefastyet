@@ -74,7 +74,7 @@ class Dromaeo(Benchmark):
 
 class Massive(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "massive", "1.1")
+        Benchmark.__init__(self, "massive", "1.2")
 
     def processResults(self, results):
         ret = []
