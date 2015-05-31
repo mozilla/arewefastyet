@@ -251,6 +251,8 @@ awfyCtrl.service('RegressionService', ["MasterService",
 	  score["suitetest"] = score["suite_test"]
 	  score["percent"] = percent
 	  score["regression"] = regressed
+      if ((new Date())*1 - score["stamp"] > 60*60*24*7*1000)
+         score["detector"] = 1
       return score;
 	}
     this.normalize = function(regression) {
@@ -260,6 +262,8 @@ awfyCtrl.service('RegressionService', ["MasterService",
 		regression["mode_id"] = regression["mode"]
       regression["mode"] = master["modes"][regression["mode_id"]]["name"]
       regression["stamp"] = regression["stamp"] * 1000
+      if ((new Date())*1 - regression["stamp"] > 60*60*24*7*1000)
+         regression["detector"] = 1
 
       if (regression["scores"] && regression["scores"].length > 0) {
         var prev_cset = regression["scores"][0]["prev_cset"];
