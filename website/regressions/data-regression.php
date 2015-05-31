@@ -22,6 +22,7 @@ if (isset($request->ids)) {
 
 $data = array();
 for ($i=0; $i < count($ids); $i++) {
+
 	$query = mysql_query("SELECT awfy_regression.id, machine, mode_id, awfy_run.stamp,
                                  build_id, cset, bug, awfy_regression.status, detector
 						  FROM awfy_regression

@@ -1,4 +1,4 @@
-<div ng-controller="overviewCtrl" class='overview'>
+<div class='overview'>
   <div class='subheader'>
     <div class='button' ng-repeat="software in softwares">
       <div class='title'>{{software.name}}</div>
@@ -10,7 +10,13 @@
   </div>
 
   <div class='subnav'>
-     <a ng-href="#/notTriaged">Not triaged</a> / <a ng-href="#/open">Open</a> / <a ng-href="#/improvements">Improvements</a> / <a ng-click="advancedSearch()">Advanced search</a>
+     <a ng-href="#/notTriaged">
+      Not triaged
+      <span ng-if="triaged_no">({{triaged_no}})</span>
+	 </a> /
+	 <a ng-href="#/open">Open</a> / 
+	 <a ng-href="#/improvements">Improvements</a> / 
+     <a ng-click="advancedSearch()">Advanced search</a>
   </div>
 
   <h2>Regressions</h2>
@@ -44,6 +50,8 @@
 	  <input type='button' value='Search' class='button_submit' ng-click="search()">
     </div>
   </div>
+
+<pagination total-items="items" ng-model="currentPage" class="pagination-sm" boundary-links="true" rotate="false" ng-change="fetchPage()"></pagination>
 
   <div>
     <a class='box regression' ng-repeat="regression in regressions" ng-click="open(regression.id)"
@@ -79,6 +87,9 @@
       </div>
     </a>
   </div>
+
+<pagination total-items="items" ng-model="currentPage" class="pagination-sm" boundary-links="true" rotate="false" ng-change="fetchPage()"></pagination>
+
 </div>
 
 <div ng-controller="ffIconCtrl"></div>

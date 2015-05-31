@@ -1,28 +1,31 @@
-
-.box .regression {
-  .percent {
-    float: right;
-    font-size: 1.4em;
-    margin-top: -0.2em;
-  }
+.box {
+  border-collapse: separate;
 
   .regression {
-    color: $_red;
-  }
+    .percent {
+      float: right;
+      font-size: 1.4em;
+      margin-top: -0.2em;
+    }
 
-  .improvement {
-    color: $_green;
-  }
+    .regression {
+      color: $_red;
+    }
+
+    .improvement {
+      color: $_green;
+    }
 
 
-  .suite {
-    float: left;
-    position: absolute;
-  }
+    .suite {
+      float: left;
+      position: absolute;
+    }
 
-  .score {
-    text-align: center;
-    height: 1.5em;
+    .score {
+      text-align: center;
+      height: 1.8em;
+    }
   }
 }
 
@@ -34,6 +37,7 @@
   padding: $unit;
   margin-right: 2%;
   margin-bottom: $unit*5;
+  border-collapse: separate;
 
   td {
     background-color: get($_box, bg);

@@ -1,4 +1,4 @@
-<div ng-controller="overviewCtrl" class='regression'>
+<div class='regression'>
   <div class='subheader'>
     <div class='button' ng-repeat="software in softwares">
       <div class='title'>{{software.name}}</div>
@@ -33,7 +33,7 @@
 	  <th>Bug</th>
 	  <td>
 	    <span ng-if="!editBug">
-		  <span ng-if="regression.bug">
+		  <span ng-if="regression.bug!=0">
 		    <a ng-href="https://bugzilla.mozilla.org/show_bug.cgi?id={{regression.bug}}">
 		      #{{regression.bug}}
 			</a>

@@ -161,6 +161,9 @@ header {
     margin-right: 24px; }
   header a {
     text-decoration: none;
+    color: #f0f0f0; }
+  header a:hover {
+    text-decoration: none;
     color: white; }
 
 .subheader {
@@ -246,7 +249,8 @@ body {
   height: 100%;
   text-align: center;
   z-index: 1000;
-  background-color: rgba(0, 0, 0, 0.5); }
+  background-color: rgba(0, 0, 0, 0.5);
+  display: block; }
   .modal .container {
     margin: 100px auto;
     background-color: #fff;
@@ -271,6 +275,8 @@ body {
     .modal .container .graph iframe {
       width: 100%;
       height: 95%; }
+    .modal .container .graph a {
+      cursor: pointer; }
 
 html, body {
   margin: 0px;
@@ -285,8 +291,11 @@ html, body {
 .overview .subnav {
   float: right;
   line-height: 48px; }
+  .overview .subnav a {
+    cursor: pointer; }
 .overview .box.regression:hover {
-  box-shadow: 1px 1px 2px #222; }
+  color: #000;
+  border-color: #b7b7b7; }
 .overview .regression {
   cursor: pointer;
   display: block;
@@ -368,20 +377,22 @@ html, body {
   padding-bottom: 12px;
   margin-right: 6px; }
 
-.box .regression .percent {
-  float: right;
-  font-size: 1.4em;
-  margin-top: -0.2em; }
-.box .regression .regression {
-  color: #d12600; }
-.box .regression .improvement {
-  color: #2f7836; }
-.box .regression .suite {
-  float: left;
-  position: absolute; }
-.box .regression .score {
-  text-align: center;
-  height: 1.5em; }
+.box {
+  border-collapse: separate; }
+  .box .regression .percent {
+    float: right;
+    font-size: 1.4em;
+    margin-top: -0.2em; }
+  .box .regression .regression {
+    color: #d12600; }
+  .box .regression .improvement {
+    color: #2f7836; }
+  .box .regression .suite {
+    float: left;
+    position: absolute; }
+  .box .regression .score {
+    text-align: center;
+    height: 1.8em; }
 
 .details table {
   width: 900px;
@@ -390,7 +401,8 @@ html, body {
   color: #222222;
   padding: 6px;
   margin-right: 2%;
-  margin-bottom: 30px; }
+  margin-bottom: 30px;
+  border-collapse: separate; }
   .details table td {
     background-color: white;
     padding: 6px; }

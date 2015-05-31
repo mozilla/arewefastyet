@@ -64,6 +64,11 @@ header {
 
   a {
     text-decoration: none;
+    color: $_lightgrey;
+  }
+
+  a:hover {
+    text-decoration: none;
     color: $_white;
   }
 }

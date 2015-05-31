@@ -382,21 +382,35 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
             modes:selected_modes,
             states:selected_states
         }).then(function(data) {
-            $http.post('data-regression.php', {
-                ids:data.data
-            }).then(function(data) {
-    
-              var regressions = data.data;
 
-              for (var i = 0; i < regressions.length; i++) {
-                regressions[i] = regression.normalize(regressions[i])
-              }
+			if ($routeParams.search == "notTriaged")
+				$scope.$parent.triaged_no = data.data.length;
 
-              $scope.regressions = regressions;
-			  $scope.advanced = ($routeParams.search == "advanced");
-            });
+			$scope.ids = data.data
+			$scope.currentPage = 1;
+			$scope.items = $scope.ids.length;
+		    $scope.advanced = ($routeParams.search == "advanced");
+
+			$scope.fetchPage();
         });
     }
+
+	$scope.fetchPage = function() {
+		$scope.regressions = [];
+		$http.post('data-regression.php', {
+			ids:$scope.ids.slice(($scope.currentPage - 1)* 10, $scope.currentPage * 10)
+		}).then(function(data) {
+
+		  var regressions = data.data;
+
+		  for (var i = 0; i < regressions.length; i++) {
+			regressions[i] = regression.normalize(regressions[i])
+		  }
+
+		  $scope.regressions = regressions;
+		});
+
+	}
 
     $scope.setNonTriaged = function() {
         setDefaultModeAndMachine();

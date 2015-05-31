@@ -11,7 +11,12 @@ $amount = Array();
 
 $query = mysql_query("SELECT build_id FROM awfy_regression
                       INNER JOIN awfy_build ON awfy_build.id = build_id
-                      WHERE (mode_id = 14 OR mode_id = 26 or mode_id = 32 or mode_id = 20) AND
+                      WHERE (mode_id = 14 OR 
+							 mode_id = 28 or 
+							 mode_id = 33 or 
+							 mode_id = 26 or 
+							 mode_id = 32 or
+							 mode_id = 20) AND
 					  status != 'fixed' AND status != 'improvement'");
 while ($regs = mysql_fetch_object($query)) {
 	$qScore = mysql_query("SELECT count(*) as count FROM awfy_regression_score

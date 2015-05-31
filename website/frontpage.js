@@ -613,29 +613,29 @@ Display.prototype.createToolTip = function (item, extended) {
    
     if (extended && point.length >= 5) {
         if (!point[4]) {
-            text += so + 'regression: ' + sc + "zoom in to view regression info." + '<br>';
+			text += so + 'regression: ' + sc + "zoom in to view regression info." + '<br>';
         } else {
-            var id = Math.random();
-            while (document.getElementById("update_"+id))
-                id = Math.random();
+			var id = Math.random();
+			while (document.getElementById("update_"+id))
+				id = Math.random();
 
-            text += so + 'regression?: ' + sc + "<span id='update_" + id + "'><img src='loading.gif' height='12px'/></span>" + '<br>';
-            var subtest = AWFY.isSubtest();
-            $.get("data-regression.php", {
+			text += so + 'regression?: ' + sc + "<span id='update_" + id + "'><img src='loading.gif' height='12px'/></span>" + '<br>';
+			var subtest = AWFY.isSubtest();
+			$.get("data-regression.php", {
                 subtest: subtest,
                 id: point[4]
             }, function(data) {
                 var html = data.status;
-                if (data.id) {
-                    html += " <a href='regressions/#regression/"+data.id+"'>(view)</a>"
-                } else {
+				if (data.id) {
+					html += " <a href='regressions/#regression/"+data.id+"'>(view)</a>"
+				} else {
                     if (subtest)
-                        html += " <a href='regressions/#add/subtest/"+point[4]+"'>(report regression)</a>"
-                    else
-                        html += " <a href='regressions/#add/"+point[4]+"'>(report regression)</a>"
-                }
-                document.getElementById("update_"+id).innerHTML = html;
-            }, "json");
+						html += " <a href='regressions/#add/subtest/"+point[4]+"'>(report regression)</a>"
+					else
+						html += " <a href='regressions/#add/"+point[4]+"'>(report regression)</a>"
+				}
+				document.getElementById("update_"+id).innerHTML = html;
+			}, "json");
         }
     }
 
