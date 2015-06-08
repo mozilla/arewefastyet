@@ -6,15 +6,9 @@
 	}
 }
 
-.box.regression:hover {
-  color: #000;
-  border-color: darken(get($_box, border), 15%);
-}
-
 .regression {
   cursor: pointer;
   display: block;
-  text-decoration: none;
 
   .title {
     text-transform: uppercase;

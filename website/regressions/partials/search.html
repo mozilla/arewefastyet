@@ -47,9 +47,18 @@
 	    >
         {{state.name}}
 	  </label></br>
+      <b>Bug: </b>
+      <label>
+        <input
+          type="text"
+          ng-model="bug"
+        >
+      </label></br>
 	  <input type='button' value='Search' class='button_submit' ng-click="search()">
     </div>
   </div>
+
+<h3 ng-if='title'>{{title}}</h3>
 
 <pagination total-items="items" ng-model="currentPage" class="pagination-sm" boundary-links="true" rotate="false" ng-change="fetchPage()"></pagination>
 
@@ -62,7 +71,7 @@
         <div class='stamp'>{{regression.stamp | date:'dd MMM yy HH:mm'}}</div>
       </div>
       <div class='content'>
-        <div ng-repeat="score in regression.scores | orderBy:'-age'" class='regression'>
+        <div ng-repeat="score in regression.scores | orderBy:'!regression + suiteversion + suitetest'" class='regression'>
           <span ng-if="!(score.noise*1)">
 			<div class='suite'>{{score.suiteversion}}<span ng-if="score.suitetest">:
 				{{score.suitetest}}</span>

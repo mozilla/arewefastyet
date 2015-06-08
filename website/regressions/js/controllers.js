@@ -229,86 +229,80 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
   }
 ]);
 
-awfyCtrl.service('RegressionService', ["MasterService",
-  function (master) {
-    this.normalize_score = function(score) {
-      score["machine_id"] = score["machine"]
-      score["machine"] = master["machines"][score["machine"]]["description"]
-      if (score["mode"])
-		score["mode_id"] = score["mode"]
-      score["mode"] = master["modes"][score["mode_id"]]["name"]
-      score["stamp"] = score["stamp"] * 1000
+awfyCtrl.controller('compareCtrl', ['$scope', '$http', '$routeParams', '$q', 'modalDialog',
+                                   'RegressionService', '$location',
+  function ($scope, $http, $routeParams, $q, modalDialog, regression, $location) {
+    var regression_id = $routeParams.id * 1;
 
-	  var suite_version = score["suite_version_id"]
-	  var percent = ((score["score"] / score["prev_score"]) - 1) * 100
-	  percent = Math.round(percent * 100)/100;
-	  var suite = master["suiteversions"][suite_version]["suite"];
-	  var direction = master["suites"][suite]["direction"];
-	  var regressed = (direction == 1) ^ (percent > 0)
+	$http.post('data-regression.php', {
+      id:regression_id
+	}).then(function(data) {
+		$scope.regression = regression.normalize(data.data);
 
-	  score["suite"] = master["suiteversions"][suite_version]["suite"]
-	  score["suiteversion"] = master["suiteversions"][suite_version]["name"]
-	  score["suitetest"] = score["suite_test"]
-	  score["percent"] = percent
-	  score["regression"] = regressed
-      if ((new Date())*1 - score["stamp"] > 60*60*24*7*1000)
-         score["detector"] = 1
-      return score;
-	}
-    this.normalize = function(regression) {
-      regression["machine_id"] = regression["machine"]
-      regression["machine"] = master["machines"][regression["machine"]]["description"]
-      if (regression["mode"])
-		regression["mode_id"] = regression["mode"]
-      regression["mode"] = master["modes"][regression["mode_id"]]["name"]
-      regression["stamp"] = regression["stamp"] * 1000
-      if ((new Date())*1 - regression["stamp"] > 60*60*24*7*1000)
-         regression["detector"] = 1
+		$http.post('data-revision.php', {
+		  machine: $scope.regression["machine_id"],
+		  mode: $scope.regression["mode_id"],
+		}).then(function(data) {
+          for (var i=0; i<$scope.regression.scores.length; i++) {
+            for (var j=0; j<data.data.length; j++) {
+              if ($scope.regression.scores[i]["suite_version"] == data.data[j]["suite_version"] &&
+                  $scope.regression.scores[i]["suite_test"] == data.data[j]["suite_test"])
+			  {
+				 var now = data.data[j]["score"];
+				 var prev = $scope.regression.scores[i]["prev_score"];
+				 var score = $scope.regression.scores[i]["score"];
+                 $scope.regression.scores[i]["now"] = now;
+				 if (Math.abs(prev - now) < Math.abs(score - now)) {
+					if (score > prev) {
+						if (now < prev + 0.2 * (score - prev))
+							$scope.regression.scores[i]["good"] = 1;
+					} else {
+						if (now > prev + 0.2 * (score - prev))
+							$scope.regression.scores[i]["good"] = 1;
+					}
+				 } else {
+					if (score > prev) {
+						if (now > score - 0.8 * (score - prev))
+							$scope.regression.scores[i]["bad"] = 1;
+					} else {
+						if (now < score - 0.8 * (score - prev))
+							$scope.regression.scores[i]["bad"] = 1;
+					}
+				 }
+              }
+		    }
+		  }
+		});
+    });
+	
+    $scope.showRegression = function(regression, score) {
+		var start = regression.stamp/1000;
+		var end = new Date()/1000;
 
-      if (regression["scores"] && regression["scores"].length > 0) {
-        var prev_cset = regression["scores"][0]["prev_cset"];
-        for (var j = 0; j < regression["scores"].length; j++) {
-            var score = regression["scores"][j]
-            var suite_version = score["suite_version"]
-            var percent = ((score["score"] / score["prev_score"]) - 1) * 100
-            percent = Math.round(percent * 100)/100;
-            var suite = master["suiteversions"][suite_version]["suite"];
-            var direction = master["suites"][suite]["direction"];
-            var regressed = (direction == 1) ^ (percent > 0)
+		// Increase start so it is visible.
+		var duration = end - start;
+		start -= duration * 0.1;
 
-            // unset prev_cset if they differ for different scores
-            if (prev_cset != regression["scores"][j]["prev_cset"])
-                prev_cset = ""
-
-            regression["scores"][j]["suite"] = master["suiteversions"][suite_version]["suite"]
-            regression["scores"][j]["suiteversion"] = master["suiteversions"][suite_version]["name"]
-            regression["scores"][j]["suitetest"] = score["suite_test"]
-            regression["scores"][j]["percent"] = percent
-            regression["scores"][j]["regression"] = regressed
-			regression["scores"][j]["noise"] = regression["scores"][j]["noise"] == "1"
-        }
-
-        regression["prev_cset"] = prev_cset
-
-        var vendor_id = master["modes"][regression["mode_id"]]["vendor_id"]
-        var range_url = master["vendors"][vendor_id]["rangeURL"]
-        range_url = range_url.replace('{from}', prev_cset);
-        range_url = range_url.replace('{to}', regression["cset"]);
-        regression["range_url"] = range_url
-      }
-      return regression;
+		modalDialog.open("partials/graph-popup.html", {
+			"url": "http://arewefastyet.com/#"+
+				   "machine="+regression.machine_id+"&"+
+				   "view=single&"+
+				   "suite="+score.suite+"&"+
+				   (score.suitetest ? "subtest="+score.suitetest+"&" : "") +
+				   "start="+start+"&"+
+				   "end="+end,
+			"score": score,
+			"regression": regression,
+			"showRegression": $scope.showRegression
+		});        
     }
-    this.normalize_states = function(states) {
-      for (var i = 0; i < states.length; i++) {
-        states[i]["stamp"] = states[i]["stamp"] * 1000;
-      }
-      return states;
-    }
-}]);
+
+  }
+]);
 
 
-awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'modalDialog',
-                                     'RegressionService', '$location',
+awfyCtrl.controller('searchCtrl', ['$scope', '$http', '$routeParams', '$q', 'modalDialog',
+                                   'RegressionService', '$location',
   function ($scope, $http, $routeParams, $q, modalDialog, regression, $location) {
 
     function setDefaultModeAndMachine() {
@@ -316,6 +310,7 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
         var modes = ["14","16","20","21","22","23","25","26","27","28","29","31","32","33","35"];
 		setMachines(machines);
         setModes(modes);
+        setBug(undefined);
     }
     function setModes(modes) {
         for (var id in modes) {
@@ -330,6 +325,12 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
         }
 		return modes;
     }
+    function setBug(bug) {
+		$scope.bug = bug 
+	}
+	function getBug() {
+		return $scope.bug;
+	}
     function setMachines(machines) {
         for (var id in machines) {
             $scope.master.machines[machines[id]].selected = true;
@@ -357,11 +358,15 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
         }
 		return states;
     }
+	function setTitle(title) {
+		$scope.title = title
+	}
     function initAdvanced() {
 		var search = $location.search();
         setMachines(search.machines || []);
         setStates(search.states || []);
         setModes(search.modes || []);
+        setBug(search.bug);
         fetch()
 	}
 	function fetch() {
@@ -384,7 +389,8 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
         $http.post('data-search.php', {
             machines:selected_machines,
             modes:selected_modes,
-            states:selected_states
+            states:selected_states,
+			bug:$scope.bug
         }).then(function(data) {
 
 			if ($routeParams.search == "notTriaged")
@@ -401,37 +407,69 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
 
 	$scope.fetchPage = function() {
 		$scope.regressions = [];
+        var ids = $scope.ids.slice(($scope.currentPage - 1) * 10, $scope.currentPage * 10);
+		var minimal = false;
+		if (!$routeParams.search && !$routeParams.bug) { // confirmed regressions
+			ids = $scope.ids;
+			minimal = true;
+		}
+
 		$http.post('data-regression.php', {
-			ids:$scope.ids.slice(($scope.currentPage - 1)* 10, $scope.currentPage * 10)
+			ids: ids,
+			minimal: minimal
 		}).then(function(data) {
 
 		  var regressions = data.data;
-
 		  for (var i = 0; i < regressions.length; i++) {
 			regressions[i] = regression.normalize(regressions[i])
 		  }
 
 		  $scope.regressions = regressions;
+
+		  if (!$routeParams.search && !$routeParams.bug) { // confirmed regressions
+			var bugs = [];
+			for (var j = 0; j < regressions.length; j++) {
+				var bug = regressions[j].bug;
+				if (!bugs[bug])
+					bugs[bug] = {"items":[], "bug":bug};
+				bugs[bug].items[bugs[bug].items.length] = regressions[j];
+			}
+			var retBugs = [];
+			bugs.forEach(function(el) {
+				retBugs[retBugs.length] = el;
+			});
+			$scope.bugs = retBugs;
+		  }
 		});
 
 	}
 
     $scope.setNonTriaged = function() {
+		setTitle("Untriaged regressions");
         setDefaultModeAndMachine();
         setStates(["unconfirmed"]);
         fetch()
     }
-    $scope.setNotFixedRegressions = function() {
+    $scope.setNotFixedRegressions = function(bug) {
+		if (bug === undefined)
+			setTitle("Confirmed regressions");
+		else if (bug == 0)
+			setTitle("Confirmed regressions without bug number");
+		else
+			setTitle("Confirmed regressions for #"+bug);
         setDefaultModeAndMachine();
         setStates(["confirmed"]);
+		setBug(bug);
         fetch()
     }
     $scope.setImprovements = function() {
+		setTitle("Improvements");
         setDefaultModeAndMachine();
         setStates(["improvement"]);
         fetch()
     }
     $scope.advancedSearch = function() {
+		setTitle("Search");
         $scope.advanced = true;
     }
     $scope.open = function(id) {
@@ -439,14 +477,15 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', 'm
     }
     $scope.search = function() {
 		$location.path("advanced");
-        $location.search({machines: getMachines(), states: getStates(), modes: getModes()});
+        $location.search({machines: getMachines(), states: getStates(), modes: getModes(),
+						  bug: getBug()});
 	}
 
     $scope.advanced = ($routeParams.search == "advanced");
     $scope.regressions = [];
 
-    if ($routeParams.search == "open")
-        $scope.setNotFixedRegressions();
+    if (!$routeParams.search) // Confirmed regressions
+        $scope.setNotFixedRegressions($routeParams.bug);
     else if ($routeParams.search == "improvements")
         $scope.setImprovements();
     else if ($routeParams.search == "advanced")

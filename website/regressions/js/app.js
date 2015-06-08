@@ -95,13 +95,25 @@ awfyApp.config(['$routeProvider',
         templateUrl: 'partials/add.html',
         controller: 'addCtrl'
       }).
+      when('/compare/:id/:rev?', {
+        templateUrl: 'partials/compare.html',
+        controller: 'compareCtrl'
+      }).
       when('/graph', {
         templateUrl: 'partials/graph.html',
         controller: 'graphCtrl'
       }).
+      when('/open/:bug', {
+        templateUrl: 'partials/search.html',
+        controller: 'searchCtrl'
+      }).
+      when('/open', {
+        templateUrl: 'partials/open.html',
+        controller: 'searchCtrl'
+      }).
       when('/:search', {
-        templateUrl: 'partials/overview.html',
-        controller: 'overviewCtrl'
+        templateUrl: 'partials/search.html',
+        controller: 'searchCtrl'
       }).
       otherwise({
         redirectTo: '/open'

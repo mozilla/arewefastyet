@@ -293,13 +293,9 @@ html, body {
   line-height: 48px; }
   .overview .subnav a {
     cursor: pointer; }
-.overview .box.regression:hover {
-  color: #000;
-  border-color: #b7b7b7; }
 .overview .regression {
   cursor: pointer;
-  display: block;
-  text-decoration: none; }
+  display: block; }
   .overview .regression .title {
     text-transform: uppercase;
     margin-top: 0.4em; }
@@ -378,11 +374,13 @@ html, body {
   margin-right: 6px; }
 
 .box {
-  border-collapse: separate; }
-  .box .regression .percent {
-    float: right;
+  border-collapse: separate;
+  position: relative; }
+  .box .percent {
     font-size: 1.4em;
-    margin-top: -0.2em; }
+    margin-top: -0.2em;
+    position: absolute;
+    right: 12px; }
   .box .regression .regression {
     color: #d12600; }
   .box .regression .improvement {
@@ -393,6 +391,11 @@ html, body {
   .box .regression .score {
     text-align: center;
     height: 1.8em; }
+
+a.box:hover {
+  color: #000;
+  border-color: #b7b7b7;
+  text-decoration: none; }
 
 .details table {
   width: 900px;

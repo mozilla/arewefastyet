@@ -19,6 +19,7 @@ if (isset($request->ids)) {
 } else {
 	$ids[] = (int)$request->id; 
 }
+$minimal = isset($request->minimal) ? !!$request->minimal : false;
 
 $data = array();
 for ($i=0; $i < count($ids); $i++) {
@@ -54,11 +55,13 @@ for ($i=0; $i < count($ids); $i++) {
             "noise" => $scores["noise"]
 		);
 
-        $prev = prev_($output["stamp"], $output["machine"],
-                     $output["mode_id"], $suite_version_id);
-		if (count($prev) == 1) {
-            $score["prev_score"] = $prev[0]["score"];
-            $score["prev_cset"] = $prev[0]["cset"];
+		if (!$minimal) {
+			$prev = prev_($output["stamp"], $output["machine"],
+						 $output["mode_id"], $suite_version_id);
+			if (count($prev) == 1) {
+				$score["prev_score"] = $prev[0]["score"];
+				$score["prev_cset"] = $prev[0]["cset"];
+			}
 		}
 
 		$regression["scores"][] = $score;
@@ -76,21 +79,25 @@ for ($i=0; $i < count($ids); $i++) {
             "noise" => $scores["noise"]
 		);
 
-        $prev = prev_suite_test($output["stamp"], $output["machine"],
-                                $output["mode_id"], $suite_test_id);
-		if (count($prev) == 1) {
-            $score["prev_score"] = $prev[0]["score"];
-            $score["prev_cset"] = $prev[0]["cset"];
+		if (!$minimal) {
+			$prev = prev_suite_test($output["stamp"], $output["machine"],
+									$output["mode_id"], $suite_test_id);
+			if (count($prev) == 1) {
+				$score["prev_score"] = $prev[0]["score"];
+				$score["prev_cset"] = $prev[0]["cset"];
+			}
 		}
 
 		$regression["scores"][] = $score;
 	}
-	$qStatus = mysql_query("SELECT * FROM awfy_regression_status
-						    WHERE regression_id = '".$output["id"]."'
-							ORDER BY stamp DESC
-							LIMIT 1") or die(mysql_error());
-	$status = mysql_fetch_assoc($qStatus);
-	$regression["status_extra"] = $status["extra"];
+	if (!$minimal) {
+		$qStatus = mysql_query("SELECT * FROM awfy_regression_status
+								WHERE regression_id = '".$output["id"]."'
+								ORDER BY stamp DESC
+								LIMIT 1") or die(mysql_error());
+		$status = mysql_fetch_assoc($qStatus);
+		$regression["status_extra"] = $status["extra"];
+	}
 
 	$data[] = $regression;
 }

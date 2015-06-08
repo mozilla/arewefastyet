@@ -50,7 +50,7 @@
 	  </td>
 	</tr>
     <tr class='finished'><th>Detection finished</th><td>
-		<span ng-if="regression.detector">Yes</span>
+		<span ng-if="regression.detector!=0">Yes</span>
 		<span ng-if="regression.detector==0">No (new regression might still get detected in the future.)</span>
     </td></tr>
   	</table>
@@ -80,11 +80,12 @@
     <a ng-click="editNoiseFn()" class='link txt' ng-if="currentUser&&!editNoise">mark noise</a>
     <a ng-click="showNoiseFn()" class='link txt' ng-if="!showNoise&&!editNoise&&noiseCount">show scores marked as noise ({{noiseCount}})</a>
     <a ng-click="hideNoiseFn()" class='link txt' ng-if="showNoise&&!editNoise&&noiseCount">hide scores marked as noise ({{noiseCount}})</a>
+    <a ng-href="#/compare/{{regression.id}}" class='link txt'>compare with tip</a>
     <div class='header'>
   	Detected regressions/improvements
     </div>
     <div class='content'>
-      <div ng-repeat="score in regression.scores | orderBy:'suiteversion + suitetest'"
+      <div ng-repeat="score in regression.scores | orderBy:'!regression + suiteversion + suitetest'"
 		   class='regression'>
         <span ng-if="!score.noise||editNoise||showNoise">
   		  <div class='suite'>

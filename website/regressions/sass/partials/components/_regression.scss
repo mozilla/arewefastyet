@@ -1,13 +1,15 @@
 .box {
   border-collapse: separate;
+  position: relative;
+
+  .percent {
+    font-size: 1.4em;
+    margin-top: -0.2em;
+	position: absolute;
+	right: 2*$unit;
+  }
 
   .regression {
-    .percent {
-      float: right;
-      font-size: 1.4em;
-      margin-top: -0.2em;
-    }
-
     .regression {
       color: $_red;
     }
@@ -28,6 +30,13 @@
     }
   }
 }
+
+a.box:hover {
+  color: #000;
+  border-color: darken(get($_box, border), 15%);
+  text-decoration: none;
+}
+
 
 .details table {
   width: 900px;
