@@ -51,7 +51,7 @@ class Mozilla(Engine):
         }, {
             'name': 'unboxedobjects',
             'env': { 'JSGC_DISABLE_POISONING': '1',
-                     'JS_OPTION_USE_UNBOXED_OBJECTS': '1' }
+                     'JS_OPTION_USE_UNBOXED_ARRAYS': '1' }
         }]
         self.folder = "firefox"
         if not os.path.isdir(self.tmp_dir + self.folder):
