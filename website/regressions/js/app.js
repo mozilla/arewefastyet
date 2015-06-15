@@ -1,32 +1,8 @@
 var awfyApp = angular.module('awfyApp', [
   'ngRoute',
   'awfyControllers',
-  'googlechart'
-]);
-
-awfyApp.config(['$routeProvider',
-  function($routeProvider) {
-    $routeProvider.
-      when('/regression/:id', {
-        templateUrl: 'partials/regression.html',
-        controller: 'regressionCtrl'
-      }).
-      when('/add/:subtest?/:id', {
-        templateUrl: 'partials/add.html',
-        controller: 'addCtrl'
-      }).
-      when('/graph', {
-        templateUrl: 'partials/graph.html',
-        controller: 'graphCtrl'
-      }).
-      when('/:search', {
-        templateUrl: 'partials/overview.html',
-        controller: 'overviewCtrl'
-      }).
-      otherwise({
-        redirectTo: '/open'
-      });
-  }
+  'googlechart',
+  'ui.bootstrap'
 ]);
 
 awfyApp.config(['$sceDelegateProvider',
@@ -107,3 +83,41 @@ awfyApp.controller('pageCtrl', ['$scope', 'MasterService', '$http',
       $scope.currentUser = data.data
 	});
 }]);
+
+awfyApp.config(['$routeProvider',
+  function($routeProvider) {
+    $routeProvider.
+      when('/regression/:id', {
+        templateUrl: 'partials/regression.html',
+        controller: 'regressionCtrl'
+      }).
+      when('/add/:subtest?/:id', {
+        templateUrl: 'partials/add.html',
+        controller: 'addCtrl'
+      }).
+      when('/compare/:id/:rev?', {
+        templateUrl: 'partials/compare.html',
+        controller: 'compareCtrl'
+      }).
+      when('/graph', {
+        templateUrl: 'partials/graph.html',
+        controller: 'graphCtrl'
+      }).
+      when('/open/:bug', {
+        templateUrl: 'partials/search.html',
+        controller: 'searchCtrl'
+      }).
+      when('/open', {
+        templateUrl: 'partials/open.html',
+        controller: 'searchCtrl'
+      }).
+      when('/:search', {
+        templateUrl: 'partials/search.html',
+        controller: 'searchCtrl'
+      }).
+      otherwise({
+        redirectTo: '/open'
+      });
+  }
+]);
+

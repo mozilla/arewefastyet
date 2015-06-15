@@ -161,6 +161,9 @@ header {
     margin-right: 24px; }
   header a {
     text-decoration: none;
+    color: #f0f0f0; }
+  header a:hover {
+    text-decoration: none;
     color: white; }
 
 .subheader {
@@ -246,7 +249,8 @@ body {
   height: 100%;
   text-align: center;
   z-index: 1000;
-  background-color: rgba(0, 0, 0, 0.5); }
+  background-color: rgba(0, 0, 0, 0.5);
+  display: block; }
   .modal .container {
     margin: 100px auto;
     background-color: #fff;
@@ -271,6 +275,8 @@ body {
     .modal .container .graph iframe {
       width: 100%;
       height: 95%; }
+    .modal .container .graph a {
+      cursor: pointer; }
 
 html, body {
   margin: 0px;
@@ -285,12 +291,11 @@ html, body {
 .overview .subnav {
   float: right;
   line-height: 48px; }
-.overview .box.regression:hover {
-  box-shadow: 1px 1px 2px #222; }
+  .overview .subnav a {
+    cursor: pointer; }
 .overview .regression {
   cursor: pointer;
-  display: block;
-  text-decoration: none; }
+  display: block; }
   .overview .regression .title {
     text-transform: uppercase;
     margin-top: 0.4em; }
@@ -368,20 +373,29 @@ html, body {
   padding-bottom: 12px;
   margin-right: 6px; }
 
-.box .regression .percent {
-  float: right;
-  font-size: 1.4em;
-  margin-top: -0.2em; }
-.box .regression .regression {
-  color: #d12600; }
-.box .regression .improvement {
-  color: #2f7836; }
-.box .regression .suite {
-  float: left;
-  position: absolute; }
-.box .regression .score {
-  text-align: center;
-  height: 1.5em; }
+.box {
+  border-collapse: separate;
+  position: relative; }
+  .box .percent {
+    font-size: 1.4em;
+    margin-top: -0.2em;
+    position: absolute;
+    right: 12px; }
+  .box .regression .regression {
+    color: #d12600; }
+  .box .regression .improvement {
+    color: #2f7836; }
+  .box .regression .suite {
+    float: left;
+    position: absolute; }
+  .box .regression .score {
+    text-align: center;
+    height: 1.8em; }
+
+a.box:hover {
+  color: #000;
+  border-color: #b7b7b7;
+  text-decoration: none; }
 
 .details table {
   width: 900px;
@@ -390,7 +404,8 @@ html, body {
   color: #222222;
   padding: 6px;
   margin-right: 2%;
-  margin-bottom: 30px; }
+  margin-bottom: 30px;
+  border-collapse: separate; }
   .details table td {
     background-color: white;
     padding: 6px; }
