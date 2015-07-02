@@ -232,7 +232,11 @@ class MozillaInbound(Mozilla):
                 },
                 {
                     'mode': 'unboxedobjects',
-                    'args': ['--ion-offthread-compile=on', '-W', '--unboxed-objects']
+                    'args': ['--ion-offthread-compile=on', '-W', '--unboxed-arrays']
+                },
+                {
+                    'mode': 'testbed',
+                    'args': ['--ion-offthread-compile=on', '-W', '--ion-regalloc=testbed']
                 }
             ]
 
