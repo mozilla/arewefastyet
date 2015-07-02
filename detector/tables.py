@@ -110,6 +110,14 @@ class DBTable:
         yield class_(row[0])
 
   @classmethod
+  def where(class_, data):
+    where = [name+" = "+DBTable.valuefy(data[name]) for name in data]
+    c = awfy.db.cursor()
+    c.execute("SELECT id FROM "+class_.table()+" WHERE "+" AND ".join(where))
+    for row in c.fetchall():
+        yield class_(row[0])
+
+  @classmethod
   def maybeflush(class_):
     #TODO
     records = 0
@@ -216,14 +224,14 @@ class Regression(DBTable):
     return "awfy_regression"
 
 class RegressionScore(DBTable):
-  def __init__(self, build, score):
-    c = awfy.db.cursor()
-    c.execute("SELECT id FROM "+self.table()+"        \
-               WHERE build_id = %s AND                \
-                     score_id = %s", (build.get("id"), score.get("id")))
-    row = c.fetchone()
-    id = row[0] if row else 0
-    DBTable.__init__(self, id)
+  #def __init__(self, build, score):
+  #  c = awfy.db.cursor()
+  #  c.execute("SELECT id FROM "+self.table()+"        \
+  #             WHERE build_id = %s AND                \
+  #                   score_id = %s", (build.get("id"), score.get("id")))
+  #  row = c.fetchone()
+  #  id = row[0] if row else 0
+  #  DBTable.__init__(self, id)
 
   def regression(self):
     c = awfy.db.cursor()
@@ -271,14 +279,14 @@ class RegressionScoreNoise(DBTable):
     return "awfy_regression_score_noise"
 
 class RegressionBreakdown(DBTable):
-  def __init__(self, build, breakdown):
-    c = awfy.db.cursor()
-    c.execute("SELECT id FROM "+self.table()+"        \
-               WHERE build_id = %s AND                  \
-                     breakdown_id = %s", (build.get("id"), breakdown.get("id")))
-    row = c.fetchone()
-    id = row[0] if row else 0
-    DBTable.__init__(self, id)
+  #def __init__(self, build, breakdown):
+  #  c = awfy.db.cursor()
+  #  c.execute("SELECT id FROM "+self.table()+"        \
+  #             WHERE build_id = %s AND                  \
+  #                   breakdown_id = %s", (build.get("id"), breakdown.get("id")))
+  #  row = c.fetchone()
+  #  id = row[0] if row else 0
+  #  DBTable.__init__(self, id)
 
   def regression(self):
     c = awfy.db.cursor()

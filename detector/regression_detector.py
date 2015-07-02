@@ -103,16 +103,30 @@ if __name__ == "__main__":
           score.dump()
           if not options.dryrun:
             build = score.get("build_id")
-            try:
-              id_ = tables.Regression.insert({"build_id": build})
-              tables.RegressionStatus.insert({"regression_id": id_, "name": "awfy", "extra": "Submitted", "stamp":"UNIX_TIMESTAMP()"})
-            except:
-              pass
+            prev_build = score.prev().get("build_id")
+            regression = [regression for regression in tables.Regression.where({
+                    "build_id": build,
+                    "prev_build_id": prev_build
+            })]
+            if len(regression) == 0:
+              regression_id = tables.Regression.insert({
+                  "build_id": build,
+                  "prev_build_id": prev_build
+              })
+              tables.RegressionStatus.insert({"regression_id": regression_id,
+                                              "name": "awfy",
+                                              "extra": "Submitted",
+                                              "stamp":"UNIX_TIMESTAMP()"})
+            else:
+              regression_id = regression[0].id
+
             try:
               if score.__class__ == tables.Score:
-                  tables.RegressionScore.insert({"build_id": build, "score_id": score.get("id")})
+                  tables.RegressionScore.insert({"regression_id": regression_id,
+                                                 "score_id": score.get("id")})
               elif score.__class__ == tables.Breakdown:
-                  tables.RegressionBreakdown.insert({"build_id": build, "breakdown_id": score.get("id")})
+                  tables.RegressionBreakdown.insert({"regression_id": regression_id,
+                                                     "breakdown_id": score.get("id")})
               else:
                   assert False
             except:
