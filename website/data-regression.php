@@ -13,13 +13,13 @@ if ($subtest) {
 	$query = mysql_query("SELECT awfy_regression.id, noise, status
                           FROM `awfy_regression_breakdown`
                           LEFT JOIN awfy_regression
-                          ON awfy_regression.build_id = awfy_regression_breakdown.build_id
+                          ON awfy_regression.id = awfy_regression_breakdown.regression_id
                           WHERE breakdown_id = ".$id);
 } else {
 	$query = mysql_query("SELECT awfy_regression.id, noise, status
                           FROM `awfy_regression_score`
                           LEFT JOIN awfy_regression
-                          ON awfy_regression.build_id = awfy_regression_score.build_id
+                          ON awfy_regression.id = awfy_regression_score.regression_id
                           WHERE breakdown_id = ".$id);
 }
 

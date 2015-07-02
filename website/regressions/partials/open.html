@@ -63,7 +63,9 @@
   <div>
     <a ng-repeat="bug in bugs" class='box' ng-href='#/open/{{bug.bug}}'>
       <div class='header'>
-        <span ng-if="bug.bug != 0">Bug {{bug.bug}}</span>
+        <span ng-if="bug.bug != 0">Bug {{bug.bug}}
+		  <span ng-if="bug.title"> - {{bug.title}}</span>
+		</span>
         <span ng-if="bug.bug == 0">No bug</span>
       </div>
 	  <div class='content'>

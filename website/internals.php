@@ -7,8 +7,8 @@ session_start();
 
 function init_database()
 {
-    mysql_connect("localhost", "***", "***") or die("ERROR: " . mysql_error());
-    mysql_select_db("dvander") or die("ERROR: " . mysql_error());
+    mysql_connect("localhost", "awfy", "LFQZdX6Ca57QcwhE") or die("ERROR: " . mysql_error());
+    mysql_select_db("awfy") or die("ERROR: " . mysql_error());
 }
 
 function username()

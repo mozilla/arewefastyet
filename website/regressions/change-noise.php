@@ -13,13 +13,13 @@ if (!has_permissions())
 $postdata = file_get_contents("php://input");
 $request = json_decode($postdata);
 
-$build_id = (int)$request->build_id;
+$regression_id = (int)$request->regression_id;
 
 foreach($request->noise->score as $score_id => $noise)  { 
   $noise = (int)$noise;
   $score_id = (int)$score_id;
   $query = mysql_query("UPDATE awfy_regression_score SET noise = $noise
-                        WHERE build_id = $build_id AND
+                        WHERE regression_id = $regression_id AND
                               score_id = $score_id
                        ") or die(mysql_error());
 }
@@ -28,7 +28,7 @@ foreach($request->noise->breakdown as $score_id => $noise)  {
   $noise = (int)$noise;
   $score_id = (int)$score_id;
   $query = mysql_query("UPDATE awfy_regression_breakdown SET noise = $noise
-                        WHERE build_id = $build_id AND
+                        WHERE regression_id = $regression_id AND
                               breakdown_id = $score_id
                        ") or die(mysql_error());
 }

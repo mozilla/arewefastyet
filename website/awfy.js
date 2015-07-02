@@ -20,7 +20,6 @@ AWFY.lastHash = null;
 AWFY.lastRefresh = 0;
 
 // Hide a view modes by default. Since they aren't active anymore
-//AWFYMaster.modes["30"].hidden = true
 AWFYMaster.modes["35"].hidden = true
 AWFYMaster.modes["27"].hidden = true
 AWFYMaster.modes["29"].hidden = true
