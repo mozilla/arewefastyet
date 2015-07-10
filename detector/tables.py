@@ -84,6 +84,11 @@ class DBTable:
                SET "+",".join(sets)+"                                           \
                WHERE id = %s", (self.id, ))
 
+  def delete(self):
+    c = awfy.db.cursor()
+    c.execute("DELETE FROM "+self.table()+"										\
+               WHERE id = %s", (self.id, ))
+
   @staticmethod
   def valuefy(value):
     if "'" in str(value):
@@ -219,27 +224,29 @@ class Regression(DBTable):
   def __init__(self, id):
     DBTable.__init__(self, id)
 
+  def regressions(self):
+    c = awfy.db.cursor()
+    c.execute("SELECT id FROM awfy_regression_breakdown        \
+               WHERE regression_id = %s", (self.id,))
+    for row in c.fetchall():
+      if row[0] == 0:
+         continue
+      yield RegressionBreakdown(row[0])
+    c.execute("SELECT id FROM awfy_regression_score        \
+               WHERE regression_id = %s", (self.id,))
+    for row in c.fetchall():
+      if row[0] == 0:
+         continue
+      yield RegressionScore(row[0])
+
   @staticmethod
   def table():
     return "awfy_regression"
 
 class RegressionScore(DBTable):
-  #def __init__(self, build, score):
-  #  c = awfy.db.cursor()
-  #  c.execute("SELECT id FROM "+self.table()+"        \
-  #             WHERE build_id = %s AND                \
-  #                   score_id = %s", (build.get("id"), score.get("id")))
-  #  row = c.fetchone()
-  #  id = row[0] if row else 0
-  #  DBTable.__init__(self, id)
 
-  def regression(self):
-    c = awfy.db.cursor()
-    c.execute("SELECT id FROM awfy_regression        \
-               WHERE build_id = %s", (self.get("build_id"),))
-    row = c.fetchone()
-    id = row[0] if row else 0
-    return Regression(id)
+  def score(self):
+	return self.get("score")
 
   @staticmethod
   def table():
@@ -279,22 +286,9 @@ class RegressionScoreNoise(DBTable):
     return "awfy_regression_score_noise"
 
 class RegressionBreakdown(DBTable):
-  #def __init__(self, build, breakdown):
-  #  c = awfy.db.cursor()
-  #  c.execute("SELECT id FROM "+self.table()+"        \
-  #             WHERE build_id = %s AND                  \
-  #                   breakdown_id = %s", (build.get("id"), breakdown.get("id")))
-  #  row = c.fetchone()
-  #  id = row[0] if row else 0
-  #  DBTable.__init__(self, id)
 
-  def regression(self):
-    c = awfy.db.cursor()
-    c.execute("SELECT id FROM awfy_regression        \
-               WHERE build_id = %s", (self.get("build_id"),))
-    row = c.fetchone()
-    id = row[0] if row else 0
-    return Regression(id)
+  def score(self):
+	return self.get("breakdown")
 
   @staticmethod
   def table():

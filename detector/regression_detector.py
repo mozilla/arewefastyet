@@ -12,7 +12,7 @@ from optparse import OptionParser
 
 parser = OptionParser(usage="usage: %prog [options]")
 parser.add_option( "--dry-run", dest="dryrun", action="store_true", default=False,
-                  help="Don't cmomit the new regressions to the database yet.")
+                  help="Don't commit the new regressions to the database yet.")
 (options, args) = parser.parse_args()
 
 def notProcessedRuns():
