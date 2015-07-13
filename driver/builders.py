@@ -218,6 +218,11 @@ class Mozilla(Engine):
     def shell(self):
         return os.path.join('js', 'src', self.objdir, 'dist', 'bin', 'js')
 
+    def env(self):
+        env = os.environ.copy()
+        env['JSGC_DISABLE_POISONING'] = 1
+        return env
+
 class MozillaInbound(Mozilla):
     def __init__(self):
         super(MozillaInbound, self).__init__('mi')
