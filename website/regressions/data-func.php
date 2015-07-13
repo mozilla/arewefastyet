@@ -59,7 +59,7 @@ function prev_($stamp, $machine, $mode, $suite, $limit = 1) {
 
 function prev_suite_test($stamp, $machine, $mode, $suite_test, $limit = 1) {
 	$limit = (int) $limit;
-    $query = "SELECT awfy_breakdown.id, score, cset
+    $query = "SELECT awfy_breakdown.id, awfy_breakdown.score, cset
               FROM awfy_breakdown
               INNER JOIN awfy_score ON awfy_score.id = score_id
               INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id
@@ -132,7 +132,7 @@ function next_($stamp, $machine, $mode, $suite, $limit = 1) {
 }
 
 function next_suite_test($stamp, $machine, $mode, $suite_test, $limit = 1) {
-    $query = mysql_query("SELECT awfy_breakdown.id, score, cset
+    $query = mysql_query("SELECT awfy_breakdown.id, awfy_breakdown.score, cset
 					      FROM awfy_breakdown
 					      INNER JOIN awfy_score ON awfy_score.id = score_id
 					      INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id

@@ -55,7 +55,8 @@ def fetch_test_scores(machine_id, suite_id, name,
     query = "SELECT STRAIGHT_JOIN r.id, r.stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
              FROM awfy_run r                                                        \
              JOIN awfy_build b ON r.id = b.run_id                                   \
-             JOIN awfy_breakdown s ON s.build_id = b.id                             \
+             JOIN awfy_score s1 ON s1.build_id = b.id                               \
+             JOIN awfy_breakdown s ON s.score_id = s1.id                            \
              JOIN awfy_suite_test t ON s.suite_test_id = t.id                       \
              JOIN awfy_suite_version v ON v.id = t.suite_version_id                 \
              WHERE v.suite_id = %s                                                  \

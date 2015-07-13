@@ -700,9 +700,9 @@ class Breakdown(RegressionTools):
 
   def get(self, field):
     if field == "build_id":
-      return self.get("score").get("build_id")
+      return Score(self.get("score_id")).get("build_id")
     if field == "build":
-      return self.get("score").get("build")
+      return Score(self.get("score_id")).get("build")
 
     return super(Breakdown, self).get(field)
 

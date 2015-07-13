@@ -15,7 +15,7 @@ if (!isset($request->subtest))
 	$request->subtest = false;
 
 if ($request->subtest == 1 || $request->subtest == 'true') {
-	$query = mysql_query("SELECT mode_id, machine, stamp, score, suite_test_id
+	$query = mysql_query("SELECT mode_id, machine, stamp, awfy_breakdown.score, suite_test_id
                           FROM `awfy_breakdown`
                           LEFT JOIN awfy_score ON awfy_score.id = score_id
                           LEFT JOIN awfy_build ON awfy_build.id = awfy_score.build_id
