@@ -356,8 +356,9 @@ class Build(DBTable):
   def getScoresAndBreakdowns(self):
     scores = self.getScores()
     c = awfy.db.cursor()
-    c.execute("SELECT id                                                              \
+    c.execute("SELECT awfy_breakdown.id                                               \
                FROM awfy_breakdown                                                    \
+               LEFT JOIN awfy_score ON awfy_score.id = score_id                       \
                WHERE build_id = %s", (self.id,))
     for row in c.fetchall():
       scores.append(Breakdown(row[0]))
@@ -731,7 +732,8 @@ class Breakdown(RegressionTools):
     c = awfy.db.cursor()
     c.execute("SELECT awfy_breakdown.id                                               \
                FROM awfy_breakdown                                                    \
-               INNER JOIN awfy_build ON awfy_build.id = awfy_breakdown.build_id       \
+               INNER JOIN awfy_score ON awfy_score.id = awfy_breakdown.score_id       \
+               INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
                INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
                WHERE stamp > %s AND                                                   \
                      machine = %s AND                                                 \
@@ -752,7 +754,8 @@ class Breakdown(RegressionTools):
     c = awfy.db.cursor()
     c.execute("SELECT awfy_breakdown.id                                               \
                FROM awfy_breakdown                                                    \
-               INNER JOIN awfy_build ON awfy_build.id = awfy_breakdown.build_id       \
+               INNER JOIN awfy_score ON awfy_score.id = awfy_breakdown.score_id       \
+               INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
                INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
                WHERE stamp < %s AND                                                   \
                      machine = %s AND                                                 \
@@ -774,7 +777,8 @@ class Breakdown(RegressionTools):
     c.execute("SELECT id                                                                    \
                FROM (SELECT awfy_breakdown.id, stamp                                        \
                      FROM awfy_breakdown                                                    \
-                     INNER JOIN awfy_build ON awfy_build.id = awfy_breakdown.build_id       \
+                     INNER JOIN awfy_score ON awfy_score.id = awfy_breakdown.score_id       \
+                     INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
                      INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
                      WHERE machine = %s AND                                                 \
                            mode_id = %s AND                                                 \

@@ -56,7 +56,7 @@ for ($i=0; $i < count($ids); $i++) {
 		);
 
 		//if (!$minimal) { // minimal outdated. Used to be slow. Not anymore.
-        if ($output["prev_build_id"]) {
+        if ($output["prev_build_id"] && !$minimal) {
             $qPrevScore = mysql_query("SELECT score
                                        FROM awfy_score
                                        WHERE build_id = ".$output["prev_build_id"]." AND
@@ -85,7 +85,7 @@ for ($i=0; $i < count($ids); $i++) {
 		);
 
 		//if (!$minimal) { // minimal outdated. Used to be slow. Not anymore.
-        if ($output["prev_build_id"]) {
+        if ($output["prev_build_id"] && !$minimal) {
             $qPrevScore = mysql_query("SELECT awfy_breakdown.score
                                        FROM awfy_breakdown
                                        LEFT JOIN awfy_score ON score_id = awfy_score.id

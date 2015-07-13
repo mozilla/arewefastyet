@@ -86,7 +86,7 @@ while($row = mysql_fetch_array($tests)) {
                   WHERE suite_test_id = ".$suiteTestId." AND
                         awfy_score.build_id = ".$buildIds[$j]."
                   LIMIT 1";
-        $results = mysql_query($query);
+        $results = mysql_query($query) or die(mysql_error());
         if (!$results || mysql_num_rows($results) != 1)
             continue;
         $row = mysql_fetch_array($results);
