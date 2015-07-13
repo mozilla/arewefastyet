@@ -220,7 +220,7 @@ class Mozilla(Engine):
 
     def env(self):
         env = os.environ.copy()
-        env['JSGC_DISABLE_POISONING'] = 1
+        env['JSGC_DISABLE_POISONING'] = '1'
         return env
 
 class MozillaInbound(Mozilla):
