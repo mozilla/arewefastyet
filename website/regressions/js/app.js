@@ -107,6 +107,10 @@ awfyApp.config(['$routeProvider',
         templateUrl: 'partials/search.html',
         controller: 'searchCtrl'
       }).
+      when('/bug/:bug', {
+        templateUrl: 'partials/search.html',
+        controller: 'searchCtrl'
+      }).
       when('/open', {
         templateUrl: 'partials/open.html',
         controller: 'searchCtrl'

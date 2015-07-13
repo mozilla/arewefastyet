@@ -80,6 +80,7 @@
     <a ng-click="editNoiseFn()" class='link txt' ng-if="currentUser&&!editNoise">mark noise</a>
     <a ng-click="showNoiseFn()" class='link txt' ng-if="!showNoise&&!editNoise&&noiseCount">show scores marked as noise ({{noiseCount}})</a>
     <a ng-click="hideNoiseFn()" class='link txt' ng-if="showNoise&&!editNoise&&noiseCount">hide scores marked as noise ({{noiseCount}})</a>
+    <!--<a ng-click="editFixedFn()" class='link txt' ng-if="currentUser&&!editFixed">mark fixed</a>-->
     <a ng-href="#/compare/{{regression.id}}" class='link txt'>compare with tip</a>
     <div class='header'>
   	Detected regressions/improvements
@@ -109,6 +110,7 @@
         </span>
       </div>
       <input type='button' ng-if='editNoise' value='Mark as noise' ng-click="saveNoiseFn()">
+      <input type='button' ng-if='editFixed' value='Mark as fixed' ng-click="saveFixedFn()">
     </div>
   </div>
 

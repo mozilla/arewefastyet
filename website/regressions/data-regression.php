@@ -45,7 +45,7 @@ for ($i=0; $i < count($ids); $i++) {
 		"scores" => array()
 	);
 	$qScores = mysql_query("SELECT * FROM awfy_regression_score
-						    WHERE build_id = '".$output["build_id"]."'") or die(mysql_error());
+						    WHERE regression_id = '".$output["id"]."'") or die(mysql_error());
 	while ($scores = mysql_fetch_assoc($qScores)) {
 		$suite_version_id = get("score", $scores["score_id"], "suite_version_id");
 		$score = array(
@@ -67,7 +67,7 @@ for ($i=0; $i < count($ids); $i++) {
 		$regression["scores"][] = $score;
 	}
 	$qScores = mysql_query("SELECT * FROM awfy_regression_breakdown
-						    WHERE build_id = '".$output["build_id"]."'") or die(mysql_error());
+						    WHERE regression_id = '".$output["id"]."'") or die(mysql_error());
 	while ($scores = mysql_fetch_assoc($qScores)) {
 		$suite_test_id = get("breakdown", $scores["breakdown_id"], "suite_test_id");
 		$suite_version_id = get("suite_test", $suite_test_id, "suite_version_id");

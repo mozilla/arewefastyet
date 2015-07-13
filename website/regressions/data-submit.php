@@ -14,29 +14,10 @@ $request->id = (int) $request->id;
 if (!isset($request->subtest))
 	$request->subtest = false;
 
-if ($request->subtest == 1 || $request->subtest == 'true') {
+if ($request->subtest == 1 || $request->subtest == 'true')
 	$build_id = get("breakdown", $request->id, "build_id");
-	$suite_test_id = get("breakdown", $request->id, "suite_test_id");
-	$suite = get("suite_test", $suite_test_id, "name");
-
-	$query = mysql_query("SELECT id FROM awfy_regression_breakdown
-				          WHERE breakdown_id = ".$request->id);
-	if (mysql_num_rows($query) == 0) {
-		mysql_query("INSERT INTO awfy_regression_breakdown
-                     (build_id, breakdown_id) VALUES (".$build_id.",".$request->id.")");
-	}
-} else {
+else
 	$build_id = get("score", $request->id, "build_id");
-	$suite_version_id = get("score", $request->id, "suite_version_id");
-	$suite = get("suite_version", $suite_version_id, "name");
-
-	$query = mysql_query("SELECT id FROM awfy_regression_score
-				          WHERE score_id = ".$request->id);
-	if (mysql_num_rows($query) == 0) {
-		mysql_query("INSERT INTO awfy_regression_score
-                     (build_id, score_id) VALUES (".$build_id.",".$request->id.")");
-	}
-}
 
 $query = mysql_query("SELECT id FROM awfy_regression
 					  WHERE build_id = ".$build_id);
@@ -47,6 +28,28 @@ if (mysql_num_rows($query) == 0) {
 } else {
 	$data = mysql_fetch_assoc($query);
 	$regression_id = $data["id"];
+}
+
+if ($request->subtest == 1 || $request->subtest == 'true') {
+	$suite_test_id = get("breakdown", $request->id, "suite_test_id");
+	$suite = get("suite_test", $suite_test_id, "name");
+
+	$query = mysql_query("SELECT id FROM awfy_regression_breakdown
+				          WHERE breakdown_id = ".$request->id);
+	if (mysql_num_rows($query) == 0) {
+		mysql_query("INSERT INTO awfy_regression_breakdown
+                     (regression_id, breakdown_id) VALUES (".$regression_id.",".$request->id.")");
+	}
+} else {
+	$suite_version_id = get("score", $request->id, "suite_version_id");
+	$suite = get("suite_version", $suite_version_id, "name");
+
+	$query = mysql_query("SELECT id FROM awfy_regression_score
+				          WHERE score_id = ".$request->id);
+	if (mysql_num_rows($query) == 0) {
+		mysql_query("INSERT INTO awfy_regression_score
+                     (regression_id, score_id) VALUES (".$regression_id.",".$request->id.")");
+	}
 }
 
 mysql_query("INSERT INTO awfy_regression_status

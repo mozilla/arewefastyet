@@ -187,7 +187,7 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
 	}
     $scope.saveNoiseFn = function() {
         $http.post('change-noise.php', {
-            "build_id": $scope.regression["build_id"],
+            "regression_id": $scope.regression["id"],
             "noise": $scope.noise
         }).success(function() {
 		  $scope.editNoise = false;
@@ -409,7 +409,7 @@ awfyCtrl.controller('searchCtrl', ['$scope', '$http', '$routeParams', '$q', 'mod
 		$scope.regressions = [];
         var ids = $scope.ids.slice(($scope.currentPage - 1) * 10, $scope.currentPage * 10);
 		var minimal = false;
-		if (!$routeParams.search && !$routeParams.bug) { // confirmed regressions
+		if ($location.path().indexOf("open") == 1 && !$routeParams.bug) {
 			ids = $scope.ids;
 			minimal = true;
 		}
@@ -426,7 +426,7 @@ awfyCtrl.controller('searchCtrl', ['$scope', '$http', '$routeParams', '$q', 'mod
 
 		  $scope.regressions = regressions;
 
-		  if (!$routeParams.search && !$routeParams.bug) { // confirmed regressions
+		  if ($location.path().indexOf("open") == 1 && !$routeParams.bug) {
 			var bugs = [];
 			for (var j = 0; j < regressions.length; j++) {
 				var bug = regressions[j].bug;
@@ -437,6 +437,22 @@ awfyCtrl.controller('searchCtrl', ['$scope', '$http', '$routeParams', '$q', 'mod
 			var retBugs = [];
 			bugs.forEach(function(el) {
 				retBugs[retBugs.length] = el;
+				$http.get(
+					'https://bugzilla.mozilla.org/rest/bug/'+el.bug+'?include_fields=summary'
+			    ).then(function(data) {
+					for (var j=0; j<$scope.bugs.length; j++) {
+						if ($scope.bugs[j]["bug"] == el.bug) {
+							$scope.bugs[j]["title"] = data.data["bugs"][0]["summary"];
+						}	
+					}
+				},function(data) {
+					for (var j=0; j<$scope.bugs.length; j++) {
+						if ($scope.bugs[j]["bug"] == el.bug) {
+							if (data.data["code"] && data.data["code"] == 102)
+								$scope.bugs[j]["title"] = "Security bug"; 
+						}
+					}
+				});
 			});
 			$scope.bugs = retBugs;
 		  }
@@ -462,6 +478,13 @@ awfyCtrl.controller('searchCtrl', ['$scope', '$http', '$routeParams', '$q', 'mod
 		setBug(bug);
         fetch()
     }
+    $scope.setRegressions = function(bug) {
+		setTitle("Regressions for #"+bug);
+        setDefaultModeAndMachine();
+        setStates(["confirmed", "fixed", "improvement", "wontfix"]);
+		setBug(bug);
+        fetch()
+    }
     $scope.setImprovements = function() {
 		setTitle("Improvements");
         setDefaultModeAndMachine();
@@ -484,8 +507,10 @@ awfyCtrl.controller('searchCtrl', ['$scope', '$http', '$routeParams', '$q', 'mod
     $scope.advanced = ($routeParams.search == "advanced");
     $scope.regressions = [];
 
-    if (!$routeParams.search) // Confirmed regressions
+    if ($location.path().indexOf("open") == 1)
         $scope.setNotFixedRegressions($routeParams.bug);
+    else if ($location.path().indexOf("bug") == 1)
+        $scope.setRegressions($routeParams.bug);
     else if ($routeParams.search == "improvements")
         $scope.setImprovements();
     else if ($routeParams.search == "advanced")
