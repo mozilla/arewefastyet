@@ -25,7 +25,7 @@ def camelcase(string):
     class_ = string.__class__
     return class_.join('', map(class_.capitalize, splitted_string))
 
-class DBTable:
+class DBTable(object):
   globalcache = {}
 
   def __init__(self, id):
@@ -697,6 +697,14 @@ class Breakdown(RegressionTools):
   @staticmethod
   def table():
     return "awfy_breakdown"
+
+  def get(self, field):
+    if field == "build_id":
+      return self.get("score").get("build_id")
+    if field == "build":
+      return self.get("score").get("build")
+
+    return super(Breakdown, self).get(field)
 
   def sane(self):
     if self.get("suite_test_id") == 0:

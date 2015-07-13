@@ -82,8 +82,9 @@ while($row = mysql_fetch_array($tests)) {
     $scores = Array();
     for ($j = 0; $j < count($buildIds); $j++) {
         $query = "SELECT score FROM `awfy_breakdown`
+                  LEFT JOIN awfy_score ON awfy_score.id = score_id
                   WHERE suite_test_id = ".$suiteTestId." AND
-                        build_id = ".$buildIds[$j]."
+                        awfy_score.build_id = ".$buildIds[$j]."
                   LIMIT 1";
         $results = mysql_query($query);
         if (!$results || mysql_num_rows($results) != 1)
