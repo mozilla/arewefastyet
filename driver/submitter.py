@@ -65,14 +65,15 @@ class RemoteSubmitter(RemoteController):
                 if test['name'] != "__total__":
                     self.SubmitBreakdown(submiturl, run, score, test['name'], suite, suiteversion, mode, test['time'])
 
-    def SubmitTest(self, submiturl, run, suite, suiteversion, mode, time):
+    def SubmitTest(self, submiturl, run, suite, suiteversion, mode, time, extra_info = ""):
         try:
             args = { 'name': '__total__',
                      'run': str(run),
                      'suite': suite,
                      'version': suiteversion,
                      'mode': mode,
-                     'time': str(time)
+                     'time': str(time),
+                     'extra_info': extra_info
                    }
             url = submiturl + '?' + urllib.urlencode(args)
             url = urllib2.urlopen(url)
