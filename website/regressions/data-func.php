@@ -159,3 +159,34 @@ function get($db, $id, $field) {
 	return $output[$field];
 }
 
+function imm_prev_suite_test($breakdown_id) {
+	$query = mysql_query("SELECT mode_id, machine, stamp, suite_test_id
+                          FROM `awfy_breakdown`
+                          LEFT JOIN awfy_score ON awfy_score.id = score_id
+                          LEFT JOIN awfy_build ON awfy_build.id = awfy_score.build_id
+                          LEFT JOIN awfy_run ON awfy_run.id = run_id
+                          WHERE awfy_breakdown.id = ".$breakdown_id) or die(mysql_error());
+    $data = mysql_fetch_assoc($query);
+
+	$prev = prev_suite_test($data["stamp"], $data["machine"],
+				            $data["mode_id"], $data["suite_test_id"]);
+
+	if (count($prev) == 1)
+		return $prev[0]["id"];
+	return 0;
+}
+
+function imm_prev_($score_id) {
+	$query = mysql_query("SELECT mode_id, machine, stamp, suite_version_id
+                          FROM `awfy_score`
+                          LEFT JOIN awfy_build ON awfy_build.id = build_id
+                          LEFT JOIN awfy_run ON awfy_run.id = run_id
+                          WHERE awfy_score.id = ".$score_id) or die(mysql_error());
+    $data = mysql_fetch_assoc($query);
+
+	$prev = prev_($data["stamp"], $data["machine"],
+			      $data["mode_id"], $data["suite_version_id"]);
+	if (count($prev) == 1)
+		return $prev[0]["id"];
+	return 0;
+}

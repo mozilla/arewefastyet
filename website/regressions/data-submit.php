@@ -14,16 +14,47 @@ $request->id = (int) $request->id;
 if (!isset($request->subtest))
 	$request->subtest = false;
 
-if ($request->subtest == 1 || $request->subtest == 'true')
-	$build_id = get("breakdown", $request->id, "build_id");
-else
-	$build_id = get("score", $request->id, "build_id");
+$prev_build_id = 0;
+if ($request->subtest == 1 || $request->subtest == 'true') {
+	$query = mysql_query("SELECT mode_id, machine, stamp, awfy_breakdown.score, suite_test_id, build_id
+                          FROM `awfy_breakdown`
+                          LEFT JOIN awfy_score ON awfy_score.id = score_id
+                          LEFT JOIN awfy_build ON awfy_build.id = awfy_score.build_id
+                          LEFT JOIN awfy_run ON awfy_run.id = run_id
+                          WHERE awfy_breakdown.id = ".$request->id) or die(mysql_error());
+    $data = mysql_fetch_assoc($query);
+
+	$prev = prev_suite_test($data["stamp"], $data["machine"],
+				            $data["mode_id"], $data["suite_test_id"]);
+	if (count($prev) == 1) {
+		$prev_breakdown_id = $prev[0]["id"];
+		$prev_score_id = get("breakdown", $prev_breakdown_id, "score_id");
+		$prev_build_id = get("score", $prev_score_id, "build_id");
+	}
+	$build_id = $data["build_id"];
+} else {
+	$query = mysql_query("SELECT mode_id, machine, stamp, score, suite_version_id, build_id
+                          FROM `awfy_score`
+                          LEFT JOIN awfy_build ON awfy_build.id = build_id
+                          LEFT JOIN awfy_run ON awfy_run.id = run_id
+                          WHERE awfy_score.id = ".$request->id) or die(mysql_error());
+    $data = mysql_fetch_assoc($query);
+
+	$prev = prev_($data["stamp"], $data["machine"],
+			      $data["mode_id"], $data["suite_version_id"]);
+	if (count($prev) == 1) {
+		$prev_score_id = $prev[0]["id"];
+		$prev_build_id = get("score", $prev_score_id, "build_id");
+	}
+	$build_id = $data["build_id"];
+}
 
 $query = mysql_query("SELECT id FROM awfy_regression
-					  WHERE build_id = ".$build_id);
+					  WHERE build_id = ".$build_id." AND
+                            prev_build_id = ".$prev_build_id);
 if (mysql_num_rows($query) == 0) {
 	mysql_query("INSERT INTO awfy_regression
-                 (build_id, status) VALUES (".$build_id.",'unconfirmed')");
+                 (build_id, prev_build_id, status) VALUES (".$build_id.",".$prev_build_id.",'unconfirmed')") or die(mysql_error());
 	$regression_id = mysql_insert_id();
 } else {
 	$data = mysql_fetch_assoc($query);
@@ -35,7 +66,8 @@ if ($request->subtest == 1 || $request->subtest == 'true') {
 	$suite = get("suite_test", $suite_test_id, "name");
 
 	$query = mysql_query("SELECT id FROM awfy_regression_breakdown
-				          WHERE breakdown_id = ".$request->id);
+				          WHERE breakdown_id = ".$request->id." AND
+                                regression_id = ".$regression_id);
 	if (mysql_num_rows($query) == 0) {
 		mysql_query("INSERT INTO awfy_regression_breakdown
                      (regression_id, breakdown_id) VALUES (".$regression_id.",".$request->id.")");
@@ -45,7 +77,8 @@ if ($request->subtest == 1 || $request->subtest == 'true') {
 	$suite = get("suite_version", $suite_version_id, "name");
 
 	$query = mysql_query("SELECT id FROM awfy_regression_score
-				          WHERE score_id = ".$request->id);
+				          WHERE score_id = ".$request->id." AND
+                                regression_id = ".$regression_id);
 	if (mysql_num_rows($query) == 0) {
 		mysql_query("INSERT INTO awfy_regression_score
                      (regression_id, score_id) VALUES (".$regression_id.",".$request->id.")");

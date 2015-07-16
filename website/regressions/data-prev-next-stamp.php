@@ -28,7 +28,8 @@ if (!empty($request->score_id)) {
 	$build_id = get("score", $last["id"], "build_id"); 
 } else {
 	$suite_test_id = get("breakdown", (int)$request->breakdown_id, "suite_test_id");
-	$build_id = get("breakdown", (int)$request->breakdown_id, "build_id"); 
+	$score_id = get("breakdown", (int)$request->breakdown_id, "score_id"); 
+	$build_id = get("score", (int)$score_id, "build_id"); 
 	$run_id = get("build", $build_id, "run_id"); 
 	$stamp = get("run", $run_id, "stamp"); 
 	$machine = get("run", $run_id, "machine"); 
@@ -41,7 +42,8 @@ if (!empty($request->score_id)) {
 		$next = next_suite_test($stamp, $machine, $mode_id, $suite_test_id, (int)$request->amount);
 		$last = array_pop($next);
 	}
-	$build_id = get("breakdown", $last["id"], "build_id"); 
+	$score_id = get("breakdown", $last["id"], "score_id"); 
+	$build_id = get("score", $score_id, "build_id"); 
 }
 
 $run_id = get("build", $build_id, "run_id"); 
