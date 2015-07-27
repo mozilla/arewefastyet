@@ -619,22 +619,24 @@ Display.prototype.createToolTip = function (item, extended) {
 			while (document.getElementById("update_"+id))
 				id = Math.random();
 
-			text += so + 'regression?: ' + sc + "<span id='update_" + id + "'><img src='loading.gif' height='12px'/></span>" + '<br>';
+			text += so + 'regression?: ' + sc + "<span id='update_regression_" + id + "'><img src='loading.gif' height='12px'/></span>" + '<br>';
+			text += so + 'extra info: ' + sc + "<span id='update_info_" + id + "'><img src='loading.gif' height='12px'/></span>" + '<br>';
 			var subtest = AWFY.isSubtest();
-			$.get("data-regression.php", {
+			$.get("data-info.php", {
                 subtest: subtest,
                 id: point[4]
             }, function(data) {
-                var html = data.status;
-				if (data.id) {
-					html += " <a href='regressions/#regression/"+data.id+"'>(view)</a>"
+                var html = data.regression.status;
+				if (data.regression.id) {
+					html += " <a href='regressions/#regression/"+data.regression.id+"'>(view)</a>"
 				} else {
                     if (subtest)
 						html += " <a href='regressions/#add/subtest/"+point[4]+"'>(report regression)</a>"
 					else
 						html += " <a href='regressions/#add/"+point[4]+"'>(report regression)</a>"
 				}
-				document.getElementById("update_"+id).innerHTML = html;
+				document.getElementById("update_regression_"+id).innerHTML = html;
+				document.getElementById("update_info_"+id).innerHTML = data.info;
 			}, "json");
         }
     }
