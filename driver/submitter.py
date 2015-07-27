@@ -46,7 +46,7 @@ class RemoteSubmitter(RemoteController):
             url = self.urls[i] + '?' + urllib.urlencode(args)
             urllib2.urlopen(url)
 
-    def AddTests(self, tests, suite, suiteversion, mode):
+    def AddTests(self, tests, suite, suiteversion, mode, extra_info = ""):
         for i in range(len(self.urls)):
             if not self.runIds[i]:
                 continue
@@ -56,11 +56,11 @@ class RemoteSubmitter(RemoteController):
             run = self.runIds[i]
             for test in tests:
                 if test['name'] == "__total__":
-                    score = self.SubmitTest(submiturl, run, suite, suiteversion, mode, test['time'])
+                    score = self.SubmitTest(submiturl, run, suite, suiteversion, mode, test['time'], extra_info)
                     break
 
             if score is None:
-                score = self.SubmitTest(submiturl, run, suite, suiteversion, mode, 0)
+                score = self.SubmitTest(submiturl, run, suite, suiteversion, mode, 0, extra_info)
             for test in tests:
                 if test['name'] != "__total__":
                     self.SubmitBreakdown(submiturl, run, score, test['name'], suite, suiteversion, mode, test['time'])
@@ -128,11 +128,11 @@ class PrintSubmitter(object):
     def AddEngine(self, name, cset):
         self.log("Added engine %s (changeset: %s)" % (name, cset))
 
-    def AddTests(self, tests, suite, suiteversion, mode):
+    def AddTests(self, tests, suite, suiteversion, mode, extra_info = ""):
         for test in tests:
-            self.SubmitTest(test['name'], suite, suiteversion, mode, test['time'])
+            self.SubmitTest(test['name'], suite, suiteversion, mode, test['time'], extra_info)
 
-    def SubmitTest(self, name, suite, suiteversion, mode, time):
+    def SubmitTest(self, name, suite, suiteversion, mode, time, extra_info = ""):
         self.log("%s (%s -- %s): %s" % (name, suiteversion, mode, str(time)))
 
     def Finish(self, status):
