@@ -24,8 +24,8 @@ browserList = benchmark.remote.octane,
 shellList = 
 
 [mozilla]
-nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux64/
-pgoDir = http://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux-pgo/
+nightlyDir = http://archive.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux64/
+pgoDir = http://archive.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux-pgo/
 
 [chrome]
 buildInfoUrl = http://build.chromium.org/p/chromium.lkgr/builders/Win

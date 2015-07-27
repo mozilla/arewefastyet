@@ -20,7 +20,7 @@ browserList = benchmark.local.octane,
 shellList = 
 
 [mozilla]
-nightlyDir = http://ftp.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-inbound-android-api-11/
+nightlyDir = http://archive.mozilla.org/pub/mozilla.org/mobile/tinderbox-builds/mozilla-inbound-android-api-11/
 
 [chrome]
 buildInfoUrl = http://build.chromium.org/p/chromium.lkgr/builders/Android
