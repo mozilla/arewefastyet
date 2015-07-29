@@ -1,7 +1,9 @@
 body {
  background-color:#FFF;
- font:.6875em Verdana, sans-serif;
  color:#000;
+}
+.content {
+ font:.6875em Verdana, sans-serif;
 }
 a {
  color:#000;
@@ -158,3 +160,164 @@ h1 {
 	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.0, M12=0.33, M21=-0.33, M22=0.0,sizingMethod='auto expand');
 }
 
+
+header * {
+	box-sizing: border-box;
+}
+
+header {
+  background-color: #42637b;
+  color: white;
+  -webkit-box-shadow: 0px 0px 15px 0px black;
+  -moz-box-shadow: 0px 0px 15px 0px black;
+  box-shadow: 0px 0px 15px 0px black; }
+  header .container {
+    display: table; }
+  header select {
+    color: white;
+    background-color: #42637b; }
+  header #machines, header #types, header #dates {
+    margin-left: 6px;
+    margin-right: 6px; }
+    header #machines select, header #machines input, header #machines div, header #types select, header #types input, header #types div, header #dates select, header #dates input, header #dates div {
+      -moz-appearance: toolbox;
+      -webkit-appearance: none;
+      text-indent: 0.01px;
+      text-overflow: '';
+      display: inline-block;
+      vertical-align: middle;
+      padding-right: 18px; }
+      header #machines select::-ms-expand, header #machines input::-ms-expand, header #machines div::-ms-expand, header #types select::-ms-expand, header #types input::-ms-expand, header #types div::-ms-expand, header #dates select::-ms-expand, header #dates input::-ms-expand, header #dates div::-ms-expand {
+        display: none; }
+    header #machines:after, header #types:after, header #dates:after {
+      position: absolute;
+      content: "\e114";
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Glyphicons Halflings';
+      font-style: normal;
+      font-weight: normal;
+      font-size: 0.5em;
+      height: 2.0em;
+      margin-left: -12px;
+      line-height: 2.0em;
+      pointer-events: none; }
+  header #dates:after {
+    display: none; }
+  header div {
+    display: inline-block; }
+  header h1 {
+    position: relative;
+    text-transform: uppercase;
+    font-size: 18px; }
+    body.ff header h1:after {
+      background-image: url("../img/firefox.png");
+      background-size: 75%;
+      background-repeat: no-repeat;
+      background-position: 0px -35px;
+      width: 250px;
+      top: -15px;
+      bottom: -15px;
+      content: "";
+      display: block;
+      left: -180px;
+      position: absolute; }
+  header h1, header .rightSide {
+    display: table-cell;
+    vertical-align: middle; }
+  header .rightSide {
+    text-align: right; }
+    header .rightSide div {
+      margin-left: 24px; }
+  header a {
+    text-decoration: none;
+    color: white; }
+
+.subheader {
+  float: right;
+  vertical-align: bottom;
+  text-align: right; }
+  .subheader .container {
+    padding-top: 0px;
+    padding-bottom: 0px; }
+  .subheader .history {
+    color: #222222;
+    text-decoration: none; }
+    .subheader .history:before {
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Glyphicons Halflings';
+      font-style: normal;
+      font-weight: normal;
+      margin-left: 6px;
+      margin-right: 6px;
+      content: "\e023"; }
+  .subheader .up {
+    color: #222222;
+    text-decoration: none; }
+    .subheader .up:before {
+      display: inline-block;
+      vertical-align: middle;
+      font-family: 'Glyphicons Halflings';
+      font-style: normal;
+      font-weight: normal;
+      margin-left: 6px;
+      margin-right: 6px;
+      content: "\e113"; }
+  .subheader .button {
+    background-color: #f2f2f2;
+    border: 1px SOLID #dddddd;
+    padding: 12px 18px;
+    display: inline-block;
+    color: #222222;
+    margin-left: 12px;
+    margin-right: 12px; }
+    .subheader .button:last-child {
+      margin-right: 0px; }
+    .subheader .button .title, .subheader .button .result {
+      display: inline-block; }
+    .subheader .button .title {
+      text-transform: uppercase;
+      font-size: 15px; }
+    .subheader .button .result {
+      color: #222222;
+      font-weight: bold; }
+      .subheader .button .result:before {
+        display: inline-block;
+        vertical-align: middle;
+        font-family: 'Glyphicons Halflings';
+        font-style: normal;
+        font-weight: normal;
+        margin-left: 6px;
+        margin-right: 6px;
+        content: "\2212";
+        color: #b67525; }
+      .subheader .button .result.bad:before {
+        content: "\e114";
+        color: #d12600; }
+      .subheader .button .result.good:before {
+        content: "\e113";
+        color: #2f7836; }
+
+@font-face {
+  font-family: 'Glyphicons Halflings';
+  src: url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.eot");
+  src: url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.woff") format("woff"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.ttf") format("truetype"), url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/fonts/glyphicons-halflings-regular.svg") format("svg"); }
+
+body {
+  font-family: lato;
+}
+
+html, body {
+  margin: 0px;
+  padding: 0px; }
+
+.container {
+  padding: 15px;
+  width: 1200px;
+  margin-left: auto;
+  margin-right: auto; }
+
+header {
+	margin-bottom: 30px;
+}

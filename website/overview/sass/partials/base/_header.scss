@@ -56,10 +56,9 @@ header {
 
   .rightSide {
     text-align: right;
-  }
-
-  .query {
-    margin-right: $unit*4;
+    div {
+		margin-left: $unit*4;
+	}
   }
 
   a {

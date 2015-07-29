@@ -157,8 +157,8 @@ header {
     vertical-align: middle; }
   header .rightSide {
     text-align: right; }
-  header .query {
-    margin-right: 24px; }
+    header .rightSide div {
+      margin-left: 24px; }
   header a {
     text-decoration: none;
     color: #f0f0f0; }
