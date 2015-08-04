@@ -78,6 +78,9 @@
     &::-webkit-progress-value {
       background-color: $_accent;  
     }
+    &::-webkit-progress-bar {
+	  background-color: get($_box, header);
+    }
   }
 
   progress.ff {

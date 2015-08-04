@@ -78,6 +78,8 @@
       background-color: #42637b; }
     .box progress::-webkit-progress-value {
       background-color: #42637b; }
+    .box progress::-webkit-progress-bar {
+      background-color: #f2f2f2; }
   .box progress.ff::-moz-progress-bar {
     background-color: #f39c32; }
   .box progress.ff::-webkit-progress-value {
