@@ -1,7 +1,9 @@
 var awfyCtrl = angular.module('awfyControllers', []);
 
-var isFF = function(name) {
-  if(name.indexOf("Ion") != -1) {
+var isFF = function(machine, name) {
+  if (machine == 31) {
+    return true;
+  } else if(name.indexOf("Ion") != -1) {
     return true;
   } else if(name.indexOf("Beta") != -1) {
     return true;
@@ -213,7 +215,7 @@ awfyCtrl.controller('overviewCtrl', ['$scope', '$http', '$routeParams', '$q', '$
                 name: master["modes"][test["modeid"]]["name"],
                 score: Math.round(test["score"]*100)/100,
                 scoreLabel: scoreLabel,
-                ff: isFF(master["modes"][test["modeid"]]["name"]) ? "ff" : "",
+                ff: isFF(machines[j]["machine"], master["modes"][test["modeid"]]["name"]) ? "ff" : "",
                 stamp: stamp,
               });
 
