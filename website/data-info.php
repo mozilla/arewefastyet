@@ -11,7 +11,7 @@ $subtest = GET_bool("subtest");
 $id = GET_int("id");
 
 if ($subtest) {
-	$score_id = get("score", $id, "score_id");
+	$score_id = get("breakdown", $id, "score_id");
 
 	$prev_breakdown_id = imm_prev_suite_test($id);
 	$prev_score_id = get("breakdown", $prev_breakdown_id, "score_id");
