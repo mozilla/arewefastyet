@@ -1,5 +1,6 @@
 .details table {
-  width: 900px;
+  width: 100%;
+  max-width: 900px;
   border: 1px SOLID get($_box, border);
   background-color: get($_box, header);
   color: get($_box, color);

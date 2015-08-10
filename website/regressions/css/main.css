@@ -318,7 +318,8 @@ html, body {
         margin-right: 6px; }
 
 .regression .details table {
-  width: 900px;
+  width: 100%;
+  max-width: 900px;
   border: 1px SOLID #dddddd;
   background-color: #f2f2f2;
   color: #222222;

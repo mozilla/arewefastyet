@@ -115,7 +115,7 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
 
         $q.all(requests).then(function(data) {
             modalDialog.open("partials/graph-popup.html", {
-                "url": "http://arewefastyet.com/#"+
+                "url": "//arewefastyet.com/#"+
                        "machine="+regression.machine_id+"&"+
                        "view=single&"+
                        "suite="+score.suite+"&"+
@@ -284,7 +284,7 @@ awfyCtrl.controller('compareCtrl', ['$scope', '$http', '$routeParams', '$q', 'mo
 		start -= duration * 0.1;
 
 		modalDialog.open("partials/graph-popup.html", {
-			"url": "http://arewefastyet.com/#"+
+			"url": "//arewefastyet.com/#"+
 				   "machine="+regression.machine_id+"&"+
 				   "view=single&"+
 				   "suite="+score.suite+"&"+
@@ -306,7 +306,7 @@ awfyCtrl.controller('searchCtrl', ['$scope', '$http', '$routeParams', '$q', 'mod
   function ($scope, $http, $routeParams, $q, modalDialog, regression, $location) {
 
     function setDefaultModeAndMachine() {
-        var machines = ["10","11","12","14","17","20","21","22","26","27","28","29","30"];
+        var machines = ["11","12","14","17","26","27","28","29","30"];
         var modes = ["14","16","20","21","22","23","25","26","27","28","29","31","32","33","35"];
 		setMachines(machines);
         setModes(modes);

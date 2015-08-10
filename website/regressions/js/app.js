@@ -11,6 +11,11 @@ awfyApp.config(['$sceDelegateProvider',
       'self',
       'https://chromium.googlesource.com/v8/v8/+log/**',
 	  'http://hg.mozilla.org/**',
+	  'https://hg.mozilla.org/**',
+	  'http://www.arewefastyet.com/**',
+	  'https://www.arewefastyet.com/**',
+	  'http://arewefastyet.com/**',
+	  'https://arewefastyet.com/**',
 	  'http://trac.webkit.org/log/**'
     ]);
   }
