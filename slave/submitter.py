@@ -9,13 +9,20 @@ import urllib2
 import json
 
 import utils
-from remotecontroller import RemoteController
 
-class RemoteSubmitter(RemoteController):
-    def __init__(self, slave):
-        super(RemoteSubmitter, self).__init__(slave)
+class Submitter(object):
 
-    def Start(self, timestamp=None):
+    def setModeRules(self, rules):
+        self.rules = {}
+        for rule in rules:
+            rule = rule.split(":")
+            self.rules[rule[0]] = rule[1]
+
+    def mode(self, engine_type, config):
+        return self.rules[engine_type + "," + config]
+
+class RemoteSubmitter(Submitter):
+    def start(self, timestamp=None):
         for i in range(len(self.urls)):
             try:
                 url = self.urls[i]
@@ -33,20 +40,22 @@ class RemoteSubmitter(RemoteController):
             except urllib2.URLError:
                 self.runIds[i] = None
 
-    def AddEngine(self, name, cset):
+    def createBuild(self, engine_type, config, cset):
+        mode = self.mode(engine_type, config)
         for i in range(len(self.urls)):
             if not self.runIds[i]:
                 continue
 
             args = { 'run': 'addEngine',
                      'runid': str(self.runIds[i]),
-                     'name': name,
+                     'name': mode,
                      'cset': cset
                    }
             url = self.urls[i] + '?' + urllib.urlencode(args)
             urllib2.urlopen(url)
+        return mode
 
-    def AddTests(self, tests, suite, suiteversion, mode, extra_info = ""):
+    def addTests(self, tests, suite, suiteversion, mode, extra_info = ""):
         for i in range(len(self.urls)):
             if not self.runIds[i]:
                 continue
@@ -56,16 +65,16 @@ class RemoteSubmitter(RemoteController):
             run = self.runIds[i]
             for test in tests:
                 if test['name'] == "__total__":
-                    score = self.SubmitTest(submiturl, run, suite, suiteversion, mode, test['time'], extra_info)
+                    score = self.submitTest(submiturl, run, suite, suiteversion, mode, test['time'], extra_info)
                     break
 
             if score is None:
-                score = self.SubmitTest(submiturl, run, suite, suiteversion, mode, 0, extra_info)
+                score = self.submitTest(submiturl, run, suite, suiteversion, mode, 0, extra_info)
             for test in tests:
                 if test['name'] != "__total__":
-                    self.SubmitBreakdown(submiturl, run, score, test['name'], suite, suiteversion, mode, test['time'])
+                    self.submitBreakdown(submiturl, run, score, test['name'], suite, suiteversion, mode, test['time'])
 
-    def SubmitTest(self, submiturl, run, suite, suiteversion, mode, time, extra_info = ""):
+    def submitTest(self, submiturl, run, suite, suiteversion, mode, time, extra_info = ""):
         try:
             args = { 'name': '__total__',
                      'run': str(run),
@@ -86,7 +95,7 @@ class RemoteSubmitter(RemoteController):
         except urllib2.URLError:
             return None
 
-    def SubmitBreakdown(self, submiturl, run, score, name, suite, suiteversion, mode, time):
+    def submitBreakdown(self, submiturl, run, score, name, suite, suiteversion, mode, time):
         # TODO: remove mode. Breakdown doesn't need it
         args = { 'name': name,
                  'run': str(run),
@@ -99,7 +108,7 @@ class RemoteSubmitter(RemoteController):
         url = submiturl + '?' + urllib.urlencode(args)
         urllib2.urlopen(url)
 
-    def Finish(self, status):
+    def finish(self, status = 1):
         for i in range(len(self.urls)):
             if not self.runIds[i]:
                 continue
@@ -110,40 +119,41 @@ class RemoteSubmitter(RemoteController):
             url += '&runid=' + str(self.runIds[i])
             urllib2.urlopen(url)
 
-class PrintSubmitter(object):
-    def __init__(self, slave):
-        self.slave = slave
+class PrintSubmitter(Submitter):
+    def __init__(self):
         self.msg = ''
 
     def log(self, msg):
         self.msg += msg + '\n'
         print msg
 
-    def Start(self, timestamp=None):
+    def start(self, timestamp=None):
         msg = "Starting benchmark"
         if timestamp:
             msg += " at timestamp" + str(timestamp)
         self.log(msg)
 
-    def AddEngine(self, name, cset):
-        self.log("Added engine %s (changeset: %s)" % (name, cset))
+    def createBuild(self, engine_type, config, cset):
+        mode = self.mode(engine_type, config)
+        self.log("Added mode %s (engine: %s, config: %s, changeset: %s)" % (mode, engine_type, config, cset))
+        return mode
 
-    def AddTests(self, tests, suite, suiteversion, mode, extra_info = ""):
+    def addTests(self, tests, suite, suiteversion, mode, extra_info = ""):
         for test in tests:
-            self.SubmitTest(test['name'], suite, suiteversion, mode, test['time'], extra_info)
+            self.submitTest(test['name'], suite, suiteversion, mode, test['time'], extra_info)
 
-    def SubmitTest(self, name, suite, suiteversion, mode, time, extra_info = ""):
+    def submitTest(self, name, suite, suiteversion, mode, time, extra_info = ""):
         self.log("%s (%s -- %s): %s" % (name, suiteversion, mode, str(time)))
 
-    def Finish(self, status):
+    def finish(self, status = 1):
         print "\n*******************************************\nSummary: "
         print self.msg
         self.msg = ''
 
 def getSubmitter(name):
     if name == 'remote':
-        return RemoteSubmitter
+        return RemoteSubmitter()
     elif name == 'print':
-        return PrintSubmitter
+        return PrintSubmitter()
     else:
         raise Exception('unknown submitter!')

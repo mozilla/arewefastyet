@@ -1,15 +1,42 @@
 Components
 ==========
 
+Slave:
+1. Builder: A python driver (build.py) that can create shell builds of spidermonkey/jsc/v8.
+2. Downloader: A python driver (download.py) that can download browser builds of Firefox.
+3. Executor: (execute.py) is a python script that executes one or multiple benchmarks on one or more builds.
+
+Site:
 1. Database: MySQL database that stores statistics.
 2. Collector: Hidden PHP script on the webserver, where stats get sent.
-3. Driver: Python driver that runs on each benchmark computer, and submits stats.
-4. Processor: Python aggregator that builds JSON data from the DB.
-5. Website: Static HTML as the frontpage, that queries JSON via XHR.
+3. Processor: Python aggregator that builds JSON data from the DB.
+4. Website: Static HTML as the frontpage, that queries JSON via XHR.
+5. Command center: Sends commands to the slaves on what to execute. (In construction.)
 
-Components (2), (3), and (5) must be on the same webserver, otherwise timestamps might not be computed correctly.
+Components (2) and (4) must be on the same webserver, otherwise timestamps might not be computed correctly.
 
 Keep in mind, most of this documentation is for posterity. AWFY was never intended to be a drag-and-drop all-in-one released product, so the procedures and scripts may be pretty rough.
+
+Benchmark locally
+=================
+
+1. Fetch the repo
+
+2. Create a (shell) or retrieve a (browser) build to benchmark
+
+- Creating a build:
+
+cd slave
+python build.py -s mozilla
+
+- Pull a build:
+
+cd slave
+python download.py http://archive.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux/latest/
+
+3. Benchmark
+
+python execute.p -b remote.octane -b remote.kraken
 
 Installation
 ============
@@ -25,38 +52,7 @@ Drop `website/UPDATE.PHP` and `website/internals.php` somewhere, and rename `UPD
 Benchmark Computers
 -------------------
 
-Clone the AWFY repo and check out each vendor's source code. Typically this looks something like:
-
-       git clone http://github.com/dvander/arewefastyet awfy
-       cd awfy
-       mkdir repos
-       cd repos
-
-       # Get V8
-       git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-       PATH=`pwd`/depot_tools:$PATH fetch v8
-       cd v8
-       git checkout master
-       cd ..
-
-       # Get Mozilla
-       hg clone http://hg.mozilla.org/integration/mozilla-inbound
-
-       # Get WebKit - Mac/Linux only
-       svn checkout https://svn.webkit.org/repository/webkit/trunk WebKit
-
-       cd ../driver
-       cp awfy.config.sample awfy.config
-
-Then,
-
-1. Add a database entry for the machine configuration.
-2. Edit `awfy.config` to match the build architecture you want, and to have the correct machine database number.
-3. Set up a cronjob, service, or screen to run dostuff.py periodically. Mozilla uses `run.sh` which will run continuously, since a cronjob could run overlapping jobs. `run.sh` also lets you configure lock files in `/tmp`.
-
-Note, interrupting `dostuff.py` can cause problems with subversion, for example, the WebKit repository may become stuck and need an `svn cleanup` or an `rm -rf` and clean checkout. For sanity, the helper script `run.sh` will pause its next run if it sees a `/tmp/awfy` lock in place, and this can be used to wait.
-
-Note, it is not safe to share multiple AWFY instances from the same repository, since C++ object files are generally re-used and may not correctly link depending on build flags. Also, only one instance of AWFY should ever be running at a given time. For best benchmark results, no other programs should be running.
+In development...
    
 Data Processor
 --------------
