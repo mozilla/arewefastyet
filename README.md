@@ -24,19 +24,24 @@ Benchmark locally
 
 1. Fetch the repo
 2. Create a (shell) or retrieve a (browser) build to benchmark
-2.1. Creating a build
+  * Creating a build:
+    ```
+    cd slave
+    python build.py -s mozilla
+    ```
 
-cd slave
-python build.py -s mozilla
+  * Pull a build:
 
-2.2. Pull a build
-
-cd slave
-python download.py http://archive.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux/latest/
+    ```
+    cd slave
+    python download.py http://archive.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux/latest/
+    ```
 
 3. Benchmark
 
-python execute.p -b remote.octane -b remote.kraken
+    ```
+    python execute.p -b remote.octane -b remote.kraken
+    ```
 
 Installation
 ============
