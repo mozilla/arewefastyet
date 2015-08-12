@@ -17,8 +17,11 @@ parser.add_option("-b", "--benchmark", action="append", dest="benchmarks",
 parser.add_option("-s", "--submitter", dest="submitter", type="string", default="print",
                   help="Submitter class ('remote' or 'print')")
 
-parser.add_option("--submitter_mode", action="append", dest="mode_rules",
+parser.add_option("--submitter-mode", action="append", dest="mode_rules",
                   help="When using the remote submitter, give rules to the mode name that needs to get submitted. Format: engine,config_name:mode_name. E.g. firefox,default:jmim")
+
+parser.add_option("--submitter-machine", dest="machine", type="int",
+                  help="When using the remote submitter, give the machine number to submit to.")
 
 parser.add_option("-e", "--engine", action="append", dest="engines",
                   help="Path to the engines that need to get benchmarked")
@@ -52,6 +55,8 @@ if options.mode_rules is None:
 utils.config.init("awfy.config")
 
 submitter = submitter.getSubmitter(options.submitter)
+if options.machine:
+    submitter.setMachine(options.machine)
 submitter.start()
 submitter.setModeRules(options.mode_rules)
 

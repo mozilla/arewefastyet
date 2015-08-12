@@ -12,6 +12,13 @@ import utils
 
 class Submitter(object):
 
+    def __init__(self):
+        self.urls = utils.config.get('main', 'updateURL').split(",")
+        self.runIds = []
+        for i in range(len(self.urls)):
+            self.urls[i] = self.urls[i].strip()
+            self.runIds.append(0)
+
     def setModeRules(self, rules):
         self.rules = {}
         for rule in rules:
@@ -21,8 +28,18 @@ class Submitter(object):
     def mode(self, engine_type, config):
         return self.rules[engine_type + "," + config]
 
+    def assertMachine(self):
+        if not hasattr(self, "machine"):
+            print "please provide the machine number for submitting (--submitter-machine)"
+            exit()
+
+    def setMachine(self, machine):
+        self.machine = machine
+
 class RemoteSubmitter(Submitter):
+
     def start(self, timestamp=None):
+        self.assertMachine()
         for i in range(len(self.urls)):
             try:
                 url = self.urls[i]
