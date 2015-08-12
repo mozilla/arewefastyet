@@ -2,11 +2,13 @@ Components
 ==========
 
 Slave:
+
 1. Builder: A python driver (build.py) that can create shell builds of spidermonkey/jsc/v8.
 2. Downloader: A python driver (download.py) that can download browser builds of Firefox.
 3. Executor: (execute.py) is a python script that executes one or multiple benchmarks on one or more builds.
 
 Site:
+
 1. Database: MySQL database that stores statistics.
 2. Collector: Hidden PHP script on the webserver, where stats get sent.
 3. Processor: Python aggregator that builds JSON data from the DB.

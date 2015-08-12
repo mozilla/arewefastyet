@@ -1,3 +1,4 @@
+import sys
 import json
 import urllib2
 import urllib
@@ -30,8 +31,9 @@ class Environment(object):
 
     def get(self):
         env = self.env_.copy()
-        env["CC"] += " " + " ".join(self.ccoption)
-        env["CXX"] += " " + " ".join(self.ccoption)
+        if len(self.ccoption) > 0:
+            env["CC"] += " " + " ".join(self.ccoption)
+            env["CXX"] += " " + " ".join(self.ccoption)
         return env
 
 class Builder(object):
@@ -41,11 +43,11 @@ class Builder(object):
         self.config = config
         self.folder = folder
 
-        if platform.system() == "Darwin":
-            self.installClang()
-            self.env.add("CC", os.path.abspath("clang-3.3/bin/clang"))
-            self.env.add("CXX", os.path.abspath("clang-3.3/bin/clang++"))
-            self.env.add("LINK", os.path.abspath("clang-3.3/bin/clang++"))
+        #if platform.system() == "Darwin":
+        #    self.installClang()
+        #    self.env.add("CC", os.path.abspath("clang-3.3/bin/clang"))
+        #    self.env.add("CXX", os.path.abspath("clang-3.3/bin/clang++"))
+        #    self.env.add("LINK", os.path.abspath("clang-3.3/bin/clang++"))
 
     def installClang(self):
         # The standard clang version on mac is outdated.
@@ -97,7 +99,7 @@ class Builder(object):
         info["shell"] = True
         info["binary"] = os.path.abspath(self.binary())
         
-        fp = open(self.folder + "info.json", "w")
+        fp = open(os.path.join(self.folder, "info.json"), "w")
         json.dump(info, fp)
         fp.close()
 
@@ -162,33 +164,44 @@ class WebkitBuilder(Builder):
         info["env"] = {'DYLD_FRAMEWORK_PATH': objdir}
         return info
 
-    def make(self):
-        with utils.chdir(os.path.join(self.folder)):
-            # Hack 1: Remove reporting errors for warnings that currently are present.
+    def patch(self):
+	patch = os.path.abspath("jsc.patch")
+
+        # Hack 1: Remove reporting errors for warnings that currently are present.
+        with utils.FolderChanger(self.folder):
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/JavaScriptCore/Configurations/Base.xcconfig"])
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/bmalloc/Configurations/Base.xcconfig"])
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/WTF/Configurations/Base.xcconfig"])
             Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/Line.h"])
             Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/Page.h"])
-            Run(["patch","Source/JavaScriptCore/jsc.cpp","../../driver/jsc.patch"])
+            Run(["patch","Source/JavaScriptCore/jsc.cpp", patch])
 
-            with utils.FolderChanger(os.path.join('Tools', 'Scripts')):
-                # Hack 2: This check fails currently. Disable checking to still have a build.
-                os.rename("check-for-weak-vtables-and-externals", "check-for-weak-vtables-and-externals2");
+        with utils.FolderChanger(os.path.join(self.folder, 'Tools', 'Scripts')):
+            # Hack 2: This check fails currently. Disable checking to still have a build.
+            os.rename("check-for-weak-vtables-and-externals", "check-for-weak-vtables-and-externals2");
 
-                args = ['/usr/bin/perl', 'build-jsc']
-                if self.config == '32bit':
-                    args += ['--32-bit']
-                Run(args, self.env.get())
+    def clean(self):
+        with utils.FolderChanger(os.path.join(self.folder, 'Tools', 'Scripts')):
+            os.rename("check-for-weak-vtables-and-externals2", "check-for-weak-vtables-and-externals");
 
-                os.rename("check-for-weak-vtables-and-externals2", "check-for-weak-vtables-and-externals");
-
+        with utils.FolderChanger(self.folder):
             Run(["svn","revert","Source/JavaScriptCore/Configurations/Base.xcconfig"])
             Run(["svn","revert","Source/bmalloc/Configurations/Base.xcconfig"])
             Run(["svn","revert","Source/WTF/Configurations/Base.xcconfig"])
             Run(["svn","revert","Source/bmalloc/bmalloc/Line.h"])
             Run(["svn","revert","Source/bmalloc/bmalloc/Page.h"])
             Run(["svn","revert","Source/JavaScriptCore/jsc.cpp"])
+
+    def make(self):
+        try:
+            self.patch()
+            with utils.FolderChanger(os.path.join(self.folder, 'Tools', 'Scripts')):
+                args = ['/usr/bin/perl', 'build-jsc']
+                if self.config == '32bit':
+                    args += ['--32-bit']
+                Run(args, self.env.get())
+        finally:
+            self.clean()
 
     def objdir(self):
         return os.path.join(self.folder, 'WebKitBuild', 'Release')
@@ -209,7 +222,7 @@ class V8Builder(Builder):
         return info
 
     def make(self):
-        args = ['make', '-j6', '-C', self.folder]
+        args = ['make', '-j6', '-C', os.path.join(self.folder, 'v8')]
         if self.config == '32bit':
             args += ['ia32.release']
         elif self.config == '64bit':
@@ -221,9 +234,9 @@ class V8Builder(Builder):
 
     def objdir(self):
         if self.config == '64bit':
-            return os.path.join('out', 'x64.release')
+            return os.path.join(self.folder, 'v8', 'out', 'x64.release')
         elif self.config == '32bit':
-            return os.path.join('out', 'ia32.release')
+            return os.path.join(self.folder, 'v8', 'out', 'ia32.release')
         else:
             assert False
 
@@ -232,11 +245,11 @@ class V8Builder(Builder):
 
 def getBuilder(config, path):
     # fingerprint the known builders
-    if os.path.exists(os.path.join(path, "js/src/")):
+    if os.path.exists(os.path.join(path, "js", "src")):
         return MozillaBuilder(config, path)
-    if os.path.exists(os.path.join(path, "Source/JavaScriptCore")):
+    if os.path.exists(os.path.join(path, "Source", "JavaScriptCore")):
         return WebkitBuilder(config, path)
-    if os.path.exists(os.path.join(path, "LICENSE.v8")):
+    if os.path.exists(os.path.join(path, "v8", "LICENSE.v8")):
         return V8Builder(config, path)
 
     raise Exception("Unknown builder")
@@ -283,7 +296,7 @@ if __name__ == "__main__":
     puller = puller.getPuller(options.repo, options.output)
     puller.update(options.revision)
 
-    builder = getBuilder(options.config, puller.path())
+    builder = getBuilder(options.config, options.output)
     if options.force:
         builder.unlinkObjdir()
     builder.build(puller)

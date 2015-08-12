@@ -1,0 +1,56 @@
+Index: jsc.cpp
+===================================================================
+--- jsc.cpp	(revision 177145)
++++ jsc.cpp	(working copy)
+@@ -34,6 +34,7 @@
+ #include "Interpreter.h"
+ #include "JSArray.h"
+ #include "JSArrayBuffer.h"
++#include "JSArrayBufferConstructor.h"
+ #include "JSCInlines.h"
+ #include "JSFunction.h"
+ #include "JSLock.h"
+@@ -461,6 +462,7 @@
+ static EncodedJSValue JSC_HOST_CALL functionRun(ExecState*);
+ static EncodedJSValue JSC_HOST_CALL functionLoad(ExecState*);
+ static EncodedJSValue JSC_HOST_CALL functionReadFile(ExecState*);
++static EncodedJSValue JSC_HOST_CALL functionReadBinaryFile(ExecState*);
+ static EncodedJSValue JSC_HOST_CALL functionCheckSyntax(ExecState*);
+ static EncodedJSValue JSC_HOST_CALL functionReadline(ExecState*);
+ static EncodedJSValue JSC_HOST_CALL functionPreciseTime(ExecState*);
+@@ -598,6 +600,7 @@
+         addFunction(vm, "run", functionRun, 1);
+         addFunction(vm, "load", functionLoad, 1);
+         addFunction(vm, "readFile", functionReadFile, 1);
++        addFunction(vm, "readBinaryFile", functionReadBinaryFile, 1);
+         addFunction(vm, "checkSyntax", functionCheckSyntax, 1);
+         addFunction(vm, "jscStack", functionJSCStack, 1);
+         addFunction(vm, "readline", functionReadline, 0);
+@@ -929,6 +932,26 @@
+     return JSValue::encode(jsString(exec, stringFromUTF(script.data())));
+ }
+ 
++EncodedJSValue JSC_HOST_CALL functionReadBinaryFile(ExecState* exec)
++{
++    String fileName = exec->argument(0).toString(exec)->value(exec);
++    Vector<char> script;
++    if (!fillBufferWithContentsOfFile(fileName, script))
++        return JSValue::encode(exec->vm().throwException(exec, createError(exec, ASCIILiteral("Could not open file."))));
++
++    JSArrayBufferConstructor* constructor =
++        jsCast<JSArrayBufferConstructor*>(exec->callee());
++
++    RefPtr<ArrayBuffer> buffer = ArrayBuffer::create(script.data(), script.size());
++    if (!buffer)
++        return JSValue::encode(exec->vm().throwException(exec, createError(exec, ASCIILiteral("Out of memory"))));
++    
++    JSArrayBuffer* result = JSArrayBuffer::create(
++        exec->vm(), constructor->globalObject()->arrayBufferStructure(), buffer);
++    
++    return JSValue::encode(result);
++}
++
+ EncodedJSValue JSC_HOST_CALL functionCheckSyntax(ExecState* exec)
+ {
+     String fileName = exec->argument(0).toString(exec)->value(exec);
+
