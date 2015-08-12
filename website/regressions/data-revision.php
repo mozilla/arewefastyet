@@ -49,8 +49,9 @@ while ($scores = mysql_fetch_assoc($qScores)) {
 	$all_scores[] = $score;
 }
 
-$qScores = mysql_query("SELECT *
+$qScores = mysql_query("SELECT awfy_breakdown.*
                         FROM awfy_breakdown
+                        LEFT JOIN awfy_score ON awfy_score.id = score_id
 			            WHERE build_id = ".$data["id"]) or die(mysql_error());
 while ($scores = mysql_fetch_assoc($qScores)) {
 	$suite_version_id = get("suite_test", $scores["suite_test_id"], "suite_version_id");
