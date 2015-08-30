@@ -157,6 +157,8 @@ def getPuller(repo, path):
         repo = "http://hg.mozilla.org/integration/mozilla-inbound"
     elif repo == "webkit":
         repo = "https://svn.webkit.org/repository/webkit/trunk"
+    elif repo == "servo":
+        repo = "https://github.com/servo/servo.git"
 
     if "hg." in repo:
         return HG(repo, path)
