@@ -21,7 +21,12 @@ Keep in mind, most of this documentation is for posterity. AWFY was never intend
 
 System Diagram
 ==============
+<!-- 
+	Image source at https://docs.google.com/drawings/d/1TlzFOMz4oxKYSD_hHqe-fL2wpAA5WwhEq62KJp0TytI/edit?usp=sharing 
+	To edit it, 'make a copy' (from file menu) and edit that. 
+-->
 ![Alt text](/docs/awfy_system_diagram.png "System Diagram")
+
 
 Benchmark locally
 =================
