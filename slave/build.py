@@ -258,16 +258,9 @@ class ServoBuilder(Builder):
         return os.path.join(self.objdir(), 'release', 'servo')
 
     def make(self):
-        # Remember cwd
-        cwd = os.getcwd()
-        # cd into servo's root directory. Requirement of 'mach build'
-        os.chdir(self.folder)
-        try:
+        with utils.FolderChanger(self.folder):
             args = [os.path.join('.', 'mach'), 'build' ,'--release']
             Run(args, self.env.get())
-        finally:
-            # Go back to the cwd
-            os.chdir(cwd)
 
 def getBuilder(config, path):
     # fingerprint the known builders
