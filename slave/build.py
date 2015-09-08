@@ -98,7 +98,7 @@ class Builder(object):
         info["revision"] = puller.identify()
         info["shell"] = True
         info["binary"] = os.path.abspath(self.binary())
-        
+
         fp = open(os.path.join(self.folder, "info.json"), "w")
         json.dump(info, fp)
         fp.close()
@@ -111,7 +111,7 @@ class MozillaBuilder(Builder):
             self.env.add("AR",'ar')
             self.env.add("CROSS_COMPILE", '1')
             self.env.addCCOption("-m32")
-    
+
     def retrieveInfo(self):
         info = {}
         info["engine_type"] = "firefox"
@@ -135,7 +135,7 @@ class MozillaBuilder(Builder):
 
         # Step 2. configure
         if not os.path.exists(os.path.join(self.folder, 'js', 'src', 'Opt')):
-            os.mkdir(os.path.join(self.folder, 'js', 'src', 'Opt')) 
+            os.mkdir(os.path.join(self.folder, 'js', 'src', 'Opt'))
         with utils.FolderChanger(os.path.join(self.folder, 'js', 'src', 'Opt')):
             args = ['--enable-optimize', '--disable-debug']
             if platform.architecture()[0] == "64bit" and self.config == "32bit":
@@ -145,7 +145,7 @@ class MozillaBuilder(Builder):
                     args.append("--target=i686-pc-linux-gnu")
                 else:
                     assert False
-            
+
             Run(['../configure'] + args, self.env.get())
         return True
 
@@ -165,10 +165,10 @@ class WebkitBuilder(Builder):
         return info
 
     def patch(self):
-	patch = os.path.abspath("jsc.patch")
+        patch = os.path.join(os.path.dirname(os.path.realpath(__file__)), "jsc.patch")
 
-        # Hack 1: Remove reporting errors for warnings that currently are present.
         with utils.FolderChanger(self.folder):
+            # Hack 1: Remove reporting errors for warnings that currently are present.
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/JavaScriptCore/Configurations/Base.xcconfig"])
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/bmalloc/Configurations/Base.xcconfig"])
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/WTF/Configurations/Base.xcconfig"])
@@ -176,15 +176,13 @@ class WebkitBuilder(Builder):
             Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/Page.h"])
             Run(["patch","Source/JavaScriptCore/jsc.cpp", patch])
 
-        with utils.FolderChanger(os.path.join(self.folder, 'Tools', 'Scripts')):
             # Hack 2: This check fails currently. Disable checking to still have a build.
-            os.rename("check-for-weak-vtables-and-externals", "check-for-weak-vtables-and-externals2");
+            os.remove("Tools/Scripts/check-for-weak-vtables-and-externals")
 
     def clean(self):
-        with utils.FolderChanger(os.path.join(self.folder, 'Tools', 'Scripts')):
-            os.rename("check-for-weak-vtables-and-externals2", "check-for-weak-vtables-and-externals");
-
         with utils.FolderChanger(self.folder):
+            Run(["svn","revert","Tools/Scripts/check-for-weak-vtables-and-externals"])
+
             Run(["svn","revert","Source/JavaScriptCore/Configurations/Base.xcconfig"])
             Run(["svn","revert","Source/bmalloc/Configurations/Base.xcconfig"])
             Run(["svn","revert","Source/WTF/Configurations/Base.xcconfig"])
@@ -276,14 +274,14 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     if options.repo is None:
-        print "Please provide the source repository to pull" 
+        print "Please provide the source repository to pull"
         exit()
 
     if not options.output.endswith("/"):
         options.output += "/"
 
     if options.config not in ["default", "32bit", "64bit"]:
-        print "Please provide a valid config" 
+        print "Please provide a valid config"
         exit()
 
     if options.config == "default":

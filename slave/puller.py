@@ -142,7 +142,8 @@ class V8GIT(GIT):
     def update(self, rev = None):
         assert rev == None
 
-        Run(['git', 'pull', 'origin', 'master'])
+        with FolderChanger(self.folder):
+            Run(['git', 'pull', 'origin', 'master'])
 
         env = os.environ.copy()
         with FolderChanger(self.folder):

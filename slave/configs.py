@@ -43,11 +43,19 @@ class UnboxedObjects(Default):
         else:
             self.omit_ = True
 
+class TestbedRegalloc(Default):
+    def __init__(self, engine, shell):
+        super(TestbedRegalloc, self).__init__(engine, shell)
+        if engine == "firefox":
+            self.args_.append("--ion-regalloc=testbed")
+        else:
+            self.omit_ = True
+
 class TurboFan(Default):
     def __init__(self, engine, shell):
         super(TurboFan, self).__init__(engine, shell)
         if engine == "chrome"and shell:
-            self.args.append("--turbo");
+            self.args_.append("--turbo");
         else:
             self.omit_ = True
 
@@ -55,7 +63,7 @@ class NoAsmjs(Default):
     def __init__(self, engine, shell):
         super(NoAsmjs, self).__init__(engine, shell)
         if engine == "firefox" and shell:
-            self.args.append("--no-asmjs");
+            self.args_.append("--no-asmjs");
         else:
             self.omit_ = True
 
@@ -64,6 +72,8 @@ def getConfig(name, info):
         return Default(info["engine_type"], info["shell"])
     if name == "unboxedobjects":
         return UnboxedObjects(info["engine_type"], info["shell"])
+    if name == "testbedregalloc":
+        return TestbedRegalloc(info["engine_type"], info["shell"])
     if name == "turbofan":
         return TurboFan(info["engine_type"], info["shell"])
     if name == "noasmjs":

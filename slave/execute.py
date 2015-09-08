@@ -45,6 +45,7 @@ if options.mode_rules is None:
     options.mode_rules = [
         "firefox,default:jmim",
         "firefox,unboxedobjects:unboxedobjects",
+        "firefox,testbedregalloc:testbed",
         "chrome,default:v8",
         "chrome,turbofan:v8-turbofan",
         "webkit,default:jsc",
