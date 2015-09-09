@@ -198,9 +198,9 @@ if __name__ == "__main__":
                       help="Give the machine number to submit to.")
     (options, args) = parser.parse_args()
 
-    if options.create:
-        utils.config.init("awfy.config")
+    utils.config.init("awfy.config")
 
+    if options.create:
         submitter = RemoteSubmitter()
         submitter.setMachine(options.machine)
         submitter.start()
@@ -211,3 +211,6 @@ if __name__ == "__main__":
         submitter = RemoteSubmitter()
         submitter.setSession(session)
         submitter.finish()
+
+        import os
+        os.remove(options.session)
