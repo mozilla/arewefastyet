@@ -115,6 +115,55 @@ class Assorted(SunSpiderBased):
     def __init__(self):
         super(Assorted, self).__init__('misc', '0.5', 'misc', 3)
 
+class AsmJSBased(Benchmark):
+    def __init__(self, suite, version, folder):
+        super(AsmJSBased, self).__init__(suite, version, folder)
+
+    """
+    def _run(self, submit, native, modes):
+        # Run the C++ mode.
+        full_args = [utils.config.PythonName, 'harness.py', '--native']
+        full_args += ['--cc="' + native.cc + '"']
+        full_args += ['--cxx="' + native.cxx + '"']
+        full_args += ['--'] + native.args
+        output = utils.RunTimedCheckOutput(full_args)
+
+        tests = self.parse(output)
+        submit.AddTests(tests, self.suite, self.version, native.mode)
+
+        # Run normal benchmarks.
+        super(AsmJS, self)._run(submit, native, modes)
+    """
+
+    def benchmark(self, shell, env, args):
+        full_args = [utils.config.PythonName, 'harness.py', shell, '--'] + args
+        print(' '.join(full_args))
+
+        output = utils.RunTimedCheckOutput(full_args, env=env)
+        return self.parse(output)
+
+    def parse(self, output):
+        total = 0.0
+        tests = []
+        for line in output.splitlines():
+            m = re.search("(.+) - (\d+(\.\d+)?)", line)
+            if not m:
+                continue
+            name = m.group(1)
+            score = m.group(2)
+            total += float(score)
+            tests.append({ 'name': name, 'time': score })
+        tests.append({ 'name': '__total__', 'time': total })
+        return tests
+
+class AsmJSMicro(AsmJSBased):
+    def __init__(self):
+        super(AsmJSMicro, self).__init__('asmjs-ubench', '0.4.3', 'asmjs-ubench')
+
+class AsmJSApps(AsmJSBased):
+    def __init__(self):
+        super(AsmJSApps, self).__init__('asmjs-apps', '0.2', 'asmjs-apps')
+
 def getBenchmark(name):
     if name == "octane":
         return Octane()
@@ -124,6 +173,10 @@ def getBenchmark(name):
         return Kraken()
     if name == "assorted":
         return Assorted()
+    if name == "asmjsapps":
+        return AsmJSApps()
+    if name == "asmjsmicro":
+        return AsmJSMicro()
     raise Exception("Unknown benchmark")
 
 def run(submit, native, modes):

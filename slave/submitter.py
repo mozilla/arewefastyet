@@ -25,8 +25,15 @@ class Submitter(object):
             rule = rule.split(":")
             self.rules[rule[0]] = rule[1]
 
+    def setSession(self, session):
+        self.runIds = session
+
     def mode(self, engine_type, config):
-        return self.rules[engine_type + "," + config]
+        name = engine_type + "," + config
+        if name in self.rules:
+            return self.rules[engine_type + "," + config]
+        else:
+            return name
 
     def assertMachine(self):
         if not hasattr(self, "machine"):
@@ -37,6 +44,9 @@ class Submitter(object):
         self.machine = machine
 
 class RemoteSubmitter(Submitter):
+
+    def mode(self, engine_type, config):
+        return self.rules[engine_type + "," + config]
 
     def start(self, timestamp=None):
         self.assertMachine()
@@ -174,3 +184,30 @@ def getSubmitter(name):
         return PrintSubmitter()
     else:
         raise Exception('unknown submitter!')
+
+
+if __name__ == "__main__":
+    from optparse import OptionParser
+    parser = OptionParser(usage="usage: %prog [options]")
+
+    parser.add_option("-f", "--finish", action="store_true", dest="finish", default=False)
+    parser.add_option("-s", "--session", dest="session", type="string")
+
+    parser.add_option("-c", "--create", action="store_true", dest="create", default=False)
+    parser.add_option("-m", "--machine", dest="machine", type="int",
+                      help="Give the machine number to submit to.")
+    (options, args) = parser.parse_args()
+
+    if options.create:
+        utils.config.init("awfy.config")
+
+        submitter = RemoteSubmitter()
+        submitter.setMachine(options.machine)
+        submitter.start()
+        print json.dumps(submitter.runIds)
+    elif options.finish:
+        fp = open(options.session, "r")
+        session = json.load(fp)
+        submitter = RemoteSubmitter()
+        submitter.setSession(session)
+        submitter.finish()

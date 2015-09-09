@@ -23,6 +23,9 @@ parser.add_option("--submitter-mode", action="append", dest="mode_rules",
 parser.add_option("--submitter-machine", dest="machine", type="int",
                   help="When using the remote submitter, give the machine number to submit to.")
 
+parser.add_option("--submitter-session", dest="session", type="string",
+                  help="When using the remote submitter, it is possible to run execute.py multiple times and still report to the same report.")
+
 parser.add_option("-e", "--engine", action="append", dest="engines",
                   help="Path to the engines that need to get benchmarked")
 
@@ -44,6 +47,7 @@ if options.benchmarks is None:
 if options.mode_rules is None:
     options.mode_rules = [
         "firefox,default:jmim",
+        "firefox,noasmjs:noasmjs",
         "firefox,unboxedobjects:unboxedobjects",
         "firefox,testbedregalloc:testbed",
         "chrome,default:v8",
@@ -56,10 +60,17 @@ if options.mode_rules is None:
 utils.config.init("awfy.config")
 
 submitter = submitter.getSubmitter(options.submitter)
-if options.machine:
-    submitter.setMachine(options.machine)
-submitter.start()
 submitter.setModeRules(options.mode_rules)
+
+if options.session:
+    assert not options.machine
+    fp = open(options.session, "r")
+    session = json.load(fp)
+    submitter.setSession(session)
+else:
+    if options.machine:
+        submitter.setMachine(options.machine)
+    submitter.start()
 
 
 # Submit the revisions for every build.
