@@ -164,6 +164,36 @@ class AsmJSApps(AsmJSBased):
     def __init__(self):
         super(AsmJSApps, self).__init__('asmjs-apps', '0.2', 'asmjs-apps')
 
+class Dart(Benchmark):
+    def __init__(self):
+        super(Dart, self).__init__('dart', '0.1', 'dart')
+
+    def benchmark(self, shell, env, args):
+        full_args = [shell]
+        if args:
+            full_args.extend(args)
+        full_args.append('run.js')
+
+        print(os.getcwd())
+        output = utils.RunTimedCheckOutput(full_args, env=env)
+
+        tests = []
+        lines = output.splitlines()
+
+        total = 0.0
+        for x in lines:
+            m = re.search("(.+)\(RunTime\): (\d+\.\d+)", x)
+            if not m:
+                continue
+            name = m.group(1)
+            score = float(m.group(2))/1000
+            total += score
+            tests.append({ 'name': name, 'time': score})
+            print(str(score) + '    - ' + name)
+        tests.append({ 'name': '__total__', 'time': total })
+
+        return tests
+
 def getBenchmark(name):
     if name == "octane":
         return Octane()
@@ -177,6 +207,8 @@ def getBenchmark(name):
         return AsmJSApps()
     if name == "asmjsmicro":
         return AsmJSMicro()
+    if name == "dart":
+        return Dart()
     raise Exception("Unknown benchmark")
 
 def run(submit, native, modes):
