@@ -3,6 +3,7 @@ import configs
 import executors
 import engineInfo
 import submitter
+import json
 
 import sys
 sys.path.insert(1, '../driver')
@@ -99,4 +100,5 @@ for benchmark in benchmarks:
             mode = submitter.mode(info["engine_type"], config_name)
             submitter.addTests(results, benchmark.suite, benchmark.version, mode)
 
-submitter.finish()
+if not options.session:
+    submitter.finish()
