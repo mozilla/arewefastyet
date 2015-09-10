@@ -63,7 +63,10 @@ class SVN(Puller):
 
     def sameRepo(self):
         with FolderChanger(self.path()):
-            output = Run(['svn', 'info'])
+            try:
+                output = Run(['svn', 'info'])
+            except:
+                return False
             print self.repo
             print output
             if "URL: "+self.repo in output:
