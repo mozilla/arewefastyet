@@ -154,6 +154,7 @@ def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenar
     if timeout is None:
         timeout = config.Timeout
     print('Running: "'+ '" "'.join(args) + '" with timeout: ' + str(timeout)+'s')
+    print("with: " + str(env))
     p = subprocess.Popen(args, env = env, stdout=subprocess.PIPE, **popenargs)
     with Handler(signal.SIGALRM, timeout_handler):
         try:

@@ -39,6 +39,8 @@ class UnboxedObjects(Default):
     def __init__(self, engine, shell):
         super(UnboxedObjects, self).__init__(engine, shell)
         if engine == "firefox":
+            if shell:
+                self.args_.append("--unboxed-arrays")
             self.env_["JS_OPTION_USE_UNBOXED_ARRAYS"] = '1'
         else:
             self.omit_ = True
