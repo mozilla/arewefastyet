@@ -33,7 +33,7 @@ class ConfigState:
         self.inited = True
 
         self.RepoPath = self.get('main', 'repos')
-        self.BenchmarkPath = self.get('benchmarks', 'dir')
+        self.BenchmarkPath = self.getDefault('benchmarks', 'dir', os.path.join(os.getcwd(), "..", "benchmarks"))
         self.DriverPath = self.getDefault('main', 'driver', os.getcwd())
         self.Timeout = self.getDefault('main', 'timeout', str(15*60))
         self.Timeout = eval(self.Timeout, {}, {}) # silly hack to allow 30*60 in the config file.
@@ -154,6 +154,7 @@ def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenar
     if timeout is None:
         timeout = config.Timeout
     print('Running: "'+ '" "'.join(args) + '" with timeout: ' + str(timeout)+'s')
+    print("with: " + str(env))
     p = subprocess.Popen(args, env = env, stdout=subprocess.PIPE, **popenargs)
     with Handler(signal.SIGALRM, timeout_handler):
         try:

@@ -2,14 +2,16 @@ Components
 ==========
 
 Slave:
+
 1. Builder: A python driver (build.py) that can create shell builds of spidermonkey/jsc/v8.
 2. Downloader: A python driver (download.py) that can download browser builds of Firefox.
 3. Executor: (execute.py) is a python script that executes one or multiple benchmarks on one or more builds.
 
 Site:
+
 1. Database: MySQL database that stores statistics.
-2. Collector: Hidden PHP script on the webserver, where stats get sent.
-3. Processor: Python aggregator that builds JSON data from the DB.
+2. Collector: Hidden PHP script on the webserver, where stats get sent. (UPDATE.php in below diagram)
+3. Processor: Python aggregator that builds JSON data from the DB. (update.py in below diagram)
 4. Website: Static HTML as the frontpage, that queries JSON via XHR.
 5. Command center: Sends commands to the slaves on what to execute. (In construction.)
 
@@ -17,26 +19,38 @@ Components (2) and (4) must be on the same webserver, otherwise timestamps might
 
 Keep in mind, most of this documentation is for posterity. AWFY was never intended to be a drag-and-drop all-in-one released product, so the procedures and scripts may be pretty rough.
 
+System Diagram
+==============
+<!-- 
+	Image source at https://docs.google.com/drawings/d/1TlzFOMz4oxKYSD_hHqe-fL2wpAA5WwhEq62KJp0TytI/edit?usp=sharing 
+	To edit it, 'make a copy' (from file menu) and edit that. 
+-->
+![Alt text](/docs/awfy_system_diagram.png "System Diagram")
+
+
 Benchmark locally
 =================
 
 1. Fetch the repo
-
 2. Create a (shell) or retrieve a (browser) build to benchmark
+  * Creating a build:
+    ```
+    cd slave
+    python build.py -s mozilla
+    ```
 
-- Creating a build:
+  * Pull a build:
 
-cd slave
-python build.py -s mozilla
-
-- Pull a build:
-
-cd slave
-python download.py http://archive.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux/latest/
+    ```
+    cd slave
+    python download.py http://archive.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux/latest/
+    ```
 
 3. Benchmark
 
-python execute.p -b remote.octane -b remote.kraken
+    ```
+    python execute.p -b remote.octane -b remote.kraken
+    ```
 
 Installation
 ============

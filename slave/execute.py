@@ -3,6 +3,7 @@ import configs
 import executors
 import engineInfo
 import submitter
+import json
 
 import sys
 sys.path.insert(1, '../driver')
@@ -17,8 +18,14 @@ parser.add_option("-b", "--benchmark", action="append", dest="benchmarks",
 parser.add_option("-s", "--submitter", dest="submitter", type="string", default="print",
                   help="Submitter class ('remote' or 'print')")
 
-parser.add_option("--submitter_mode", action="append", dest="mode_rules",
+parser.add_option("--submitter-mode", action="append", dest="mode_rules",
                   help="When using the remote submitter, give rules to the mode name that needs to get submitted. Format: engine,config_name:mode_name. E.g. firefox,default:jmim")
+
+parser.add_option("--submitter-machine", dest="machine", type="int",
+                  help="When using the remote submitter, give the machine number to submit to.")
+
+parser.add_option("--submitter-session", dest="session", type="string",
+                  help="When using the remote submitter, it is possible to run execute.py multiple times and still report to the same report.")
 
 parser.add_option("-e", "--engine", action="append", dest="engines",
                   help="Path to the engines that need to get benchmarked")
@@ -41,7 +48,9 @@ if options.benchmarks is None:
 if options.mode_rules is None:
     options.mode_rules = [
         "firefox,default:jmim",
+        "firefox,noasmjs:noasmjs",
         "firefox,unboxedobjects:unboxedobjects",
+        "firefox,testbedregalloc:testbed",
         "chrome,default:v8",
         "chrome,turbofan:v8-turbofan",
         "webkit,default:jsc",
@@ -52,8 +61,17 @@ if options.mode_rules is None:
 utils.config.init("awfy.config")
 
 submitter = submitter.getSubmitter(options.submitter)
-submitter.start()
 submitter.setModeRules(options.mode_rules)
+
+if options.session:
+    assert not options.machine
+    fp = open(options.session, "r")
+    session = json.load(fp)
+    submitter.setSession(session)
+else:
+    if options.machine:
+        submitter.setMachine(options.machine)
+    submitter.start()
 
 
 # Submit the revisions for every build.
@@ -82,4 +100,5 @@ for benchmark in benchmarks:
             mode = submitter.mode(info["engine_type"], config_name)
             submitter.addTests(results, benchmark.suite, benchmark.version, mode)
 
-submitter.finish()
+if not options.session:
+    submitter.finish()

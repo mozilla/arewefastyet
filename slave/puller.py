@@ -15,7 +15,10 @@ class Puller(object):
         if self.sameRepo():
             return
 
-        shutil.rmtree(self.folder) 
+        try:
+            shutil.rmtree(self.folder)
+        except:
+            pass
         self.clone()
         assert self.sameRepo()
 
@@ -59,7 +62,17 @@ class SVN(Puller):
         Run(['svn', 'co', self.repo, self.folder])
 
     def sameRepo(self):
-        return False
+        with FolderChanger(self.path()):
+            try:
+                output = Run(['svn', 'info'])
+            except:
+                return False
+            print self.repo
+            print output
+            if "URL: "+self.repo in output:
+                return True
+            exit()
+            return False
 
     def update(self, rev = None):
         with FolderChanger(self.path()):
@@ -72,7 +85,7 @@ class SVN(Puller):
                 raise Exception('unknown revision: ' + output)
             return
 
-    def identify():
+    def identify(self):
         with FolderChanger(self.path()):
             output = Run(['svn', 'info'])
             m = re.search("Revision: ([0-9]+)", output)
@@ -121,7 +134,7 @@ class V8GIT(GIT):
         #TODO: not needed?
         #with FolderChanger(self.path()):
         #    Run(['git', 'checkout', 'master'])
-            
+
     def path(self):
         return os.path.join(self.folder, "v8")
 
@@ -131,8 +144,9 @@ class V8GIT(GIT):
 
     def update(self, rev = None):
         assert rev == None
-        
-        Run(['git', 'pull', 'origin', 'master'])
+
+        with FolderChanger(self.folder):
+            Run(['git', 'pull', 'origin', 'master'])
 
         env = os.environ.copy()
         with FolderChanger(self.folder):
@@ -149,7 +163,7 @@ def getPuller(repo, path):
     if "svn." in repo:
         return SVN(repo, path)
     if repo.endswith(".git"):
-        return GIT(repo, path) 
+        return GIT(repo, path)
     if repo == "v8":
         return V8GIT(repo, path)
 
