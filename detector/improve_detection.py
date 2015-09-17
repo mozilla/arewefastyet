@@ -16,6 +16,8 @@ def isOutliner(item):
     return False
   if len(prevs) != RUNS:
     return False
+  if not item.score().hasNoise():
+    return False
   avg_nexts = sum(nexts)/len(nexts)
   avg_prevs = sum(prevs)/len(prevs)
 
@@ -57,6 +59,8 @@ def isBiModal(item):
     return False
   if len(prevs_l) < 4:
     return False
+  if not score.hasNoise():
+    return False
   avg_nexts_h = sum(nexts_h)/len(nexts_h)
   avg_nexts_l = sum(nexts_l)/len(nexts_l)
   avg_prevs_h = sum(prevs_h)/len(prevs_h)
@@ -67,6 +71,62 @@ def isBiModal(item):
   if abs(avg_nexts_l - avg_prevs_l) >= score.noise() / tables.NOISE_FACTOR:
      return False
   return True
+
+def zoomNoRegression(item):
+  PARTITIONS = 5
+  CRUNS = 100 / PARTITIONS * PARTITIONS
+  AMOUNT = CRUNS / PARTITIONS
+
+  def _avg(items):
+    if len(items) == 0:
+      return 0
+    return sum(items)/len(items)
+
+  def partition(li):
+    nli = []
+    for i in range(PARTITIONS):
+      nli.append(_avg(li[i*AMOUNT:i*AMOUNT+AMOUNT]))
+    return nli
+
+  def _noise(li):
+    noise = []
+    for i in range(len(li)-1):
+      noise.append(abs(li[i] - li[i+1]))
+    return noise
+
+  def outliner(li, i, noise):
+    if i == 0:
+      return False
+    elif len(li) - 1 == i:
+      return False
+    if abs(li[i-1] - li[i+1]) < noise:
+      if abs(li[i] - li[i+1]) > noise and abs(li[i] - li[i-1]) > noise:
+        return True 
+    return False
+
+  def remove_outliners(li, noise):
+    return [li[i] for i in range(len(li)) if not outliner(li, i, noise)]
+
+  score = item.score()
+  nexts = [score.get("score")] + [i.get("score") for i in score.nexts(CRUNS - 1)]
+  prevs = [i.get("score") for i in score.prevs(CRUNS)]
+  if len(nexts) != CRUNS:
+    return False
+  if len(prevs) != CRUNS:
+    return False
+
+  nexts = partition(nexts)
+  prevs = partition(prevs)
+  noise = _avg(_noise(nexts) + _noise(prevs))
+
+  nexts = remove_outliners(nexts, noise)
+  prevs = remove_outliners(prevs, noise)
+  noise = _avg(_noise(nexts) + _noise(prevs))
+  if abs(nexts[0] - prevs[0]) > noise:
+    return False
+
+  return True
+
 
 modes = [14,16,20,21,22,23,25,26,27,28,29,31,32,33,35]
 for regression in tables.Regression.where({'status':'unconfirmed'}):
@@ -93,6 +153,12 @@ for regression in tables.Regression.where({'status':'unconfirmed'}):
       continue
 
     if isBiModal(item):
+      print "remove", regression.id 
+      item.score().dump()
+      item.update({"noise":"1"}) 
+      continue
+
+    if zoomNoRegression(item):
       print "remove", regression.id 
       item.score().dump()
       item.update({"noise":"1"}) 

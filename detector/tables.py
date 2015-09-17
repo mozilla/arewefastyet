@@ -373,6 +373,8 @@ class RegressionTools(DBTable):
       return False
     if self.prev() is None:
       return False
+    if not self.hasNoise():
+      return False
     if abs(self.next().get("score") - self.prev().get("score")) < self.noise():
       if (abs(self.next().get("score") - self.get("score")) > self.noise() and
           abs(self.prev().get("score") - self.get("score")) > self.noise()):
@@ -382,6 +384,7 @@ class RegressionTools(DBTable):
     if prevs is None or nexts is None:
       return False
     if abs(prevs-nexts) <= self.noise():
+      # ?? should this be prevs - self.get("score") ? maybe ?
       if (abs(self.get('score') - self.prev().get('score')) > self.noise() and
           abs(self.get('score') - self.next().get('score')) > self.noise()):
         return True
@@ -588,10 +591,7 @@ class Score(RegressionTools):
         return False
     if self.get("suite_version_id") == 0:
         return False
-    try:
-        self.noise()
-    except:
-        print "no noise?"
+    if not self.hasNoise():
         return False
     return True
 
@@ -655,6 +655,11 @@ class Score(RegressionTools):
                                  self.get('build').get('mode')).get('noise')
     return NOISE_FACTOR*noise
 
+  def hasNoise(self):
+    return RegressionScoreNoise(self.get('build').get('run').get('machine'),
+                                 self.get('suite_version'),
+                                 self.get('build').get('mode')).id != 0
+
   @classmethod
   def firstOfRecent(class_, machine, suite, mode):
     assert machine.__class__ == Machine
@@ -716,10 +721,7 @@ class Breakdown(RegressionTools):
         return False
     if self.get("suite_test").get("suite_version_id") == 0:
         return False
-    try:
-        self.noise()
-    except:
-        print "no noise?"
+    if not self.noise():
         return False
     return True
 
@@ -810,6 +812,11 @@ class Breakdown(RegressionTools):
                                      self.get('suite_test'),
                                      self.get('build').get('mode')).get('noise')
     return NOISE_FACTOR*noise
+
+  def hasNoise(self):
+    return RegressionBreakdownNoise(self.get('build').get('run').get('machine'),
+                                    self.get('suite_test'),
+                                    self.get('build').get('mode')).id != 0
 
   def dump(self):
     import datetime
