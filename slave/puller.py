@@ -145,12 +145,12 @@ class V8GIT(GIT):
     def update(self, rev = None):
         assert rev == None
 
-        with FolderChanger(self.folder):
+        with FolderChanger(self.path()):
             Run(['git', 'pull', 'origin', 'master'])
 
         env = os.environ.copy()
-        with FolderChanger(self.folder):
-            Run(['gclient', 'sync'], {"PATH": "depot_tools/:"+env["PATH"]})
+        with FolderChanger(self.path()):
+            Run(['gclient', 'sync'], {"PATH": os.path.abspath("../depot_tools/")+":"+env["PATH"]})
 
 def getPuller(repo, path):
     if repo == "mozilla":

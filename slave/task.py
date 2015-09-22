@@ -14,7 +14,8 @@ if __name__ == "__main__":
     data = urllib2.urlopen(url).read()
     data = json.loads(data)
 
-    os.system(data["task"])
+    task = data["task"].replace("\r\n", "\n").replace("\r", "\n")
+    os.system(task)
 
     url = "http://www.arewefastyet.com/task.php?finish="+str(data["id"])
     urllib2.urlopen(url)
