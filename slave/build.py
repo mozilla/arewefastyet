@@ -262,6 +262,16 @@ class ServoBuilder(Builder):
             args = [os.path.join('.', 'mach'), 'build' ,'--release']
             Run(args, self.env.get())
 
+    def build(self, puller):
+        # Call parent's build
+        super(ServoBuilder, self).build(puller)
+        # Read info.json file back and modify only shell=False.
+        with open(os.path.join(self.folder, "info.json"),  'r+') as info_file:
+            info = json.load(info_file)
+            info["shell"] = False
+            info_file.seek(0)
+            json.dump(info, info_file)
+
 def getBuilder(config, path):
     # fingerprint the known builders
     if os.path.exists(os.path.join(path, "js", "src")):
