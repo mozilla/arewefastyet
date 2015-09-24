@@ -63,6 +63,24 @@ Data Collector
 --------------
 Drop `website/UPDATE.PHP` and `website/internals.php` somewhere, and rename `UPDATE.PHP` to something secret. Make sure you don't have directory listings enabled.
 
+Slave DNS Config
+----------------
+Before running the benchmarks, add these lines to your `/etc/hosts` file and flush DNS cache. These host addresses are used by `benchmarks_remote.py`. This configuration is needed for all the slaves that use the remote or local benchmarks. Only the shell benchmarks don't need it.
+
+```
+# Subdomains for AWFY
+127.0.0.1   dromaeo.localhost
+127.0.0.1   kraken.localhost
+127.0.0.1   octane.localhost
+127.0.0.1   massive.localhost
+127.0.0.1   jetstream.localhost
+127.0.0.1   speedometer.localhost
+127.0.0.1   speedometer.localhost
+127.0.0.1   sunspider.localhost
+127.0.0.1   browsermark.local
+```
+
+
 Benchmark Computers
 -------------------
 
