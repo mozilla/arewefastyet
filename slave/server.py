@@ -48,7 +48,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
     def captureResults(self, query):
         queryParsed = urlparse.parse_qs(query)
-        fp = open("puppet/results", "w");
+        fp = open("slave/results", "w");
         fp.write(queryParsed["results"][0]);
         fp.close()
 
