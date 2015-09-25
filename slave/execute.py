@@ -54,7 +54,8 @@ if options.mode_rules is None:
         "chrome,default:v8",
         "chrome,turbofan:v8-turbofan",
         "webkit,default:jsc",
-        "native,default:clang"
+        "native,default:clang",
+        "servo,default:servo"
     ]
 
 #TODO:remove

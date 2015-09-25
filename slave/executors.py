@@ -2,6 +2,7 @@ import runners
 import time
 import os
 import sys
+import json
 
 sys.path.insert(1, '../driver')
 import utils
@@ -45,7 +46,7 @@ class BrowserExecutor(object):
         os.unlink("results")
 
     def waitForResults(self):
-        timeout = int(utils.config.get('main', 'timeout')) * 60
+        timeout = utils.config.Timeout * 60
         while not os.path.exists("results") and timeout > 0:
             time.sleep(10)
             timeout -= 10
@@ -86,6 +87,25 @@ class FirefoxExecutor(BrowserExecutor):
         # kill browser
         runner.kill(process)
 
+class ServoExecutor(BrowserExecutor):
+    def execute(self, page, env, args):
+        runner = runners.getRunner(self.engineInfo["platform"], {})
+
+        # kill all possible running instances.
+        runner.killall("servo")
+
+        # reset the result
+        self.resetResults()
+
+        # start browser
+        process = runner.start(self.engineInfo["binary"], args, env)
+
+        # wait for results
+        self.waitForResults()
+
+        # kill browser
+        runner.kill(process)
+
 
 #class NativeExecutor(Executor):
 #
@@ -97,4 +117,6 @@ def getExecutor(engineInfo):
         return ShellExecutor(engineInfo)
     if engineInfo["engine_type"] == "firefox" and not engineInfo["shell"]:
         return FirefoxExecutor(engineInfo)
+    if engineInfo["engine_type"] == "servo":
+        return ServoExecutor(engineInfo)
 
