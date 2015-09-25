@@ -45,7 +45,11 @@ class Runner(object):
 class LinuxRunner(Runner):
     def killall(self, name):
         print "killall", name
-        subprocess.Popen(["killall", name])
+        process = subprocess.Popen(["killall", name])
+        # Wait for killall to finish
+        while process.poll() is None:
+            time.sleep(0.5)
+
 
     def killAllInstances(self):
         print "killallinstances"
@@ -60,7 +64,11 @@ class LinuxRunner(Runner):
 
 class OSXRunner(Runner):
     def killall(self, name):
-        subprocess.Popen(["killall", name])
+        print "killall", name
+        process = subprocess.Popen(["killall", name])
+        # Wait for killall to finish
+        while process.poll() is None:
+            time.sleep(0.5)
 
     def killAllInstances(self):
         if not os.path.exists(self.info["osx_mount_point"]):
