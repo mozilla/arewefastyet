@@ -4,7 +4,6 @@ import os
 import sys
 import json
 
-sys.path.insert(1, '../driver')
 import utils
 
 class ShellExecutor(object):

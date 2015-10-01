@@ -96,7 +96,9 @@ class Builder(object):
 
         info = self.retrieveInfo()
         info["revision"] = puller.identify()
-        info["shell"] = True
+        # Deafult 'shell' to True only if it isn't set yet!
+        if 'shell' not in info:
+            info["shell"] = True
         info["binary"] = os.path.abspath(self.binary())
 
         fp = open(os.path.join(self.folder, "info.json"), "w")
@@ -249,6 +251,7 @@ class ServoBuilder(Builder):
     def retrieveInfo(self):
         info = {}
         info["engine_type"] = "servo"
+        info['shell'] = False
         return info
 
     def objdir(self):
@@ -261,16 +264,6 @@ class ServoBuilder(Builder):
         with utils.FolderChanger(self.folder):
             args = [os.path.join('.', 'mach'), 'build' ,'--release']
             Run(args, self.env.get())
-
-    def build(self, puller):
-        # Call parent's build
-        super(ServoBuilder, self).build(puller)
-        # Read info.json file back and modify only shell=False.
-        with open(os.path.join(self.folder, "info.json"),  'r+') as info_file:
-            info = json.load(info_file)
-            info["shell"] = False
-            info_file.seek(0)
-            json.dump(info, info_file)
 
 def getBuilder(config, path):
     # fingerprint the known builders
