@@ -22,7 +22,7 @@ if (!file_exists($file)) {
 	if (!has_permissions())
 		fault();
 
-	$file = $$config->data_folder."auth-".$name;
+	$file = $config->data_folder."auth-".$name;
 	if (!file_exists($file))
 		fault();
 }
