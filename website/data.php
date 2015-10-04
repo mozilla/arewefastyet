@@ -1,8 +1,8 @@
 <?php
 
-$datafolder = "/home/h4writer/data/";
-
 include "internals.php";
+
+global $config;
 
 function fault() {
 	exit();
@@ -17,12 +17,12 @@ if (substr($name, 0, 4) == "auth")
 if (!preg_match("/^[a-zA-Z0-9-. _]*$/i", $name))
 	fault();
 
-$file = $datafolder.$name;
+$file = $config->data_folder.$name;
 if (!file_exists($file)) {
 	if (!has_permissions())
 		fault();
 
-	$file = $datafolder."auth-".$name;
+	$file = $$config->data_folder."auth-".$name;
 	if (!file_exists($file))
 		fault();
 }
