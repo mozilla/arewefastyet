@@ -27,8 +27,8 @@ class Config {
         $this->mysql_host     = $config_array["mysql"]["host"];
         $this->mysql_username = $config_array["mysql"]["user"];
         $this->mysql_password = $config_array["mysql"]["pass"];
-        $this->mysql_db_name  = $config_array["mysql"]["name"];
-        $this->data_folder    = $config_array["general"]["path"];
+        $this->mysql_db_name  = $config_array["mysql"]["db_name"];
+        $this->data_folder    = $config_array["general"]["data_folder"];
     }
 }
 
