@@ -5,10 +5,38 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 session_start();
 
+class Config {
+    // MySQL config
+    public $mysql_host;
+    public $mysql_username;
+    public $mysql_password;
+    public $mysql_db_name;
+
+    // General Config
+    public $data_folder;
+
+    function Config($config_file_path)
+    {
+        $this->init($config_file_path);
+    }
+
+    function init($config_file_path)
+    {
+        // Read & Parse config file
+        $config_array = parse_ini_file($config_file_path, true);
+        $this->mysql_host     = $config_array["mysql"]["host"];
+        $this->mysql_username = $config_array["mysql"]["user"];
+        $this->mysql_password = $config_array["mysql"]["pass"];
+        $this->mysql_db_name  = $config_array["mysql"]["db_name"];
+        $this->data_folder    = $config_array["general"]["data_folder"];
+    }
+}
+
 function init_database()
 {
-    mysql_connect("localhost", "awfy", "8xM7iTjepje4omA") or die("ERROR: " . mysql_error());
-    mysql_select_db("awfy") or die("ERROR: " . mysql_error());
+    global $config;
+    mysql_connect($config->mysql_host, $config->mysql_username, $config->mysql_password) or die("ERROR: " . mysql_error());
+    mysql_select_db($config->mysql_db_name) or die("ERROR: " . mysql_error());
 }
 
 function username()
@@ -158,3 +186,6 @@ function GET_run_id($name)
         return 0;
     return $runid;
 }
+
+// Init
+$config = new Config("/etc/awfy-server.config");
