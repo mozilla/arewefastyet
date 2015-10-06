@@ -59,7 +59,7 @@ def Startup():
     host = config.get('mysql', 'host')
     user = config.get('mysql', 'user')
     pw = config.get('mysql', 'pass')
-    name = config.get('mysql', 'name')
+    name = config.get('mysql', 'db_name')
 
     db = DB(host, user, pw, name)
     c = db.cursor()
@@ -67,7 +67,7 @@ def Startup():
     row = c.fetchone()
     version = int(row[0])
 
-    path = config.get('general', 'path')
+    path = config.get('general', 'data_folder')
 
 Startup()
 
