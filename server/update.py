@@ -42,8 +42,7 @@ def delete_metadata(prefix, data):
         os.remove(name)
 
 def fetch_test_scores(machine_id, suite_id, name,
-                      finish_stamp = (0,"UNIX_TIMESTAMP()"),
-                      test_stamp = (0, "UNIX_TIMESTAMP()")):
+                      finish_stamp = (0, "UNIX_TIMESTAMP()")):
     c = awfy.db.cursor()
     query = "SELECT id FROM awfy_suite_test \
              WHERE name = %s"
@@ -52,7 +51,7 @@ def fetch_test_scores(machine_id, suite_id, name,
     for row in c.fetchall():
       suite_ids.append(str(row[0]))
 
-    query = "SELECT STRAIGHT_JOIN r.id, r.stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
+    query = "SELECT STRAIGHT_JOIN r.id, r.finish_stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
              FROM awfy_run r                                                        \
              JOIN awfy_build b ON r.id = b.run_id                                   \
              JOIN awfy_score s1 ON s1.build_id = b.id                               \
@@ -65,17 +64,14 @@ def fetch_test_scores(machine_id, suite_id, name,
              AND r.machine = %s                                                     \
              AND r.finish_stamp >= "+str(finish_stamp[0])+"                         \
              AND r.finish_stamp <= "+str(finish_stamp[1])+"                         \
-             AND r.stamp >= "+str(test_stamp[0])+"                                  \
-             AND r.stamp <= "+str(test_stamp[1])+"                                  \
-             ORDER BY r.stamp ASC                                                   \
+             ORDER BY r.sort_order ASC                                              \
              "
     c.execute(query, [suite_id, machine_id])
     return c.fetchall()
 
 def fetch_suite_scores(machine_id, suite_id,
-                       finish_stamp = (0,"UNIX_TIMESTAMP()"),
-                       test_stamp = (0, "UNIX_TIMESTAMP()")):
-    query = "SELECT STRAIGHT_JOIN r.id, r.stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
+                       finish_stamp = (0, "UNIX_TIMESTAMP()")):
+    query = "SELECT STRAIGHT_JOIN r.id, r.finish_stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
              FROM awfy_run r                                                        \
              JOIN awfy_build b ON r.id = b.run_id                                   \
              JOIN awfy_score s ON s.build_id = b.id                                 \
@@ -85,9 +81,7 @@ def fetch_suite_scores(machine_id, suite_id,
              AND r.machine = %s                                                     \
              AND r.finish_stamp >= "+str(finish_stamp[0])+"                         \
              AND r.finish_stamp <= "+str(finish_stamp[1])+"                         \
-             AND r.stamp >= "+str(test_stamp[0])+"                                  \
-             AND r.stamp <= "+str(test_stamp[1])+"                                  \
-             ORDER BY r.stamp ASC                                                   \
+             ORDER BY r.sort_order ASC                                              \
              "
     c = awfy.db.cursor()
     c.execute(query, [suite_id, machine_id])
@@ -238,7 +232,7 @@ def renew_cache(cx, machine, suite, prefix, when, last_stamp, fetch):
     sys.stdout.write('Querying ' + prefix + '... ')
     sys.stdout.flush()
     with Profiler() as p:
-        rows = fetch(machine, test_stamp=(start_stamp,stop_stamp))
+        rows = fetch(machine, finish_stamp=(start_stamp,stop_stamp))
         diff = p.time()
     new_rows = len(rows)
     print('found ' + str(new_rows) + ' rows in ' + diff)
@@ -298,9 +292,8 @@ def perform_update(cx, machine, suite, prefix, fetch):
 # Done
 
 def update(cx, machine, suite):
-    def fetch_aggregate(machine, finish_stamp = (0,"UNIX_TIMESTAMP()"),
-                                 test_stamp = (0, "UNIX_TIMESTAMP()")):
-        return fetch_suite_scores(machine.id, suite.id, finish_stamp, test_stamp)
+    def fetch_aggregate(machine, finish_stamp = (0,"UNIX_TIMESTAMP()")):
+        return fetch_suite_scores(machine.id, suite.id, finish_stamp)
 
     prefix = ""
     if suite.visible == 2:
@@ -315,9 +308,8 @@ def update(cx, machine, suite):
         return
 
     for test_name in suite.tests:
-        def fetch_test(machine, finish_stamp = (0,"UNIX_TIMESTAMP()"),
-                                test_stamp = (0, "UNIX_TIMESTAMP()")):
-            return fetch_test_scores(machine.id, suite.id, test_name, finish_stamp, test_stamp)
+        def fetch_test(machine, finish_stamp = (0,"UNIX_TIMESTAMP()")):
+            return fetch_test_scores(machine.id, suite.id, test_name, finish_stamp)
 
         prefix = ""
         if suite.visible == 2:

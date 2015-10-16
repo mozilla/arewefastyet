@@ -14,10 +14,10 @@ $machine = (int)$_GET["machine"];
 $overview = Array();
 
 // Overall date.
-$query = "SELECT stamp FROM `awfy_run`
+$query = "SELECT finish_stamp, sort_order FROM `awfy_run`
           WHERE machine = $machine AND
                 status = 1
-          ORDER BY stamp DESC
+          ORDER BY sort_order DESC
           LIMIT 1";
 $results = mysql_query($query);
 if (!$results || mysql_num_rows($results) != 1)
@@ -25,6 +25,7 @@ if (!$results || mysql_num_rows($results) != 1)
 $row = mysql_fetch_array($results);
 $overview["machine"] = $machine;
 $overview["stamp"] = $row[0];
+$overview["sort_order"] = $row[1];
 
 // Get all modes.
 $query = "SELECT mode_id
@@ -42,13 +43,14 @@ while($row = mysql_fetch_array($results)) {
 	$mode = $row[0];
 
 	// Get last build of a specific mode (not older than 5 days from the newest result).
-	$query = "SELECT awfy_build.id, stamp FROM `awfy_build`
+    // TODO: sort_order is now not specific of a data anymore, but just ascending.
+	$query = "SELECT awfy_build.id, finish_stamp FROM `awfy_build`
 			  LEFT JOIN awfy_run ON run_id = awfy_run.id
 			  WHERE awfy_build.mode_id = $mode AND
                     machine = $machine AND
-					stamp >= ".($overview["stamp"]-5*24*60*60)." AND
+					sort_order >= ".($overview["sort_order"]-5*24*60*60)." AND
 				    status = 1
-			  ORDER BY stamp DESC
+			  ORDER BY sort_order DESC
               LIMIT 1";
 	$buildInfo = mysql_query($query) or die(mysql_error());
 	if (!$buildInfo || mysql_num_rows($buildInfo) != 1)

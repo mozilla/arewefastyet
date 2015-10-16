@@ -29,12 +29,12 @@ for machine_row in machines:
     # Find the last time this machine submitted any data.
     c.execute(
       """
-        select stamp
+        select finish_stamp
          from awfy_run
         where
          machine = %s and
          status = 1
-        order by stamp desc
+        order by finish_stamp desc
         limit 1
       """,
       (machine_id,)

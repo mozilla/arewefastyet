@@ -102,42 +102,6 @@ class Mode(object):
         self.color = color
         self.level = level
 
-class Runs(object):
-    def __init__(self, machine_id):
-        self.runs = []
-        self.map_ = {}
-        c = awfy.db.cursor()
-        c.execute("SELECT ar.id, ar.stamp                   \
-                   FROM awfy_run ar                         \
-                   JOIN awfy_score a ON ar.id = a.run_id    \
-                   WHERE ar.machine = %s                    \
-                   AND ar.status <> 0                       \
-                   GROUP BY ar.id                           \
-                   ORDER BY ar.stamp DESC                   \
-                   LIMIT 30", [machine_id])
-        for row in c.fetchall():
-            t = (row[0], row[1])
-            self.map_[row[0]] = len(self.runs)
-            self.runs.append(t)
-
-        self.earliest = int(self.runs[-1][1]) - time.timezone
-
-    def slot(self, run_id):
-        return self.map_[run_id]
-
-    def length(self):
-        return len(self.runs)
-
-    def contains(self, run_id):
-        return run_id in self.map_
-
-    def export(self):
-        list = []
-        for run in self.runs:
-            t = run[1] - time.timezone
-            list.append(t)
-        return list
-
 class Context(object):
     def __init__(self):
         # Get a list of vendors, and map vendor IDs -> vendor info

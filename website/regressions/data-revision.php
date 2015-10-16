@@ -31,7 +31,7 @@ if (isset($request->rev)) {
 						  WHERE machine = ".$request->machine." AND
 								mode_id = ".$request->mode." AND
                                 status = 1
-						  ORDER BY stamp DESC
+						  ORDER BY sort_order DESC
 						  LIMIT 1") or die(mysql_error());
 	$data = mysql_fetch_assoc($query);
 }

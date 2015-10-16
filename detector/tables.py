@@ -596,7 +596,7 @@ class Score(RegressionTools):
     return True
 
   def prefetch_next(self, limit = 1):
-    stamp = self.get("build").get("run").get("stamp")
+    sort_order = self.get("build").get("run").get("sort_order")
     machine = self.get("build").get("run").get("machine_id")
     mode = self.get("build").get("mode_id")
     suite = self.get("suite_version_id")
@@ -606,18 +606,18 @@ class Score(RegressionTools):
                FROM awfy_score                                                        \
                INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
                INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
-               WHERE stamp > %s AND                                                   \
+               WHERE sort_order > %s AND                                              \
                      machine = %s AND                                                 \
                      mode_id = %s AND                                                 \
                      suite_version_id = %s AND                                        \
                      status = 1                                                       \
-               ORDER BY stamp ASC                                                     \
-               LIMIT "+str(limit), (stamp, machine, mode, suite))
+               ORDER BY sort_order ASC                                                     \
+               LIMIT "+str(limit), (sort_order, machine, mode, suite))
     rows = c.fetchall()
     return [Score(row[0]) for row in rows]
 
   def prefetch_prev(self, limit = 1):
-    stamp = self.get("build").get("run").get("stamp")
+    sort_order = self.get("build").get("run").get("sort_order")
     machine = self.get("build").get("run").get("machine_id")
     mode = self.get("build").get("mode_id")
     suite = self.get("suite_version_id")
@@ -627,13 +627,13 @@ class Score(RegressionTools):
                FROM awfy_score                                                        \
                INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
                INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
-               WHERE stamp < %s AND                                                   \
+               WHERE sort_order < %s AND                                              \
                      machine = %s AND                                                 \
                      mode_id = %s AND                                                 \
                      suite_version_id = %s AND                                        \
                      status = 1                                                       \
-               ORDER BY stamp DESC                                                    \
-               LIMIT 1", (stamp, machine, mode, suite))
+               ORDER BY sort_order DESC                                               \
+               LIMIT 1", (sort_order, machine, mode, suite))
     rows = c.fetchall()
     return [Score(row[0]) for row in rows]
 
@@ -668,7 +668,7 @@ class Score(RegressionTools):
 
     c = awfy.db.cursor()
     c.execute("SELECT id                                                                    \
-               FROM (SELECT awfy_score.id, stamp                                            \
+               FROM (SELECT awfy_score.id, sort_order                                       \
                      FROM awfy_score                                                        \
                      INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
                      INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
@@ -676,9 +676,9 @@ class Score(RegressionTools):
                            mode_id = %s AND                                                 \
                            suite_version_id = %s AND                                        \
                            status = 1                                                       \
-                     ORDER BY stamp DESC                                                    \
+                     ORDER BY sort_order DESC                                               \
                      LIMIT 1000) tmp                                                        \
-               ORDER BY stamp ASC                                                           \
+               ORDER BY sort_order ASC                                                      \
                LIMIT 1", (machine.get("id"), mode.get("id"), suite.get("id")))
     row = c.fetchone()
     if row:
@@ -688,7 +688,7 @@ class Score(RegressionTools):
   def dump(self):
     import datetime
     print datetime.datetime.fromtimestamp(
-        int(self.get("build").get("run").get("stamp"))
+        int(self.get("build").get("run").get("finish_stamp"))
     ).strftime('%Y-%m-%d %H:%M:%S'),
     print "", self.get("build").get("run").get("machine").get("description"),
     print "", self.get("build").get("mode").get("name"),
@@ -726,7 +726,7 @@ class Breakdown(RegressionTools):
     return True
 
   def prefetch_next(self, limit = 1):
-    stamp = self.get("build").get("run").get("stamp")
+    sort_order = self.get("build").get("run").get("sort_order")
     machine = self.get("build").get("run").get("machine_id")
     mode = self.get("build").get("mode_id")
     suite = self.get("suite_test_id")
@@ -737,18 +737,18 @@ class Breakdown(RegressionTools):
                INNER JOIN awfy_score ON awfy_score.id = awfy_breakdown.score_id       \
                INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
                INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
-               WHERE stamp > %s AND                                                   \
+               WHERE sort_order > %s AND                                              \
                      machine = %s AND                                                 \
                      mode_id = %s AND                                                 \
                      suite_test_id = %s AND                                           \
                      status = 1                                                       \
-               ORDER BY stamp ASC                                                     \
-               LIMIT "+str(limit), (stamp, machine, mode, suite))
+               ORDER BY sort_order ASC                                                \
+               LIMIT "+str(limit), (sort_order, machine, mode, suite))
     rows = c.fetchall()
     return [Breakdown(row[0]) for row in rows]
 
   def prefetch_prev(self, limit = 1):
-    stamp = self.get("build").get("run").get("stamp")
+    sort_order = self.get("build").get("run").get("sort_order")
     machine = self.get("build").get("run").get("machine_id")
     mode = self.get("build").get("mode_id")
     suite = self.get("suite_test_id")
@@ -759,13 +759,13 @@ class Breakdown(RegressionTools):
                INNER JOIN awfy_score ON awfy_score.id = awfy_breakdown.score_id       \
                INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
                INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id                 \
-               WHERE stamp < %s AND                                                   \
+               WHERE sort_order < %s AND                                              \
                      machine = %s AND                                                 \
                      mode_id = %s AND                                                 \
                      suite_test_id = %s AND                                           \
                      status = 1                                                       \
-               ORDER BY stamp DESC                                                    \
-               LIMIT "+str(limit), (stamp, machine, mode, suite))
+               ORDER BY sort_order DESC                                               \
+               LIMIT "+str(limit), (sort_order, machine, mode, suite))
     rows = c.fetchall()
     return [Breakdown(row[0]) for row in rows]
 
@@ -777,7 +777,7 @@ class Breakdown(RegressionTools):
 
     c = awfy.db.cursor()
     c.execute("SELECT id                                                                    \
-               FROM (SELECT awfy_breakdown.id, stamp                                        \
+               FROM (SELECT awfy_breakdown.id, sort_order                                   \
                      FROM awfy_breakdown                                                    \
                      INNER JOIN awfy_score ON awfy_score.id = awfy_breakdown.score_id       \
                      INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id           \
@@ -786,9 +786,9 @@ class Breakdown(RegressionTools):
                            mode_id = %s AND                                                 \
                            suite_test_id = %s AND                                           \
                            status = 1                                                       \
-                     ORDER BY stamp DESC                                                    \
+                     ORDER BY sort_order DESC                                               \
                      LIMIT 1000) tmp                                                        \
-               ORDER BY stamp ASC                                                           \
+               ORDER BY sort_order ASC                                                      \
                LIMIT 1", (machine.get("id"), mode.get("id"), suite.get("id")))
     row = c.fetchone()
     if row:
@@ -821,7 +821,7 @@ class Breakdown(RegressionTools):
   def dump(self):
     import datetime
     print datetime.datetime.fromtimestamp(
-        int(self.get("build").get("run").get("stamp"))
+        int(self.get("build").get("run").get("finish_stamp"))
     ).strftime('%Y-%m-%d %H:%M:%S'),
     print "", self.get("build").get("run").get("machine").get("description"),
     print "", self.get("build").get("mode").get("name"),

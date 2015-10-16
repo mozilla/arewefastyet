@@ -24,7 +24,7 @@ $minimal = isset($request->minimal) ? !!$request->minimal : false;
 $data = array();
 for ($i=0; $i < count($ids); $i++) {
 
-	$query = mysql_query("SELECT awfy_regression.id, machine, mode_id, awfy_run.stamp,
+	$query = mysql_query("SELECT awfy_regression.id, machine, mode_id, awfy_run.finish_stamp,
                                  build_id, prev_build_id, cset, bug, awfy_regression.status, detector
 						  FROM awfy_regression
 						  INNER JOIN awfy_build ON build_id = awfy_build.id
@@ -36,7 +36,7 @@ for ($i=0; $i < count($ids); $i++) {
 		"id" => $output["id"],
 		"machine" => $output["machine"],
 		"mode" => $output["mode_id"],
-		"stamp" => $output["stamp"],
+		"stamp" => $output["finish_stamp"],
 		"cset" => $output["cset"],
 		"bug" => $output["bug"],
 		"status" => $output["status"],

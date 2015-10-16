@@ -38,12 +38,12 @@ if (!empty($bug))
 if ($bug === 0)
 	$where[] = "awfy_regression.bug = ''"; 
 
-$query = mysql_query("SELECT awfy_regression.id, machine, mode_id, awfy_run.stamp, build_id, cset, bug
+$query = mysql_query("SELECT awfy_regression.id
                       FROM awfy_regression
                       INNER JOIN awfy_build ON build_id = awfy_build.id
                       INNER JOIN awfy_run ON run_id = awfy_run.id
 					  WHERE ".(join(" AND ", $where))."
-                      ORDER BY awfy_run.stamp DESC") or die(mysql_error());
+                      ORDER BY awfy_run.sort_order DESC") or die(mysql_error());
 $data = Array();
 while ($output = mysql_fetch_assoc($query)) {
 	$data[] = $output["id"];

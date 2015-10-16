@@ -23,10 +23,12 @@ if (isset($_GET['requests'])) {
 // Start a full benchmark run. Request a token/number used to report/group
 // benchmark scores.
 if (isset($_GET['run']) && $_GET['run'] == 'yes') {
+    // TODO: sort_order is not a date anymore. Adjust this logic to not take an
+    // order, but only set this afterwards.
     $MACHINE = GET_int('MACHINE');
     $stamp = GET_int('stamp');
     $stamp = ($stamp != 0) ? $stamp : "UNIX_TIMESTAMP()";
-    mysql_query("INSERT INTO awfy_run (machine, stamp)
+    mysql_query("INSERT INTO awfy_run (machine, sort_order)
                  VALUES
                  ($MACHINE, $stamp)")
         or die("ERROR: " . mysql_error());
