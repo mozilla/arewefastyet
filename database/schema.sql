@@ -70,6 +70,8 @@ CREATE TABLE IF NOT EXISTS `awfy_config` (
 
 INSERT INTO `awfy_config` (`key`, `value`) VALUES
 ('version', '3');
+INSERT INTO `awfy_config` (`key`, `value`) VALUES
+('migration', '0');
 
 -- --------------------------------------------------------
 
