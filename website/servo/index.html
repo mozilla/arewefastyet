@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+ <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+ <meta http-equiv="content-language" content="en">
+ <title>Servo Benchmarking</title>
+ <link rel="stylesheet" title="Default Stylesheet" type="text/css" href="../style.css">
+ <link rel="shortcut icon" href="//www.arewefastyet.com/awfy_favicon.png">
+<link href='//fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+ <script type="text/javascript" src="../jquery/jquery-1.8.3.min.js"></script>
+ <script type="text/javascript" src="../jquery/jquery.ba-hashchange.min.js"></script>
+ <script type="text/javascript" src="../flot/jquery.flot.js"></script>
+ <script type="text/javascript" src="../flot/jquery.flot.selection.js"></script>
+ <script type="text/javascript" src="../data.php?file=master.js"></script>
+ <script type="text/javascript" src="awfy.js"></script>
+ <script type="text/javascript" src="../frontpage.js"></script>
+ <script type="text/javascript" src="../tooltip.js"></script>
+</head>
+<body>
+<!--[if IE 6]><body class="ie ie6"><![endif]-->
+<!--[if IE 7]><body class="ie ie7"><![endif]-->
+<!--[if IE 8]><body class="ie ie8"><![endif]-->
+<!--[if IE 9]><body class="ie ie9"><![endif]-->
+<!--[if gt IE 9]><body class="ie"><![endif]-->
+<!--[if !IE ]><!-->
+<body>
+<!--<![endif]-->
+  <script type="text/javascript">
+    $(document).ready(function () {
+  AWFY.startup();
+    });
+  </script>
+<header>
+  <div class='container'>
+    <h1><a href='#'>Servo-Benchmark</a></h1>
+    <div class='rightSide'>
+    <!-- <div><a href="/overview"><span>Overview</span></a></div> -->
+<!--
+      <div class='userMenu'>
+        <a href="javascript:doPersonaLogin()" ng-if="!currentUser"><span>Login</span></a>
+        <a href="javascript:doPersonaLogout()" ng-if='currentUser'><span>Logout</span></a>
+      </div>
+-->
+    </div>
+  </div>
+</header>
+
+<div class='content'>
+ <div class="graph-row">
+  <div id="message"></div>
+  <div id="navcontainer">
+    <ul id="legend"></ul>
+    <br><br>
+    <ul class="menu">
+      <li id="machinehook"><a href="#" id="machinedrop">Machines</a> &#187;
+        <ul id="machinelist"></ul>
+      </li>
+      <li id="breakdownhook"><a href="#" id="bkdrop">Breakdown</a> &#187;
+        <ul id="breakdownlist"></ul>
+      </li>
+      <li><a href='#' id="aboutdrop">About</a> &#187;</li>
+    </ul>
+  </div>
+  <div class="graph-container">
+    <div id="dromaeo-label">dromaeo time</div>
+    <div class="graph" id="dromaeo-graph"><h2>Loading...</h2></div>
+  </div>
+ </div>
+  <br><br><br>
+  <!--
+  <div class="graph-row">
+   <div class="graph-container">
+     <div id="v8-label">v8bench score</div>
+     <div class="graph" id="v8real-graph"><h2>Loading...</h2></div>
+   </div>
+  </div>
+  -->
+ </div>
+ <div id="breakdown">
+ </div>
+ <div id="about">
+  <h2>Benchmarking the performance of <a href="https://github.com/servo/servo">Mozilla Servo</a>.</h2>
+  <strong>Basic usage:</strong>
+  <ul>
+   <li>The x-axis is the date we ran tests, and the y-axis is the score of the benchmark.</li>
+   <li>The front page displays a hybrid of historical data, as well as the most recent samples.</li>
+   <li>You can click on a datapoint to see a tooltip with more information.</li>
+   <li>Tooltips will either give you the revision range used to condense a point, or the changelog that occurred in between two points.</li>
+   <li>Tooltips can be dragged around, for easier comparison.</li>
+   <li>Some benchmarks use time (lower is better), and some use points (higher is better). We orient all graphs so lower is better, visually.</li>
+   <li>Use the "machine" menu to see different computers' benchmark results.</li>
+   <li>Use the "Breakdown" menu to drill down into individual benchmarks.</li>
+   <li>You can click and highlight any area of any graph to zoom in. It might pause to download data.</li>
+   <li>You can unzoom by double-clicking inside a graph.</li>
+   <li>A graph will refresh every 5 minutes if it is not zoomed in and has no attached tooltips.</li>
+  </ul>
+  <strong>FAQ:</strong>
+  <ul>
+   <li>
+    <p>Who maintains this site?</p>
+    <p>This site is maintained by Mozilla-Servo team.</p>
+   </li>
+   <li>
+    <p>How does it work?</p>
+    <p>It is automated. Throughout the day, we checkout the latest source code to Mozilla Servo, and compile it. Then we run it through some benchmark suites, and tally up the scores into a database. This data gets exported as JSON which can then be easily plotted.</p>
+   </li>
+   <li>
+    <p>What are the graphs?</p>
+    <p>The graph currently shows Servo's performance on <a href="https://wiki.mozilla.org/Dromaeo">Dromaeo test suite</a>.</p>
+   </li>
+   <li>
+    <p>What do the hover tips mean?</p>
+    <p>"Source" is where we got the engine from. "Tested" is when we downloaded the engine, compiled, and tested it. "Rev" is the unique point in the engine's revision history we tested. If the datapoint represents a range, there may be multiple revs. These numbers/strings are for developers to see which changes happened in between points in the graph.</p>
+   </li>
+   <li>
+    <p>Is this open source?</p>
+    <p>Fo' sho', <a href="https://github.com/dhananjay92/arewefastyet">github.com/dhananjay92/arewefastyet</a></p>
+    <p>(Adapted from <a href="https://github.com/h4writer/arewefastyet/">github.com/h4writer/arewefastyet/</a>)</p>
+   </li>
+   <li>
+    <p>Suggestions?</p>
+    <p><a href="mailto:Dhananjay Nakrani<dhananjaynakrani@gmail.com>">dhananjaynakrani@gmail.com</a></p>
+  </ul>
+ </div>
+ <br>
+</div>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-58850314-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//arewefastyet.com/piwik/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 1]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//arewefastyet.com/piwik/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+</body>
+</html>
