@@ -611,6 +611,8 @@ Display.prototype.createToolTip = function (item, extended) {
             text += pad(d.getHours()) + ':' + pad(d.getMinutes()) + '<br>';
     }
    
+    /*
+    // Regression doesn't work for servo-awfy yet! Skip it.
     if (extended && point.length >= 5) {
         if (!point[4]) {
 			text += so + 'regression: ' + sc + "zoom in to view regression info." + '<br>';
@@ -640,6 +642,7 @@ Display.prototype.createToolTip = function (item, extended) {
 			}, "json");
         }
     }
+    */
 
     return new ToolTip(item.pageX, item.pageY, item, text);
 }
