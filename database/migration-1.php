@@ -3,7 +3,7 @@
 function migrate() {
     // INSERT an entry into awfy_vendor
     mysql_query("INSERT INTO `awfy_vendor` (`name`, `vendor`, `csetURL`, `browser`, `rangeURL`) VALUES ('SpiderMonkey', 
-                'Mozilla', 'https://github.com/servo/servo/commits', 'Servo', 
+                'Mozilla', 'https://github.com/servo/servo/commits/', 'Servo',
                 'https://github.com/servo/servo/compare/{from}...{to}');"
     ) or die(mysql_error());
 
@@ -24,7 +24,7 @@ function rollback() {
 
     // Delete vendor now
     mysql_query("DELETE FROM `awfy_vendor` WHERE `awfy_vendor`.`name`='SpiderMonkey' AND 
-                `awfy_vendor`.`vendor`='Mozilla' AND `awfy_vendor`.`csetURL`='https://github.com/servo/servo/commits' 
+                `awfy_vendor`.`vendor`='Mozilla' AND `awfy_vendor`.`csetURL`='https://github.com/servo/servo/commits/'
                 AND `awfy_vendor`.`browser`='Servo'; "
     ) or die(mysql_error());
 }
