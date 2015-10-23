@@ -44,14 +44,16 @@ class Mozilla(Engine):
     def __init__(self):
         Engine.__init__(self)
         self.nightly_dir = utils.config.get('mozilla', 'nightlyDir')
+        if self.nightly_dir[-1] == "/":
+            self.nightly_dir = self.nightly_dir[0:-1]
         self.isBrowser = True
         self.modes = [{
             'name': 'jmim',
             'env': { 'JSGC_DISABLE_POISONING': '1' }
-        }, {
-            'name': 'unboxedobjects',
-            'env': { 'JSGC_DISABLE_POISONING': '1',
-                     'JS_OPTION_USE_UNBOXED_ARRAYS': '1' }
+        #}, {
+        #    'name': 'unboxedobjects',
+        #    'env': { 'JSGC_DISABLE_POISONING': '1',
+        #             'JS_OPTION_USE_UNBOXED_ARRAYS': '1' }
         }]
         self.folder = "firefox"
         if not os.path.isdir(self.tmp_dir + self.folder):
@@ -68,7 +70,8 @@ class Mozilla(Engine):
         else:
             response = urllib2.urlopen(self.nightly_dir+"/?C=N;O=D")
             html = response.read()
-            ids = re.findall("[0-9]{5,}", html)
+            ids = list(set(re.findall("([0-9]{5,})/", html)))
+            ids = sorted(ids, reverse=True)
 
             for folder_id in ids[0:4]:
                 try:
@@ -82,7 +85,7 @@ class Mozilla(Engine):
 
     def _update(self, folder_id):
         # Step 2: Find the correct file
-        response = urllib2.urlopen(self.nightly_dir+"/"+folder_id)
+        response = urllib2.urlopen(self.nightly_dir+"/"+folder_id+"/")
         html = response.read()
         if self.slaveType == "android":
             exec_file = re.findall("fennec-[a-zA-Z0-9.]*.en-US.android-arm.apk", html)[0]
@@ -201,6 +204,8 @@ class MozillaPGO(Mozilla):
     def __init__(self):
         Mozilla.__init__(self)
         self.nightly_dir = utils.config.get('mozilla', 'pgoDir')
+        if self.nightly_dir[-1] == "/":
+            self.nightly_dir = self.nightly_dir[0:-1]
         self.modes = [{
             'name': 'pgo',
             'env': { 'JSGC_DISABLE_POISONING': '1' }
@@ -211,6 +216,8 @@ class MozillaShell(Engine):
     def __init__(self):
         Engine.__init__(self)
         self.nightly_dir = utils.config.get('mozilla', 'nightlyDir')
+        if self.nightly_dir[-1] == "/":
+            self.nightly_dir = self.nightly_dir[0:-1]
         self.isShell = True
         self.modes = [{
             'name': 'mozshell',
@@ -311,14 +318,18 @@ class Chrome(Engine):
             self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-linux/chrome", page])
             self.pid = self.subprocess.pid
         else:
-            self.subprocess = subprocess.Popen([self.tmp_dir + "chrome-win32/chrome.exe", page])
+            self.subprocess = subprocess.Popen(["cygstart", self.tmp_dir + "chrome-win32/chrome.exe", page])
             self.pid = self.subprocess.pid
 
     def kill(self):
         if self.slaveType == "android":
             print subprocess.check_output(["adb", "shell", "pm clear org.chromium.chrome.shell"]);
-        else:
+        elif self.slaveType == "linux-desktop":
             Engine.kill(self)
+        elif self.slaveType == "mac-desktop":
+            Engine.kill(self)
+        else:
+            subprocess.Popen(["taskkill", "/F", "/IM", "chrome.exe"])
 
 class WebKit(Engine):
     def __init__(self):
