@@ -51,7 +51,7 @@ def fetch_test_scores(machine_id, suite_id, name,
     for row in c.fetchall():
       suite_ids.append(str(row[0]))
 
-    query = "SELECT STRAIGHT_JOIN r.id, r.finish_stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
+    query = "SELECT STRAIGHT_JOIN r.id, r.approx_stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
              FROM awfy_run r                                                        \
              JOIN awfy_build b ON r.id = b.run_id                                   \
              JOIN awfy_score s1 ON s1.build_id = b.id                               \
@@ -71,7 +71,7 @@ def fetch_test_scores(machine_id, suite_id, name,
 
 def fetch_suite_scores(machine_id, suite_id,
                        finish_stamp = (0, "UNIX_TIMESTAMP()")):
-    query = "SELECT STRAIGHT_JOIN r.id, r.finish_stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
+    query = "SELECT STRAIGHT_JOIN r.id, r.approx_stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
              FROM awfy_run r                                                        \
              JOIN awfy_build b ON r.id = b.run_id                                   \
              JOIN awfy_score s ON s.build_id = b.id                                 \

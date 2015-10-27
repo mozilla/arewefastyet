@@ -20,9 +20,9 @@ if (isset($_GET['run']) && $_GET['run'] == 'yes') {
                           WHERE machine = '".$MACHINE."'") or die(mysql_error());
     $run = mysql_fetch_object($query);
 
-    mysql_query("INSERT INTO awfy_run (machine, sort_order)
+    mysql_query("INSERT INTO awfy_run (machine, sort_order, approx_stamp)
                  VALUES
-                 ($MACHINE, {$run->maximum})")
+                 ($MACHINE, {$run->maximum}, UNIX_TIMESTAMP())")
         or die("ERROR: " . mysql_error());
     print("id=" . mysql_insert_id());
     die();
