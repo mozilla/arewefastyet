@@ -20,6 +20,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
         parsedParams = urlparse.urlparse(self.path)
         self.localBenchmark(parsedParams.query)
+        self.send_response(200)
 
     def do_POST(self):
         length = int(self.headers.getheader('content-length', 0))
@@ -29,6 +30,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
             return
 
         self.localBenchmark(postdata)
+        self.send_response(200)
 
     def localBenchmark(self, query = None):
         if self.path.startswith("/submit"):
