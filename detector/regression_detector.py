@@ -21,7 +21,7 @@ def notProcessedRuns():
   c = awfy.db.cursor()
   c.execute("SELECT id                                                          \
              FROM awfy_run                                                      \
-             WHERE stamp > "+str(newer)+" AND                                   \
+             WHERE finish_stamp > "+str(newer)+" AND                            \
                    status = 1 AND                                               \
                    detector != 1 AND                                            \
                    machine in (28,29,26,17,30)")

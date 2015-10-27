@@ -34,14 +34,16 @@ if (mysql_num_rows($query) == 1) {
     mysql_query("INSERT INTO awfy_config (`key`,value) VALUES ('migration', '$version')");
 }
 
+function run($version) {
+    include "migration-".$version.".php";
+    $migrate();
+}
 while (true) {
-
     if (!file_exists("migration-".++$version.".php"))
         break;
 
     echo "Running migration migration-".$version.".php\n";
-    include "migration-".$version.".php";
-    migrate();
+    run($version);
     mysql_query("UPDATE awfy_config SET value = '$version' WHERE awfy_config.key = 'migration'");
 }
 

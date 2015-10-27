@@ -16,7 +16,7 @@ if (!isset($request->subtest))
 
 $prev_build_id = 0;
 if ($request->subtest == 1 || $request->subtest == 'true') {
-	$query = mysql_query("SELECT mode_id, machine, stamp, awfy_breakdown.score, suite_test_id, build_id
+	$query = mysql_query("SELECT mode_id, machine, sort_order, awfy_breakdown.score, suite_test_id, build_id
                           FROM `awfy_breakdown`
                           LEFT JOIN awfy_score ON awfy_score.id = score_id
                           LEFT JOIN awfy_build ON awfy_build.id = awfy_score.build_id
@@ -24,7 +24,7 @@ if ($request->subtest == 1 || $request->subtest == 'true') {
                           WHERE awfy_breakdown.id = ".$request->id) or die(mysql_error());
     $data = mysql_fetch_assoc($query);
 
-	$prev = prev_suite_test($data["stamp"], $data["machine"],
+	$prev = prev_suite_test($data["sort_order"], $data["machine"],
 				            $data["mode_id"], $data["suite_test_id"]);
 	if (count($prev) == 1) {
 		$prev_breakdown_id = $prev[0]["id"];
@@ -33,14 +33,14 @@ if ($request->subtest == 1 || $request->subtest == 'true') {
 	}
 	$build_id = $data["build_id"];
 } else {
-	$query = mysql_query("SELECT mode_id, machine, stamp, score, suite_version_id, build_id
+	$query = mysql_query("SELECT mode_id, machine, sort_order, score, suite_version_id, build_id
                           FROM `awfy_score`
                           LEFT JOIN awfy_build ON awfy_build.id = build_id
                           LEFT JOIN awfy_run ON awfy_run.id = run_id
                           WHERE awfy_score.id = ".$request->id) or die(mysql_error());
     $data = mysql_fetch_assoc($query);
 
-	$prev = prev_($data["stamp"], $data["machine"],
+	$prev = prev_($data["sort_order"], $data["machine"],
 			      $data["mode_id"], $data["suite_version_id"]);
 	if (count($prev) == 1) {
 		$prev_score_id = $prev[0]["id"];

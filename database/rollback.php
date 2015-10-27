@@ -10,7 +10,7 @@ $migration = mysql_fetch_object($query);
 $version = $migration->version;
 echo "Rolling back migration migration-".$version.".php\n";
 include "migration-".$version.".php";
-rollback();
+$rollback();
 mysql_query("UPDATE awfy_config SET value = '".($version-1)."' WHERE awfy_config.key = 'migration'");
 
 echo "Currently at migration: ".($version - 1)."\n";

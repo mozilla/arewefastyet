@@ -7,28 +7,22 @@ require_once("internals.php");
 
 init_database();
 
-if (isset($_GET['requests'])) {
-    $MACHINE = GET_int('MACHINE');
-    $query = mysql_query("SELECT * FROM awfy_request
-                          WHERE finished = 0
-                          AND machine = $MACHINE");
-    $data = Array();
-    while ($output = mysql_fetch_assoc($query)) {
-        $data[] = $output;
-    }
-    echo json_encode($data);
-    die();
-}
-
 // Start a full benchmark run. Request a token/number used to report/group
 // benchmark scores.
 if (isset($_GET['run']) && $_GET['run'] == 'yes') {
+    // TODO: sort_order is not a date anymore. Adjust this logic to not take an
+    // order, but only set this afterwards.
     $MACHINE = GET_int('MACHINE');
     $stamp = GET_int('stamp');
-    $stamp = ($stamp != 0) ? $stamp : "UNIX_TIMESTAMP()";
-    mysql_query("INSERT INTO awfy_run (machine, stamp)
+
+    $query = mysql_query("SELECT max(sort_order) as maximum
+                          FROM awfy_run
+                          WHERE machine = '".$MACHINE."'") or die(mysql_error());
+    $run = mysql_fetch_object($query);
+
+    mysql_query("INSERT INTO awfy_run (machine, sort_order, approx_stamp)
                  VALUES
-                 ($MACHINE, $stamp)")
+                 ($MACHINE, {$run->maximum}, UNIX_TIMESTAMP())")
         or die("ERROR: " . mysql_error());
     print("id=" . mysql_insert_id());
     die();
@@ -50,13 +44,6 @@ if (isset($_GET['run']) && $_GET['run'] == 'finish') {
                  WHERE id = $runid")
         or die("ERROR: " . mysql_error());
 
-    mysql_query("UPDATE awfy_request as request
-                 JOIN awfy_build as build ON request.cset = build.cset
-                 JOIN  awfy_run as run ON run.id = build.run_id
-                                   AND run.machine = request.machine
-                 SET finished = 1
-                 WHERE run.id = $runid")
-        or die("ERROR: " . mysql_error());
     die();
 }
 
