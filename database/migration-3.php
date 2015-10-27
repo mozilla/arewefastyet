@@ -10,7 +10,7 @@ $migrate = function() {
         mysql_query("SET @pos := 0;")or die (mysql_error());
         mysql_query("UPDATE awfy_run
                      SET sort_order = ( SELECT @pos := @pos + 1 )
-                     WHERE machine = ".$run->machine." ORDER BY stamp ASC;") or die(mysql_error());
+                     WHERE machine = ".$run->machine." ORDER BY approx_stamp ASC;") or die(mysql_error());
     }
 };
 
