@@ -721,7 +721,7 @@ class Breakdown(RegressionTools):
         return False
     if self.get("suite_test").get("suite_version_id") == 0:
         return False
-    if not self.noise():
+    if not self.hasNoise():
         return False
     return True
 
