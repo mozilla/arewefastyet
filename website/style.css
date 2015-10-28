@@ -75,11 +75,12 @@ h1 {
 }
 
 #navcontainer {
- padding-top: 360px;
+ padding-top: 120px;
  display: inline;
- position: absolute;
+ position: fixed;
  margin-left: -20px;
  left: 0;
+ height: 100%;
 }
 
 .menu {
@@ -110,13 +111,13 @@ h1 {
 
 #about {
  display: none;
- margin-left: 250px;
+ margin-left: 350px;
  width: 700px;
 }
 
 #breakdown {
  display: none;
- margin-left: 250px;
+ margin-left: 350px;
  width: 700px;
 }
 
