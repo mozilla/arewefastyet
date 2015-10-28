@@ -10,9 +10,21 @@ import awfy, util
 import math
 from profiler import Profiler
 from datetime import datetime
+import glob
 
 SecondsPerDay = 60 * 60 * 24
 MaxRecentRuns = 30
+
+class FolderChanger:
+    def __init__(self, folder):
+        self.old = os.getcwd()
+        self.new = folder
+
+    def __enter__(self):
+        os.chdir(self.new)
+
+    def __exit__(self, type, value, traceback):
+        os.chdir(self.old)
 
 def export(name, j):
     path = os.path.join(awfy.path, name)
@@ -22,17 +34,19 @@ def export(name, j):
         util.json_dump(j, fp)
 
 def find_all_months(cx, prefix, name):
-    pattern = prefix + 'raw-' + name + '-(\d\d\d\d)-(\d+)\.json'
+    pattern = prefix + 'raw-' + name + '-*-*.json'
+    re_pattern = prefix + 'raw-' + name + '-(\d\d\d\d)-(\d+)\.json'
+    
+    with FolderChanger(awfy.path):
+        files = []
+        for file in glob.glob(pattern):
+            m = re.match(re_pattern, file)
+            if not m:
+                continue
 
-    files = []
-    for file in os.listdir(awfy.path):
-        m = re.match(pattern, file)
-        if not m:
-            continue
-
-        year = int(m.group(1))
-        month = int(m.group(2))
-        files.append(((year, month), file))
+            year = int(m.group(1))
+            month = int(m.group(2))
+            files.append(((year, month), file))
 
     files = sorted(files, key=lambda key: key[0][0] * 12 + key[0][1])
     return files
@@ -40,7 +54,7 @@ def find_all_months(cx, prefix, name):
 def retrieve_graphs(cx, files):
     graphs = []
     for when, file in files:
-        graphs.append((when, retrieve_graph(cx, file))
+        graphs.append((when, retrieve_graph(cx, file)))
     return graphs
 
 def retrieve_graph(cx, file):
@@ -159,70 +173,80 @@ def combine(graphs):
 
     return combined
 
-def aggregate(graph):
-    graph['aggregate'] = True
+def aggregate(cx, suite, prefix, name):
+    with Profiler() as p:
+        sys.stdout.write('Aggregating ' + name + '... ')
+        sys.stdout.flush()
 
-    # If we don't have enough points for a historical view, we won't display
-    # a historical view.
-    if len(graph['timelist']) <= MaxRecentRuns:
-        if len(graph['timelist']) == 0:
-            graph['earliest'] = 0
-        else:
-            graph['earliest'] = graph['timelist'][0]
-        return graph
+        files = find_all_months(cx, prefix, name)
+        graphs = retrieve_graphs(cx, files)
+        graph = combine([graph for when, graph in graphs])
 
-    # Show MacRecentRuns of atleast one line.
-    recentRuns = 0
-    runs = []
-    for i in range(len(graph['lines'])):
-        runs.append(0)
-    for i in range(len(graph['timelist'])-1, -1, -1):
-        for j in range(len(graph['lines'])):
-            if graph['lines'] and i < len(graph['lines'][j]["data"]) and graph['lines'][j]["data"][i]:
-                runs[j] += 1
-        recentRuns += 1
-        if max(runs) == MaxRecentRuns:
-            break
+        graph['aggregate'] = True
 
-    # If the number of historical points is <= the number of recent points,
-    # then the graph is about split so we don't have to do anything.
-    historical = len(graph['timelist']) - recentRuns
-    if historical <= MaxRecentRuns:
-        graph['earliest'] = graph['timelist'][historical]
-        return graph
+        # If we don't have enough points for a historical view, we won't display
+        # a historical view.
+        if len(graph['timelist']) <= MaxRecentRuns:
+            if len(graph['timelist']) == 0:
+                graph['earliest'] = 0
+            else:
+                graph['earliest'] = graph['timelist'][0]
+            return graph
 
-    # How big should each region be?
-    region_length = float(historical) / MaxRecentRuns
+        # Show MacRecentRuns of atleast one line.
+        recentRuns = 0
+        runs = []
+        for i in range(len(graph['lines'])):
+            runs.append(0)
+        for i in range(len(graph['timelist'])-1, -1, -1):
+            for j in range(len(graph['lines'])):
+                if graph['lines'] and i < len(graph['lines'][j]["data"]) and graph['lines'][j]["data"][i]:
+                    runs[j] += 1
+            recentRuns += 1
+            if max(runs) == MaxRecentRuns:
+                break
 
-    pos = 0
-    regions = []
-    for i in range(0, MaxRecentRuns):
-        start = int(round(pos))
+        # If the number of historical points is <= the number of recent points,
+        # then the graph is about split so we don't have to do anything.
+        historical = len(graph['timelist']) - recentRuns
+        if historical <= MaxRecentRuns:
+            graph['earliest'] = graph['timelist'][historical]
+            return graph
 
-        end = min(int(math.floor(pos + region_length)), historical) - 1
-        if end < start:
-            end = start
-        regions.append((start, end))
-        pos += region_length
+        # How big should each region be?
+        region_length = float(historical) / MaxRecentRuns
 
-    new_graph = condense_graph(graph, regions)
-    for i, line in enumerate(new_graph['lines']):
-        oldline = graph['lines'][i]
-        line['data'].extend(oldline['data'][historical:])
-    new_graph['timelist'].extend(graph['timelist'][historical:])
+        pos = 0
+        regions = []
+        for i in range(0, MaxRecentRuns):
+            start = int(round(pos))
 
-    new_graph['earliest'] = graph['timelist'][historical]
-    new_graph['aggregate'] = True
+            end = min(int(math.floor(pos + region_length)), historical) - 1
+            if end < start:
+                end = start
+            regions.append((start, end))
+            pos += region_length
 
-    # Sanity check.
-    for line in new_graph['lines']:
-        if len(line['data']) != len(new_graph['timelist']):
-            raise Exception('corrupt graph')
+        new_graph = condense_graph(graph, regions)
+        for i, line in enumerate(new_graph['lines']):
+            oldline = graph['lines'][i]
+            line['data'].extend(oldline['data'][historical:])
+        new_graph['timelist'].extend(graph['timelist'][historical:])
 
+        new_graph['earliest'] = graph['timelist'][historical]
+        new_graph['aggregate'] = True
+
+        # Sanity check.
+        for line in new_graph['lines']:
+            if len(line['data']) != len(new_graph['timelist']):
+                raise Exception('corrupt graph')
+
+        diff = p.time()
+    print('took ' + diff)
     return new_graph
 
 def file_is_newer(file1, file2):
-    return os.getmtime(file1) >= os.getmtime(file2)
+    return os.path.getmtime(file1) >= os.path.getmtime(file2)
 
 def condense(cx, suite, prefix, name):
     with Profiler() as p:
@@ -235,20 +259,20 @@ def condense(cx, suite, prefix, name):
     print('took ' + diff)
 
     if not len(files):
-        return
+        return False
 
-    aggregate = False
+    change = False
 
     for when, raw_file in files:
         condensed_name = prefix + 'condensed-' + name + '-' + str(when[0]) + '-' + str(when[1])
-        condensed_file = condense_name + '.json'
+        condensed_file = condensed_name + '.json'
 
         # Only update the graph when condensed file is older.
-        if file_is_newer(os.path.join(awfy.path, condense_file), os.path.join(awfy.path, raw_file)):
+        if os.path.exists(os.path.join(awfy.path, condensed_file)) and file_is_newer(os.path.join(awfy.path, condensed_file), os.path.join(awfy.path, raw_file)):
             continue
 
-        # Only aggregate everything when there was data changed.
-        aggregate = True
+        # There was a datapoint added to one of the condensed files.
+        change = True
 
         with Profiler() as p:
             sys.stdout.write('Condensing ' + condensed_name + '... ')
@@ -260,20 +284,7 @@ def condense(cx, suite, prefix, name):
             diff = p.time()
         print(' took ' + diff)
 
-    # Combine everything.
-    if aggregate:
-        with Profiler() as p:
-            sys.stdout.write('Aggregating ' + name + '... ')
-            sys.stdout.flush()
-
-            graphs = retrieve_graphs(files)
-            combined = combine([graph for when, graph in graphs])
-            summary = aggregate(combined)
-            diff = p.time()
-
-        print('took ' + diff)
-
-    return summary
+    return change
 
 def condense_suite(cx, machine, suite):
     name = suite.name + '-' + str(machine.id)
@@ -281,22 +292,32 @@ def condense_suite(cx, machine, suite):
     if suite.visible == 2:
         prefix = "auth-"
 
-    suite_aggregate = condense(cx, suite, prefix, name)
+    # Condense suite
+    change = condense(cx, suite, prefix, name)
 
-    j = { 'version': awfy.version,
-          'graph': suite_aggregate
-        }
-    export(prefix + 'aggregate-' + suite.name + '-' + str(machine.id) + '.json', j)
-
-    for test_name in suite.tests:
-        test_path = suite.name + '-' + test_name + '-' + str(machine.id)
-        test_aggregate = condense(cx, suite, prefix + 'bk-', test_path)
+    # Aggregate suite if needed.
+    aggregated_file = prefix + 'aggregate-' + name + '.json'
+    if change:
         j = { 'version': awfy.version,
-              'graph': test_aggregate
+              'graph': aggregate(cx, suite, prefix, name)
             }
-        export(prefix + 'bk-aggregate-' + test_path + '.json', j)
+        export(aggregated_file, j)
 
-    return suite_aggregate
+        # Note: only run the subtest condenser when suite was changed.
+        for test_name in suite.tests:
+            test_path = suite.name + '-' + test_name + '-' + str(machine.id)
+
+            # Condense test
+            change = condense(cx, suite, prefix + 'bk-', test_path)
+
+            # Aggregate suite if needed.
+            if change:
+                j = { 'version': awfy.version,
+                      'graph': aggregate(cx, suite, prefix + 'bk-', test_path)
+                    }
+                export(prefix + 'bk-aggregate-' + test_path + '.json', j)
+
+    return retrieve_graph(cx, aggregated_file)
 
 def condense_all(cx):
     for machine in cx.machines:
