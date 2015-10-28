@@ -14,15 +14,6 @@ from datetime import datetime
 SecondsPerDay = 60 * 60 * 24
 MaxRecentRuns = 30
 
-def should_export(name, when):
-    path = os.path.join(awfy.path, name)
-    if not os.path.exists(path):
-        return True
-    now = datetime.now()
-    if now.year == when[0] and now.month == when[1]:
-        return True
-    return False
-
 def export(name, j):
     path = os.path.join(awfy.path, name)
     if os.path.exists(path):
@@ -44,13 +35,18 @@ def find_all_months(cx, prefix, name):
         files.append(((year, month), file))
 
     files = sorted(files, key=lambda key: key[0][0] * 12 + key[0][1])
+    return files
+
+def retrieve_graphs(cx, files):
     graphs = []
     for when, file in files:
-        with open(os.path.join(awfy.path, file)) as fp:
-            cache = util.json_load(fp)
-        graphs.append((when, cache['graph']))
-
+        graphs.append((when, retrieve_graph(cx, file))
     return graphs
+
+def retrieve_graph(cx, file):
+    with open(os.path.join(awfy.path, file)) as fp:
+        cache = util.json_load(fp)
+    return cache['graph']
 
 # Take a timelist and split it into lists of which times correspond to days.
 def split_into_days(timelist):
@@ -184,7 +180,7 @@ def aggregate(graph):
         for j in range(len(graph['lines'])):
             if graph['lines'] and i < len(graph['lines'][j]["data"]) and graph['lines'][j]["data"][i]:
                 runs[j] += 1
-        recentRuns += 1 
+        recentRuns += 1
         if max(runs) == MaxRecentRuns:
             break
 
@@ -225,39 +221,57 @@ def aggregate(graph):
 
     return new_graph
 
+def file_is_newer(file1, file2):
+    return os.getmtime(file1) >= os.getmtime(file2)
+
 def condense(cx, suite, prefix, name):
-    sys.stdout.write('Importing all datapoints for ' + name + '... ')
-    sys.stdout.flush()
     with Profiler() as p:
-        graphs = find_all_months(cx, prefix, name)
+        sys.stdout.write('Importing all datapoints for ' + name + '... ')
+        sys.stdout.flush()
+
+        files = find_all_months(cx, prefix, name)
         diff = p.time()
+
     print('took ' + diff)
 
-    if not len(graphs):
+    if not len(files):
         return
 
-    for when, graph in graphs:
-        new_name = prefix + 'condensed-' + name + '-' + str(when[0]) + '-' + str(when[1])
+    aggregate = False
 
-        # Don't condense if it already exists...
-        if not should_export(new_name + '.json', when):
+    for when, raw_file in files:
+        condensed_name = prefix + 'condensed-' + name + '-' + str(when[0]) + '-' + str(when[1])
+        condensed_file = condense_name + '.json'
+
+        # Only update the graph when condensed file is older.
+        if file_is_newer(os.path.join(awfy.path, condense_file), os.path.join(awfy.path, raw_file)):
             continue
 
-        sys.stdout.write('Condensing ' + new_name + '... ')
-        sys.stdout.flush()
+        # Only aggregate everything when there was data changed.
+        aggregate = True
+
         with Profiler() as p:
-            condense_month(cx, suite, graph, prefix, new_name)
+            sys.stdout.write('Condensing ' + condensed_name + '... ')
+            sys.stdout.flush()
+
+            graph = retrieve_graph(cx, raw_file)
+
+            condense_month(cx, suite, graph, prefix, condensed_name)
             diff = p.time()
         print(' took ' + diff)
 
     # Combine everything.
-    sys.stdout.write('Aggregating ' + name + '... ')
-    sys.stdout.flush()
-    with Profiler() as p:
-        combined = combine([graph for when, graph in graphs])
-        summary = aggregate(combined)
-        diff = p.time()
-    print('took ' + diff)
+    if aggregate:
+        with Profiler() as p:
+            sys.stdout.write('Aggregating ' + name + '... ')
+            sys.stdout.flush()
+
+            graphs = retrieve_graphs(files)
+            combined = combine([graph for when, graph in graphs])
+            summary = aggregate(combined)
+            diff = p.time()
+
+        print('took ' + diff)
 
     return summary
 

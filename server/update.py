@@ -253,6 +253,8 @@ def perform_update(cx, machine, suite, prefix, fetch):
         diff = p.time()
     new_rows = len(rows)
     print('found ' + str(new_rows) + ' new rows in ' + diff)
+    if new_rows == 0:
+        return 0
 
     # Break everything into months.
     year = 0
