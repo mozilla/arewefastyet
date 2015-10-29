@@ -6,7 +6,7 @@ require_once("DB/Mode.php");
 class RetriggerController {
 
     public function __construct() {
-        $this->tasks = [];
+        $this->tasks = Array();
         $this->unit_id = 0;
     }
 
@@ -16,7 +16,7 @@ class RetriggerController {
 
 		$qTask = mysql_query("SELECT * FROM control_tasks WHERE control_unit_id = $unit_id");
         while ($task = mysql_fetch_object($qTask)) {
-            $task = new ManipulateTask($task);
+            $task = new ManipulateTask($task->task);
             $retrigger->tasks[] = $task;
         }
         return $retrigger;
@@ -31,7 +31,7 @@ class RetriggerController {
             if (!($mode_id == 0 || $task->mode_id == 0 || $task->mode_id == $mode_id))
                 continue;
 
-            $task = new ManipulateTask($task);
+            $task = new ManipulateTask($task->task);
             if ($mode_id != 0)
                 $task->update_modes($mode->mode());
 
@@ -58,7 +58,7 @@ class RetriggerController {
         foreach ($this->tasks as $task) {
 			mysql_query("INSERT INTO control_task_queue
                          (control_unit_id, task)
-                         VALUES ({$this->unit_id}, '".mysql_escape_string($task)."')");
+                         VALUES ({$this->unit_id}, '".mysql_escape_string($task->task())."')");
         }
     }
 }

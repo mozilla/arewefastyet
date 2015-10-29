@@ -7,11 +7,11 @@ class Task {
     // This makes the transition from source to engine. 
     // Note: an engine can have multiple sources.
     public function source_rules() {
-        return [
+        return Array(
             "mozilla" => "firefox",
             "v8" => "chrome",
             "webkit" => "webkit"
-        ];
+        );
     }
 
     // The execute function looks at engine+config to decide which
@@ -19,7 +19,7 @@ class Task {
     // Though it is possible to add some extra rules in the task
     // itself. These are not accounted for (TODO).
     public function mode_rules() {
-        return [
+        return Array(
             "firefox,default" => "jmim",
             "firefox,noasmjs" => "noasmjs",
             "firefox,unboxedobjects" => "unboxedobjects",
@@ -29,7 +29,7 @@ class Task {
             "webkit,default" => "jsc",
             "native,default" => "clang",
             "servo,default" => "servo"
-        ];
+        );
     }
 
     public function __construct($task) {
@@ -41,7 +41,7 @@ class Task {
     }
 
     public function configs() {
-        $configs = [];
+        $configs = Array();
         $commands = BashInterpreter::matchCommand($this->task, "python execute.py");
         foreach ($commands as $command) {
             $config_matches = BashInterpreter::matchFlag($command, "-c");
@@ -53,7 +53,7 @@ class Task {
     }
 
     public function engines() {
-        $engines = [];
+        $engines = Array();
 
         // Fetch all engines that have been build.
         $commands = BashInterpreter::matchCommand($this->task, "python build.py");
@@ -62,7 +62,8 @@ class Task {
             if (count($source_matches) != 1)
                 throw new Error("Expected one match.");
 
-            $engines[] = $this->source_rules()[$source_matches[0]];
+			$source_rules = $this->source_rules();
+            $engines[] = $source_rules[$source_matches[0]];
         }
 
         // Fetch all engines that have been downloaded.
@@ -75,7 +76,7 @@ class Task {
         $engines = $this->engines();
         $mode_rules = $this->mode_rules();
 
-        $modes = [];
+        $modes = Array();
         foreach ($configs as $config) {
             foreach ($engines as $engine) {
                 $rule = $engine.",".$config;
@@ -88,7 +89,7 @@ class Task {
     }
 
     public function benchmarks() {
-        $configs = [];
+        $configs = Array();
         $commands = BashInterpreter::matchCommand($this->task, "python execute.py");
         foreach ($commands as $command) {
             $config_matches = BashInterpreter::matchFlag($command, "-b");

@@ -17,17 +17,17 @@ if ($unit = GET_int("unit")) {
     if ($queue->has_active_task())
 		slack("requesting new task, while old task is still running!");
 
-    if (!$queue->has_queued_tasks())
+    if (!$queue->has_queued_tasks()) {
         $retrigger = RetriggerController::fromUnit($unit);
         $retrigger->enqueue();
 	}
 
     $task = $queue->pop();
 
-	echo json_encode([
+	echo json_encode(Array(
         "task" => $task->task(),
         "id" => $task->id()
-    ]);
+    ));
 
     die();
 

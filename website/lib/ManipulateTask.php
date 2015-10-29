@@ -36,7 +36,8 @@ class ManipulateTask extends Task {
         $commands = BashInterpreter::matchCommand($this->task, "python build.py");
         foreach ($commands as $command) {
             $source_matches = BashInterpreter::matchFlag($command, "-s");
-            $engine = $this->source_rules()[$source_matches[0]];
+			$source_rules = $this->source_rules();
+            $engine = $source_rules[$source_matches[0]];
             print_r($removed_engines);
             if (in_array($engine, $removed_engines)) {
                 $this->removeBuildOrDownloadCommand($command);
@@ -47,8 +48,8 @@ class ManipulateTask extends Task {
     }
 
     public function update_modes($modes) {
-        $engines = [];
-        $configs = [];
+        $engines = Array();
+        $configs = Array();
         $mode_rules = array_flip($this->mode_rules());
 
         foreach ($modes as $mode) {
@@ -79,7 +80,7 @@ class ManipulateTask extends Task {
         $commands = BashInterpreter::matchCommand($this->task, "python build.py");
         foreach ($commands as $command) {
             $revision_matches = BashInterpreter::matchFlag($command, "-r");
-            for ($revision_matches as $revision) {
+            foreach ($revision_matches as $revision) {
                 $this->task = BashInterpreter::removeFlagFromCommand($this->task, $command, "-r ".$revision);
             }
         }
