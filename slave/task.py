@@ -10,7 +10,7 @@ if __name__ == "__main__":
     parser.add_option("-r", "--run", dest="machine", type="int", help="Get and run the task of a given (control) machine.")
     (options, args) = parser.parse_args()
 
-    url = "http://www.arewefastyet.com/task.php?machine="+str(options.machine)
+    url = "http://www.arewefastyet.com/task.php?unit="+str(options.machine)
     data = urllib2.urlopen(url).read()
     data = json.loads(data)
 
