@@ -5,48 +5,36 @@
 
 require_once("internals.php");
 
+require_once("lib/RetriggerController.php");
+require_once("lib/DB/TaskQueue.php");
+require_once("lib/DB/QueuedTask.php");
+
 init_database();
 
-if (isset($_GET["unit"]) && is_numeric($_GET["unit"])) {
-	$unit = (int)$_GET["unit"];
+if ($unit = GET_int("unit")) {
 
-	$qTask = mysql_query("SELECT *
-                          FROM control_task_queue
-                          WHERE control_unit_id = $unit AND busy = 1
-                          ORDER BY id LIMIT 1");
-	if (mysql_num_rows($qTask) != 0) {
+    $queue = new TaskQueue($unit);
+    if ($queue->has_active_task())
 		slack("requesting new task, while old task is still running!");
+
+    if (!$queue->has_queued_tasks())
+        $retrigger = RetriggerController::fromUnit($unit);
+        $retrigger->enqueue();
 	}
 
+    $task = $queue->pop();
 
-    $qTask = mysql_query("SELECT *
-                          FROM control_task_queue
-                          WHERE control_unit_id = $unit and busy = 0
-                          ORDER BY id LIMIT 1");
-    if (mysql_num_rows($qTask) == 0) {
-		$qTask = mysql_query("SELECT task FROM control_tasks WHERE control_unit_id = $unit");
-        while ($task = mysql_fetch_object($qTask)) {
-			mysql_query("INSERT INTO control_task_queue
-                         (control_unit_id, task)
-                         VALUES ($unit, '".mysql_escape_string($tasks->task)."')");
-		}
-	}
-
-    $qTask = mysql_query("SELECT *
-                          FROM control_task_queue
-                          WHERE control_unit_id = $unit and busy = 0
-                          ORDER BY id LIMIT 1");
-	$task = mysql_fetch_object($qTask);
-	echo json_encode(Array("task" => $task->task,
-                           "id" => $task->id));
-
-	mysql_query("UPDATE control_task_queue SET busy = 1 WHERE id = ".$task->id);
+	echo json_encode([
+        "task" => $task->task(),
+        "id" => $task->id()
+    ]);
 
     die();
 
-} else if (isset($_GET["finish"]) && is_numeric($_GET["finish"])) {
-	$task_id = $_GET["finish"];
-	mysql_query("DELETE FROM control_task_queue WHERE id = ".$task_id);
+} else if ($task_id = GET_int("finish")) {
+
+    $task = QueuedTask($task_id);
+    $task->setFinished();
 
 	die();
 }
