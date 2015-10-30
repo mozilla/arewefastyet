@@ -95,6 +95,49 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
         modalDialog.open("partials/bug.html", regression);
     }
 
+    $scope.showRetriggerPopup = function(regression) {
+		var retrigger = {
+			"machine": regression.machine,
+			"mode": regression.mode,
+			"cset": regression.cset,
+			"suites": [],
+			"submit": function() {
+				var benchmarks = [];
+				for (var i=0; i<retrigger.suites.length; i++) {
+					if (retrigger.suites[i].selected)
+						benchmarks.push(retrigger.suites[i].name);
+				}
+				
+				$http.post('retrigger.php', {
+					machine_id: regression.machine_id,
+					mode_id: regression.mode_id,
+					revision: retrigger.cset,
+					run_before_id: regression.prev_run_id,
+					run_after_id: regression.run_id,
+					benchmarks: benchmarks
+				}).then(function(data) {
+				});
+				modalDialog.close()
+			}
+		}
+		var suites = {};
+        for (var i=0; i<regression.scores.length; i++) {
+			var name = regression.scores[i]["suite"];
+			var selected = !regression.scores[i]["noise"];
+			if (suites[name]) {
+				if (selected && !suites[name]["selected"])
+					suites[name]["selected"] = true;
+			} else {
+				suites[name] = {
+					"name": name,
+					"selected": selected
+				};
+				retrigger.suites.push(suites[name]);
+			}
+		}
+        modalDialog.open("partials/retrigger.html", retrigger);
+    }
+
     $scope.showRegression = function(regression, score, amount) {
         modalDialog.open("partials/loading.html");
 

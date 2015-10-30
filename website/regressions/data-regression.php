@@ -5,6 +5,7 @@
 
 require_once("../internals.php");
 require_once("data-func.php");
+require_once("../lib/RetriggerController.php");
 init_database();
 
 $postdata = file_get_contents("php://input");
@@ -25,7 +26,8 @@ $data = array();
 for ($i=0; $i < count($ids); $i++) {
 
 	$query = mysql_query("SELECT awfy_regression.id, machine, mode_id, awfy_run.finish_stamp,
-                                 build_id, prev_build_id, cset, bug, awfy_regression.status, detector
+                                 build_id, prev_build_id, cset, bug, awfy_regression.status, detector,
+								 awfy_run.id as run_id
 						  FROM awfy_regression
 						  INNER JOIN awfy_build ON build_id = awfy_build.id
 						  INNER JOIN awfy_run ON run_id = awfy_run.id
@@ -42,7 +44,10 @@ for ($i=0; $i < count($ids); $i++) {
 		"status" => $output["status"],
 		"build_id" => $output["build_id"],
 		"detector" => $output["detector"],
-		"scores" => array()
+		"run_id" => $output["run_id"],
+		"prev_run_id" => get("build", $output["prev_build_id"], "run_id"),
+		"scores" => array(),
+		"retriggerable" => RetriggerController::retriggerable($output["machine"], $output["mode_id"])
 	);
 	$qScores = mysql_query("SELECT * FROM awfy_regression_score
 						    WHERE regression_id = '".$output["id"]."'") or die(mysql_error());

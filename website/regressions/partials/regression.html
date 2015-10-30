@@ -53,6 +53,9 @@
 		<span ng-if="regression.detector!=0">Yes</span>
 		<span ng-if="regression.detector==0">No (new regression might still get detected in the future.)</span>
     </td></tr>
+    <tr class='retriggerable' ng-if='regression.retriggerable'><th>Retrigger</th><td>
+		<a class='link' ng-click='showRetriggerPopup(regression)'>Click here to re-run the benchmarks.</a>
+    </td></tr>
   	</table>
   </div>
 

@@ -1,0 +1,15 @@
+<div class='retrigger'>
+	<table class='details'>
+	<tr><th>Machine:</th><td>{{modal.machine}}</td></tr>
+	<tr><th>Mode:</th><td>{{modal.mode}}</td></tr>
+	<tr><th>Revision:</th><td>{{modal.cset}}</td></tr>
+	</table>
+
+	<div ng-repeat="suite in modal.suites">
+		<input type='checkbox' ng-model="suite.selected"> {{suite.name}}
+	</div>
+
+	<input type='submit' value='Retrigger' ng-click='modal.submit()'>
+
+</div>
+	

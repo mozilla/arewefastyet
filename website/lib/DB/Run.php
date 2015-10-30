@@ -33,7 +33,7 @@ class Run extends DB {
                      SET status = $status,
                          error = $error,
                          finish_stamp = UNIX_TIMESTAMP()
-                     WHERE id = $runid")
+                     WHERE id = {$this->id}")
             or die("ERROR: " . mysql_error());
     }
 

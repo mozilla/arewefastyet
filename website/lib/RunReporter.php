@@ -12,7 +12,7 @@ class RunReporter {
                               WHERE machine = $machine_id") or die(mysql_error());
         $run = mysql_fetch_object($query);
 
-        return Run::insert($machine_id, $run->maximum);
+        return Run::insert($machine_id, $run->maximum+1);
     }
 
     public static function createOutOfOrder($machine_id, $mode_id, $revision,
@@ -25,7 +25,7 @@ class RunReporter {
         $sort_order = RunReporter::findSortOrder($run_before, $mode_id, $revision);
 
         // sanity check.
-        if ($sort_order >= run_after->sort_order())
+        if ($sort_order >= $run_after->sort_order())
             throw new Exception("Given run bounds were incorrect.");
 
         // Create a space at the given sort_order, by shifting all sort_order,

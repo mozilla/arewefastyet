@@ -33,7 +33,7 @@ if ($unit = GET_int("unit")) {
 
 } else if ($task_id = GET_int("finish")) {
 
-    $task = QueuedTask($task_id);
+    $task = new QueuedTask($task_id);
     $task->setFinished();
 
 	die();
