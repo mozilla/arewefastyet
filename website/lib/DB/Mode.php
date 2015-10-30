@@ -1,30 +1,35 @@
 <?php
 
-class Mode {
+require_once("Vendor.php");
+require_once("DB.php");
 
-    // db: awfy_mode
-    function __construct($id) {
+class Mode extends DB {
+
+    public static $db = "awfy_mode";
+
+    public function __construct($id) {
         $this->id = $id;
     }
 
-    function vendor() {
-        $qMode = mysql_query("SELECT vendor_id
-                              FROM awfy_mode
-                              WHERE id = {$this->id}");
-        $mode = mysql_fetch_object($qMode);
-        return $mode->vendor_id;
+    public static function FromMode($mode) {
+        $query = "SELECT id FROM awfy_mode
+                  WHERE mode = '" . mysql_real_escape_string($mode) . "'";
+        $results = mysql_query($query) or die(mysql_error());
+        if (!$results || mysql_num_rows($results) < 1)
+            return null;
+        $row = mysql_fetch_array($results);
+        return new Mode($row[0]);
     }
 
-    function mode() {
-        $qMode = mysql_query("SELECT mode
-                              FROM awfy_mode
-                              WHERE id = {$this->id}");
-        $mode = mysql_fetch_object($qMode);
-        return $mode->mode;
+    public function vendor_id() {
+        return $this->select("vendor_id");
     }
 
-    function id() {
-        return $this->id;
+    public function vendor() {
+        return new Vendor($this->vendor_id());
+    }
+
+    public function mode() {
+        return $this->select("mode");
     }
 }
-

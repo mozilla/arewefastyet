@@ -3,8 +3,8 @@
 class BashInterpreter {
     public static function matchCommand($text, $command) {
         $command = str_replace("/", "\/", $command);
-        preg_match_all("/".$command." .*[;|$|\r\n]/", $text, $matches);
-        return $matches[0];
+        preg_match_all("/(".$command." .*)[;$\r\n#]/", $text, $matches);
+        return $matches[1];
     }
 
     public static function matchFlag($command, $flag) {
@@ -21,6 +21,10 @@ class BashInterpreter {
 
     public static function addFlagToCommands($text, $command, $full_flag) {
         return str_replace($command, $command." ".$full_flag, $text);
+    }
+
+    public static function addFlagToCommand($text, $full_command, $full_flag) {
+        return str_replace($full_command, $full_command." ".$full_flag, $text);
     }
 
     public static function removeFlagFromCommands($text, $command, $full_flag) {

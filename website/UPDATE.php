@@ -7,61 +7,77 @@ require_once("internals.php");
 
 init_database();
 
+require_once("lib/DB/Run.php");
+require_once("lib/DB/Build.php");
+require_once("lib/DB/Mode.php");
+require_once("lib/RunReporter.php");
+
 // Start a full benchmark run. Request a token/number used to report/group
 // benchmark scores.
-if (isset($_GET['run']) && $_GET['run'] == 'yes') {
-    // TODO: sort_order is not a date anymore. Adjust this logic to not take an
-    // order, but only set this afterwards.
-    $MACHINE = GET_int('MACHINE');
-    $stamp = GET_int('stamp');
+if (GET_string("run") == 'yes') {
+    $machine_id = GET_int('MACHINE');
 
-    $query = mysql_query("SELECT max(sort_order) as maximum
-                          FROM awfy_run
-                          WHERE machine = '".$MACHINE."'") or die(mysql_error());
-    $run = mysql_fetch_object($query);
+    $run = RunReporter::createForMachine($machine_id);
+    echo "id=".$run->id;
 
-    mysql_query("INSERT INTO awfy_run (machine, sort_order, approx_stamp)
-                 VALUES
-                 ($MACHINE, {$run->maximum}, UNIX_TIMESTAMP())")
-        or die("ERROR: " . mysql_error());
-    print("id=" . mysql_insert_id());
+    die();
+}
+
+// Start an out of order run. Retriggering a particular mode.
+if (GET_string("run") == 'ooo') {
+    $machine_id = GET_int('MACHINE');
+    $mode = Mode::FromMode(GET_string('name'));
+    $revision = GET_string('revision');
+    $run_before_id = GET_int('run_before_id');
+    $run_after_id = GET_int('run_after_id');
+
+    $run = RunReporter::createOutOfOrder($machine_id, $mode->id, $revision,
+                                         $run_before_id, $run_after_id);
+    echo "id=".$run->id;
+
     die();
 }
 
 // Finish a full benchmark run. Scores will only become visible from now on
 // (when status equals 1).
-if (isset($_GET['run']) && $_GET['run'] == 'finish') {
-    $runid = GET_run_id('runid');
+if (GET_string("run") == 'finish') {
+    $run_id = GET_int('runid');
     $status = GET_int('status');
-    if (isset($_GET['error']))
-        $error = '\'' . mysql_real_escape_string(GET_string('error')) . '\'';
-    else
-        $error = 'NULL';
-    mysql_query("UPDATE awfy_run
-                 SET status = $status,
-                     error = $error,
-                     finish_stamp = UNIX_TIMESTAMP()
-                 WHERE id = $runid")
-        or die("ERROR: " . mysql_error());
+
+    $run = new Run($run_id);
+    if ($run->isFinished() || $run->hasError())
+        throw new Error("Run was already finished or error'ed");
+
+    $error = GET_string('error');
+    $run->finish($status, $error);
 
     die();
 }
 
-if (isset($_GET['run']) && $_GET['run'] == 'addEngine') {
-    $runid = GET_run_id('runid');
-    $mode_id = find_mode(GET_string('name'));
-    $cset = mysql_real_escape_string(GET_string('cset'));
-    mysql_query("INSERT INTO awfy_build
-            (run_id, mode_id, cset)
-            VALUES
-            ($runid, $mode_id, '$cset')")
-        or die("ERROR: " . mysql_error());
+if (GET_string("run") == 'addEngine') {
+    $run = new Run(GET_int('runid'));
+    $revision = GET_string('cset');
+    $mode = Mode::FromMode(GET_string('name'));
+
+    if ($run->isFinished() || $run->hasError())
+        throw new Error("Run was already finished or error'ed");
+
+    if ($run->isOutOfOrder()) {
+        // out of order builds cannot add extra modes. The available
+        // mode have already been added.
+        if (!Build::withRunAndMode($run->id, $mode->id))
+            $run->finish(0, "Tried to add extra modes to out of order run.");
+        die();
+    }
+
+    Build::insert($run, $mode->id, $revision);
+
     die();
 }
 
 // Report that a slave is still awake when there are no benchmarks results
 // to send.
-if (isset($_GET['awake']) && $_GET['awake'] == 'yes') {
+if (GET_string('awake') == 'yes') {
     $MACHINE = GET_int('MACHINE');
     mysql_query("UPDATE awfy_machine
                  SET last_checked = UNIX_TIMESTAMP()
@@ -71,12 +87,16 @@ if (isset($_GET['awake']) && $_GET['awake'] == 'yes') {
 }
 
 // Report score of a benchmark total or subtest.
+$run_id = GET_int('run');
+$run = new Run($run_id);
+if ($run->isFinished() || $run->hasError())
+    throw new Error("Run was already finished or error'ed");
+
 $time = mysql_real_escape_string(GET_string('time'));
 $mode_id = find_mode(GET_string('mode'));
-$run = GET_run_id('run');
 $version = GET_string('suite');
 $score = GET_int('score');
-$build = find_build($run, $mode_id);
+$build = find_build($run_id, $mode_id);
 if (isset($_GET['version']))
     $version = GET_string('version');
 $suite_version_id = find_or_add_suite_version(GET_string('suite'), $version);

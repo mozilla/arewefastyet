@@ -38,7 +38,6 @@ class ManipulateTask extends Task {
             $source_matches = BashInterpreter::matchFlag($command, "-s");
 			$source_rules = $this->source_rules();
             $engine = $source_rules[$source_matches[0]];
-            print_r($removed_engines);
             if (in_array($engine, $removed_engines)) {
                 $this->removeBuildOrDownloadCommand($command);
             }
@@ -63,16 +62,31 @@ class ManipulateTask extends Task {
         $this->update_configs($configs);
     }
 
-    public function setTipRevision() {
-        $this->removeRevisionInfo();
+    public function setBuildRevisionToTip() {
+        $this->removeBuildRevisionInfo();
     }
 
-    public function setRevision($new_revision) {
-        $this->removeRevisionInfo();
+    public function setBuildRevision($new_revision) {
+        $this->removeBuildRevisionInfo();
         $this->task = BashInterpreter::addFlagToCommands($this->task, "python build.py", "-r ".$new_revision);
     }
 
-    private function removeRevisionInfo() {
+    public function setSubmitterOutOfOrder($mode_name, $revision, $run_before_id, $run_after_id) {
+        $commands = BashInterpreter::matchCommand($this->task, "python submitter.py");
+        foreach ($commands as $command) {
+            if (count(BashInterpreter::matchFlag($command, "-c")) > 0 ||
+                count(BashInterpreter::matchFlag($command, "--create")) > 0)
+            {
+                $flag  = "--revision ".$revision." ";
+                $flag .= "--mode ".$mode_name." ";
+                $flag .= "--run_before ".$run_before_id." ";
+                $flag .= "--run_after ".$run_after_id;
+                $this->task = BashInterpreter::addFlagToCommand($this->task, $command, $flag);
+            }
+        }
+    }
+
+    private function removeBuildRevisionInfo() {
         $commands = BashInterpreter::matchCommand($this->task, "python download.py");
         if (count($commands) != 0)
             throw new Exception("Not yet supported to specify revision for downloaded builds.");

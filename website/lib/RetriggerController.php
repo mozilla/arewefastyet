@@ -33,7 +33,7 @@ class RetriggerController {
 
             $task = new ManipulateTask($task->task);
             if ($mode_id != 0)
-                $task->update_modes($mode->mode());
+                $task->update_modes(Array($mode->mode()));
 
             $retrigger->tasks[] = $task;
 
@@ -45,9 +45,13 @@ class RetriggerController {
         return $retrigger;
     }
 
-    public function setRevision($revision) {
+    public function convertToRevision($mode_id, $revision, $run_before_id, $run_after_id) {
+        $mode = new Mode($mode_id);
+
         foreach ($this->tasks as $task) {
-            $task->setRevision($revision);
+            $task->update_modes(Array("jmim"/*$mode->mode()*/));
+            $task->setBuildRevision($revision);
+            $task->setSubmitterOutOfOrder("jmim"/*$mode->mode()*/, $revision, $run_before_id, $run_after_id);
         }
     }
 
@@ -62,4 +66,3 @@ class RetriggerController {
         }
     }
 }
-

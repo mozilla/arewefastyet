@@ -67,6 +67,27 @@ class RemoteSubmitter(Submitter):
             except urllib2.URLError:
                 self.runIds[i] = None
 
+    def startOutOfOrder(self, mode, revision, run_before, run_after):
+        self.assertMachine()
+        for i in range(len(self.urls)):
+            try:
+                url = self.urls[i]
+                url += '?run=ooo'
+                url += '&MACHINE=' + str(self.machine)
+                url += '&mode=' + str(mode)
+                url += '&revision=' + str(revision)
+                url += '&run_before_id=' + str(run_before)
+                url += '&run_after_id=' + str(run_after)
+                url = urllib2.urlopen(url)
+                contents = url.read()
+                m = re.search('id=(\d+)', contents)
+                if m == None:
+                    self.runIds[i] = None
+                else:
+                    self.runIds[i] = int(m.group(1))
+            except urllib2.URLError:
+                self.runIds[i] = None
+
     def createBuild(self, engine_type, config, cset):
         mode = self.mode(engine_type, config)
         for i in range(len(self.urls)):
@@ -190,12 +211,25 @@ if __name__ == "__main__":
     from optparse import OptionParser
     parser = OptionParser(usage="usage: %prog [options]")
 
-    parser.add_option("-f", "--finish", action="store_true", dest="finish", default=False)
-    parser.add_option("-s", "--session", dest="session", type="string")
-
+    # create a session arguments
     parser.add_option("-c", "--create", action="store_true", dest="create", default=False)
+    parser.add_option("-o", "--output", dest="output", type="string",
+                      help="The place to write the session too.")
     parser.add_option("-m", "--machine", dest="machine", type="int",
                       help="Give the machine number to submit to.")
+    parser.add_option("--mode", dest="mode", type="string",
+                      help="OutOfOrder: Give the mode")
+    parser.add_option("--revision", dest="rev", type="string",
+                      help="OutOfOrder: Give the revision")
+    parser.add_option("--run_before", dest="run_before", type="id",
+                      help="OutOfOrder: Give the run id whereafter this new run needs to come")
+    parser.add_option("--run_after", dest="run_after", type="id",
+                      help="OutOfOrder: Give the run id before which this new run needs to come")
+
+    # all other cases need session info
+    parser.add_option("-s", "--session", dest="session", type="string")
+
+    parser.add_option("-f", "--finish", action="store_true", dest="finish", default=False)
     (options, args) = parser.parse_args()
 
     utils.config.init("awfy.config")
@@ -203,8 +237,13 @@ if __name__ == "__main__":
     if options.create:
         submitter = RemoteSubmitter()
         submitter.setMachine(options.machine)
-        submitter.start()
-        print json.dumps(submitter.runIds)
+        if options.mode:
+            submitter.startOutOfOrder(options.mode, options.rev, options.run_before, options.run_after)
+        else:
+            submitter.start()
+
+        fp = open(options.output, "w")
+        json.dump(submitter.runIds, fp)
     elif options.finish:
         fp = open(options.session, "r")
         session = json.load(fp)
