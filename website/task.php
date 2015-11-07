@@ -8,6 +8,7 @@ require_once("internals.php");
 require_once("lib/RetriggerController.php");
 require_once("lib/DB/TaskQueue.php");
 require_once("lib/DB/QueuedTask.php");
+require_once("lib/Slack.php");
 
 init_database();
 
@@ -15,7 +16,7 @@ if ($unit = GET_int("unit")) {
 
     $queue = new TaskQueue($unit);
     if ($queue->has_active_task())
-		slack("requesting new task, while old task is still running!");
+		Slack::log("requesting new task, while old task is still running!");
 
     if (!$queue->has_queued_tasks()) {
         $retrigger = RetriggerController::fromUnit($unit);

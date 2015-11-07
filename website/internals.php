@@ -40,33 +40,6 @@ function init_database()
     mysql_select_db($config->mysql_db_name) or die("ERROR: " . mysql_error());
 }
 
-// (string) $message - message to be passed to Slack
-// (string) $room - room in which to write the message, too
-// (string) $icon - You can set up custom emoji icons to use with each message
-function slack($message, $room = "engineering", $icon = ":longbox:")
-{
-	global $config;
-
-	$room = ($room) ? $room : "engineering";
-	$data = "payload=" . json_encode(array(
-			#"channel"       =>  "#{$room}",
-			"text"          =>  $message,
-			"icon_emoji"    =>  $icon
-		));
-   
-	// You can get your webhook endpoint from your Slack settings
-	$url = $config->slack_webhook;
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $url);
-	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	$result = curl_exec($ch);
-	curl_close($ch);
-   
-	return $result;
-}
-
 function username()
 {
     if (!isset($_SESSION['persona']))
