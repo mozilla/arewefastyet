@@ -24,7 +24,7 @@ class Build {
             throw new Exception("Cannot info to a run that is finished.");
 
         mysql_query("INSERT INTO awfy_build
-                     (run_id, mode_id, revision)
+                     (run_id, mode_id, cset)
                      VALUES
                      ({$run->id}, $mode_id, '".mysql_real_escape_string($revision)."')")
                      or die("ERROR: " . mysql_error());
