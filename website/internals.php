@@ -33,6 +33,10 @@ class Config {
     }
 }
 
+function throw_exception($exception) {
+	throw new Exception($exception);
+}
+
 function init_database()
 {
     global $config;

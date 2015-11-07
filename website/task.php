@@ -15,19 +15,25 @@ init_database();
 if ($unit = GET_int("unit")) {
 
     $queue = new TaskQueue($unit);
-    if ($queue->has_active_task())
-		Slack::log("requesting new task, while old task is still running!");
+    if ($queue->has_active_task()) {
+        Slack::log("requesting new task, while old task is still running!");
+        $task = $queue->get_active_task();
+        $task->reportError("Requested new task, while this task was still running.");
+    }
 
     if (!$queue->has_queued_tasks()) {
         $retrigger = RetriggerController::fromUnit($unit);
+		if (count($retrigger->tasks) == 0)
+			die("No tasks to schedule");
         $retrigger->enqueue();
-	}
+    }
 
-    $task = $queue->pop();
+    $task = $queue->get_oldest_queued_tasks();
+    $task->setStarted();
 
-	echo json_encode(Array(
+    echo json_encode(Array(
         "task" => $task->task(),
-        "id" => $task->id()
+        "id" => $task->id
     ));
 
     die();
@@ -37,5 +43,5 @@ if ($unit = GET_int("unit")) {
     $task = new QueuedTask($task_id);
     $task->setFinished();
 
-	die();
+    die();
 }
