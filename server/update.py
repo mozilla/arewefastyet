@@ -13,7 +13,7 @@ import os.path
 import datetime
 import condenser, json
 from profiler import Profiler
-from builder import Builder
+from builder import LineBuilder, GraphBuilder
 
 def export(name, j):
     path = os.path.join(awfy.path, name)
@@ -42,7 +42,8 @@ def delete_metadata(prefix, data):
         os.remove(name)
 
 def fetch_test_scores(machine_id, suite_id, name,
-                      finish_stamp = (0, "UNIX_TIMESTAMP()")):
+                      finish_stamp = (0, "UNIX_TIMESTAMP()"),
+                      approx_stamp = (0, "UNIX_TIMESTAMP()")):
     c = awfy.db.cursor()
     query = "SELECT id FROM awfy_suite_test \
              WHERE name = %s"
@@ -62,6 +63,8 @@ def fetch_test_scores(machine_id, suite_id, name,
              AND t.id in ("+(",".join(suite_ids))+")                                \
              AND r.status > 0                                                       \
              AND r.machine = %s                                                     \
+             AND r.approx_stamp >= "+str(approx_stamp[0])+"                         \
+             AND r.approx_stamp <= "+str(approx_stamp[1])+"                         \
              AND r.finish_stamp >= "+str(finish_stamp[0])+"                         \
              AND r.finish_stamp <= "+str(finish_stamp[1])+"                         \
              ORDER BY r.sort_order ASC                                              \
@@ -70,7 +73,8 @@ def fetch_test_scores(machine_id, suite_id, name,
     return c.fetchall()
 
 def fetch_suite_scores(machine_id, suite_id,
-                       finish_stamp = (0, "UNIX_TIMESTAMP()")):
+                       finish_stamp = (0, "UNIX_TIMESTAMP()"),
+                       approx_stamp = (0, "UNIX_TIMESTAMP()")):
     query = "SELECT STRAIGHT_JOIN r.id, r.approx_stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
              FROM awfy_run r                                                        \
              JOIN awfy_build b ON r.id = b.run_id                                   \
@@ -79,6 +83,8 @@ def fetch_suite_scores(machine_id, suite_id,
              WHERE v.suite_id = %s                                                  \
              AND r.status > 0                                                       \
              AND r.machine = %s                                                     \
+             AND r.approx_stamp >= "+str(approx_stamp[0])+"                         \
+             AND r.approx_stamp <= "+str(approx_stamp[1])+"                         \
              AND r.finish_stamp >= "+str(finish_stamp[0])+"                         \
              AND r.finish_stamp <= "+str(finish_stamp[1])+"                         \
              ORDER BY r.sort_order ASC                                              \
@@ -88,7 +94,8 @@ def fetch_suite_scores(machine_id, suite_id,
     return c.fetchall()
 
 def delete_cache(prefix):
-    os.remove(os.path.join(awfy.path, prefix + '.json'))
+    if os.path.exists(os.path.join(awfy.path, prefix + '.json')):
+        os.remove(os.path.join(awfy.path, prefix + '.json'))
 
 def open_cache(suite, prefix):
     try:
@@ -125,30 +132,18 @@ def update_cache(cx, suite, prefix, when, rows):
         line.append(row)
 
     # Build our actual datasets.
-    lines = [ ]
-    builder = Builder()
+    graph = GraphBuilder(suite.direction)
     for modeid in modes:
-        rows = modes[modeid]
-        points = []
-        for row in rows:
-            score = float(row[3])
-            if score:
-                cset = row[2]
-            else:
-                cset = None
-            builder.addPoint(points,
-                             int(row[1]),
-                             cset,
-                             None,
-                             score,
-                             row[5],
-                             row[6])
-        line = { 'modeid': modeid,
-                 'data': points
-               }
-        lines.append(line)
-    builder.prune()
-    builder.finish(lines)
+        line = graph.newLine(modeid)
+        for row in modes[modeid]:
+            line.addPoint(int(row[1]),    # time
+                          row[2],         # cset (first)
+                          None,           # None (last)
+                          float(row[3]),  # score
+                          row[5],         # suite_version
+                          row[6])         # id
+    graph.fixup()
+    new_data = graph.output()
 
     # Open the old cache.
     cache = open_cache(suite, prefix)
@@ -158,21 +153,15 @@ def update_cache(cx, suite, prefix, when, rows):
     for i, oldline in enumerate(cache['lines']):
         cache_modes[int(oldline['modeid'])] = oldline
 
-    # Updating fails if there are items before the last time in the cache.
-    if len(cache['timelist']) and len(builder.timelist):
-        last_time = cache['timelist'][-1]
-        i = 0
-        while i < len(builder.timelist) and builder.timelist[i] < last_time:
+    # Test that there are only datapoints added at the end. 
+    # Else report to fully renew cache. 
+    if len(cache['timelist']) and len(new_data['timelist']):
+        if new_data['timelist'][0] < cache['timelist'][-1]:
             return False
-        if i:
-            builder.timelist = builder.timelist[i:]
-            for line in lines:
-                line['data'] = line['data'][i:]
-
 
     # For any of our lines that are not in the cache, prepend null points so
     # the line width matches the existing lines.
-    for line in lines:
+    for line in new_data['lines']:
         if line['modeid'] in cache_modes:
             continue
 
@@ -183,7 +172,7 @@ def update_cache(cx, suite, prefix, when, rows):
         cache_modes[line['modeid']] = data
 
     # Now we can merge our data into the existing graph.
-    for line in lines:
+    for line in new_data['lines']:
         oldline = cache_modes[line['modeid']]
         oldline['data'].extend(line['data'])
 
@@ -193,22 +182,22 @@ def update_cache(cx, suite, prefix, when, rows):
         modeid = int(oldline['modeid'])
         if modeid in modes:
             continue
-        oldline['data'].extend([None] * len(builder.timelist))
+        oldline['data'].extend([None] * len(new_data['timelist']))
 
     # Finally we can extend the cache timelist.
-    cache['timelist'].extend(builder.timelist)
+    cache['timelist'].extend(new_data['timelist'])
 
     # Sanity check.
     for line in cache['lines']:
         if len(line['data']) != len(cache['timelist']):
-            print(str(len(line['data'])) + ' != ' + str(len(cache['timelist'])))
+            print len(line['data']), ' != ', len(cache['timelist'])
             raise Exception('computed datapoints wrong')
 
     # Now save the results.
     save_cache(prefix, cache)
     return True
 
-def renew_cache(cx, machine, suite, prefix, when, last_stamp, fetch):
+def renew_cache(cx, machine, suite, prefix, when, fetch):
     delete_cache(prefix + '-' + str(when[0]) + '-' + str(when[1]));
 
     # Delete corresponding condensed graph
@@ -225,19 +214,18 @@ def renew_cache(cx, machine, suite, prefix, when, last_stamp, fetch):
         next_year += 1
     dt = datetime.datetime(year=next_year, month=next_month, day=1)
     stop_stamp = int(time.mktime(dt.timetuple())) - 1
-    if last_stamp < stop_stamp:
-        stop_stamp = last_stamp
+
+    name = prefix + '-' + str(when[0]) + '-' + str(when[1])
 
     # Querying all information from this month.
-    sys.stdout.write('Querying ' + prefix + '... ')
+    sys.stdout.write('Fetching monthly info ' + name + '... ')
     sys.stdout.flush()
     with Profiler() as p:
-        rows = fetch(machine, finish_stamp=(start_stamp,stop_stamp))
+        rows = fetch(machine, approx_stamp=(start_stamp,stop_stamp))
         diff = p.time()
     new_rows = len(rows)
     print('found ' + str(new_rows) + ' rows in ' + diff)
 
-    name = prefix + '-' + str(when[0]) + '-' + str(when[1])
     update_cache(cx, suite, name, when, rows) 
 
 def perform_update(cx, machine, suite, prefix, fetch):
@@ -246,7 +234,7 @@ def perform_update(cx, machine, suite, prefix, fetch):
     last_stamp = metadata['last_stamp']
     current_stamp = int(time.time())
 
-    sys.stdout.write('Querying ' + prefix + '... ')
+    sys.stdout.write('Querying for new rows ' + prefix + '... ')
     sys.stdout.flush()
     with Profiler() as p:
         rows = fetch(machine, finish_stamp=(last_stamp+1, current_stamp))
@@ -279,12 +267,12 @@ def perform_update(cx, machine, suite, prefix, fetch):
     for when, data in months:
         name = prefix + '-' + str(when[0]) + '-' + str(when[1])
 
-        sys.stdout.write('Updating cache for ' + name + '...')
-        sys.stdout.flush()
         with Profiler() as p:
             if not update_cache(cx, suite, name, when, data):
-                renew_cache(cx, machine, suite, prefix, when, last_stamp, fetch)
+                renew_cache(cx, machine, suite, prefix, when, fetch)
             diff = p.time()
+        sys.stdout.write('Updating cache for ' + name + '...')
+        sys.stdout.flush()
         print('took ' + diff)
 
     metadata['last_stamp'] = current_stamp
@@ -294,8 +282,8 @@ def perform_update(cx, machine, suite, prefix, fetch):
 # Done
 
 def update(cx, machine, suite):
-    def fetch_aggregate(machine, finish_stamp = (0,"UNIX_TIMESTAMP()")):
-        return fetch_suite_scores(machine.id, suite.id, finish_stamp)
+    def fetch_aggregate(machine, finish_stamp = (0,"UNIX_TIMESTAMP()"), approx_stamp = (0,"UNIX_TIMESTAMP()")):
+        return fetch_suite_scores(machine.id, suite.id, finish_stamp, approx_stamp)
 
     prefix = ""
     if suite.visible == 2:
@@ -310,8 +298,8 @@ def update(cx, machine, suite):
         return
 
     for test_name in suite.tests:
-        def fetch_test(machine, finish_stamp = (0,"UNIX_TIMESTAMP()")):
-            return fetch_test_scores(machine.id, suite.id, test_name, finish_stamp)
+        def fetch_test(machine, finish_stamp = (0,"UNIX_TIMESTAMP()"), approx_stamp = (0,"UNIX_TIMESTAMP()")):
+            return fetch_test_scores(machine.id, suite.id, test_name, finish_stamp, approx_stamp)
 
         prefix = ""
         if suite.visible == 2:
