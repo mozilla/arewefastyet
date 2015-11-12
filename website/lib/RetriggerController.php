@@ -105,7 +105,7 @@ class RetriggerController {
         foreach ($this->tasks as $task) {
 			mysql_query("INSERT INTO control_task_queue
                          (control_unit_id, task)
-                         VALUES ({$this->unit_id}, '".mysql_escape_string($task->task())."')");
+                         VALUES ({$this->unit_id}, '".mysql_escape_string($task->task())."')") or throw_exception(mysql_error());
         }
     }
 }

@@ -1,30 +1,30 @@
 <?php
 
-class QueuedTask {
+require_once("DB.php");
 
-    // db: control_task_queue
+class QueuedTask extends DB {
+
+    public static $db = "control_task_queue";
+
     function __construct($id) {
         $this->id = $id;
     }
 
-    function setBusy() {
-        mysql_query("UPDATE control_task_queue SET busy = 1 WHERE id = {$this->id}") or die(mysql_error());
+    function setStarted() {
+        $this->updateRaw("start", "UNIX_TIMESTAMP()");
     }
 
     function setFinished() {
-        mysql_query("DELETE FROM control_task_queue WHERE id = {$this->id}");
+        $this->updateRaw("finish", "UNIX_TIMESTAMP()");
+    }
+    
+    function reportError($error) {
+        $this->setFinished();
+        $this->updateString("error", empty($error) ? "unknown error" : $error);
     }
 
     function task() {
-        $qTask = mysql_query("SELECT task
-                              FROM control_task_queue
-                              WHERE id = {$this->id}");
-        $task = mysql_fetch_object($qTask);
-        return $task->task;
-    }
-
-    function id() {
-        return $this->id;
+        return $this->select("task");
     }
 }
 

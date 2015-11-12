@@ -2,7 +2,7 @@
 
 require_once("DB.php");
 
-class Build {
+class Build extends DB {
 
     public static $db = "awfy_build";
 
