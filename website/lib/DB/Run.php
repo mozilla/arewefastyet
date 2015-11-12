@@ -72,6 +72,14 @@ class Run extends DB {
         return $this->select("approx_stamp");
     }
 
+    public function finish_stamp() {
+        return $this->select("finish_stamp");
+    }
+
+    public function detector() {
+        return $this->select("detector");
+    }
+
     public function builds() {
         $qRun = mysql_query("SELECT approx_stamp from awfy_builds
                              WHERE id = {$this->id}") or die(mysql_error());

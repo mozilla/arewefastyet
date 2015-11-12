@@ -46,6 +46,7 @@
 
   .stamp, .name {
     white-space: nowrap;
+    color: lighten($_darkgrey, 15);
   }
 
   .extra {
@@ -54,7 +55,7 @@
       width:85%;
 	}
 
-    width: 75%;
+    width: 90%;
   }
 }
 
@@ -92,5 +93,15 @@
     padding-top: $unit;
     padding-bottom: $unit*2;
     margin-right: $unit;
+  }
+}
+
+.inline_regression {
+  table {
+	width: 100%;
+	}
+  td,th {
+    background-color: get($_box, bg);
+    padding: $unit;
   }
 }

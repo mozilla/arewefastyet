@@ -348,9 +348,10 @@ html, body {
   padding-left: 6px;
   padding-right: 6px; }
 .regression .status .stamp, .regression .status .name {
-  white-space: nowrap; }
+  white-space: nowrap;
+  color: #484848; }
 .regression .status .extra {
-  width: 75%; }
+  width: 90%; }
   .regression .status .extra input[type=text] {
     width: 85%; }
 .regression .range iframe {
@@ -374,6 +375,11 @@ html, body {
   padding-top: 6px;
   padding-bottom: 12px;
   margin-right: 6px; }
+.regression .inline_regression table {
+  width: 100%; }
+.regression .inline_regression td, .regression .inline_regression th {
+  background-color: white;
+  padding: 6px; }
 
 .box {
   border-collapse: separate;

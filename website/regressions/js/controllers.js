@@ -20,6 +20,12 @@ awfyCtrl.filter('linkify', function($sce, $parse) {
   };
 })
 
+awfyCtrl.filter('fromNow', function() {
+  return function(dateString) {
+    return moment.unix(dateString/1000).fromNow()
+  };
+});
+
 awfyCtrl.controller('addCtrl', ['$scope', '$http', '$routeParams', 'RegressionService', '$location',
   function ($scope, $http, $routeParams, regression, $location) {
     var data = {};
@@ -63,6 +69,11 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
       }
       $scope.noise = noise
       updateNoiseCount();
+
+	  $scope.regression.range = undefined
+	  $http.post('data-regression-range.php', {id:regression_id}).then(function(data){
+		$scope.regression.range = data.data
+	  });
     });
 
     $scope.statusPopup = function(regression) {
@@ -95,11 +106,11 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
         modalDialog.open("partials/bug.html", regression);
     }
 
-    $scope.showRetriggerPopup = function(regression) {
+    $scope.showRetriggerPopup = function(regression, cset) {
         var retrigger = {
             "machine": regression.machine,
             "mode": regression.mode,
-            "cset": regression.cset,
+            "cset": cset,
             "suites": [],
             "submit": function() {
                 var benchmarks = [];

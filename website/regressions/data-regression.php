@@ -4,9 +4,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 require_once("../internals.php");
-require_once("data-func.php");
-require_once("../lib/RetriggerController.php");
 init_database();
+
+require_once("data-func.php");
+
+require_once("../lib/RetriggerController.php");
+require_once("../lib/DB/Regression.php");
 
 $postdata = file_get_contents("php://input");
 $request = json_decode($postdata);
@@ -24,33 +27,35 @@ $minimal = isset($request->minimal) ? !!$request->minimal : false;
 
 $data = array();
 for ($i=0; $i < count($ids); $i++) {
+	$db_regression = Regression::FromId($ids[$i]);
+	if (!$db_regression) {
+		$data[] = Array();
+		continue;
+	}
+	$db_build = $db_regression->build();
+	$db_run = $db_build->run();
 
-	$query = mysql_query("SELECT awfy_regression.id, machine, mode_id, awfy_run.finish_stamp,
-                                 build_id, prev_build_id, cset, bug, awfy_regression.status, detector,
-								 awfy_run.id as run_id
-						  FROM awfy_regression
-						  INNER JOIN awfy_build ON build_id = awfy_build.id
-						  INNER JOIN awfy_run ON run_id = awfy_run.id
-						  WHERE awfy_regression.id = ".$ids[$i]."
-						  LIMIT 1") or die(mysql_error());
-	$output = mysql_fetch_assoc($query);
+	$db_prev_build = $db_regression->prev_build();
+
 	$regression = array(
-		"id" => $output["id"],
-		"machine" => $output["machine"],
-		"mode" => $output["mode_id"],
-		"stamp" => $output["finish_stamp"],
-		"cset" => $output["cset"],
-		"bug" => $output["bug"],
-		"status" => $output["status"],
-		"build_id" => $output["build_id"],
-		"detector" => $output["detector"],
-		"run_id" => $output["run_id"],
-		"prev_run_id" => get("build", $output["prev_build_id"], "run_id"),
+		"id" => $db_regression->id,
+		"machine" => $db_run->machine_id(),
+		"mode" => $db_build->mode_id(),
+		"stamp" => $db_run->finish_stamp(),
+		"cset" => $db_build->revision(),
+		"bug" => $db_regression->bug(),
+		"status" => $db_regression->status(),
+		"build_id" => $db_build->id,
+		"detector" => $db_run->detector(),
+		"run_id" => $db_run->id,
+		"prev_run_id" => $db_prev_build->run_id(),
 		"scores" => array(),
-		"retriggerable" => RetriggerController::retriggerable($output["machine"], $output["mode_id"])
+		"retriggerable" => RetriggerController::retriggerable($db_run->machine_id(),
+															  $db_build->mode_id())
 	);
+
 	$qScores = mysql_query("SELECT * FROM awfy_regression_score
-						    WHERE regression_id = '".$output["id"]."'") or die(mysql_error());
+						    WHERE regression_id = '".$regression["id"]."'") or die(mysql_error());
 	while ($scores = mysql_fetch_assoc($qScores)) {
 		$suite_version_id = get("score", $scores["score_id"], "suite_version_id");
 		$score = array(
@@ -60,24 +65,21 @@ for ($i=0; $i < count($ids); $i++) {
             "noise" => $scores["noise"]
 		);
 
-		//if (!$minimal) { // minimal outdated. Used to be slow. Not anymore.
-        if ($output["prev_build_id"] && !$minimal) {
-            $qPrevScore = mysql_query("SELECT score
-                                       FROM awfy_score
-                                       WHERE build_id = ".$output["prev_build_id"]." AND
-                                             suite_version_id = ".$suite_version_id."
-                                       LIMIT 1") or die(mysql_error());
-            if (mysql_num_rows($qPrevScore) == 1) {
-                $prevScore = mysql_fetch_assoc($qPrevScore);
-                $score["prev_score"] = $prevScore["score"];
-                $score["prev_cset"] = get("build", $output["prev_build_id"], "cset");
-            }
-        }
+		$qPrevScore = mysql_query("SELECT score
+								   FROM awfy_score
+								   WHERE build_id = ".$db_prev_build->id." AND
+										 suite_version_id = ".$suite_version_id."
+								   LIMIT 1") or die(mysql_error());
+		if (mysql_num_rows($qPrevScore) == 1) {
+			$prevScore = mysql_fetch_assoc($qPrevScore);
+			$score["prev_score"] = $prevScore["score"];
+			$score["prev_cset"] = $db_prev_build->revision();
+		}
 
 		$regression["scores"][] = $score;
 	}
 	$qScores = mysql_query("SELECT * FROM awfy_regression_breakdown
-						    WHERE regression_id = '".$output["id"]."'") or die(mysql_error());
+						    WHERE regression_id = '".$db_regression->id."'") or die(mysql_error());
 	while ($scores = mysql_fetch_assoc($qScores)) {
 		$suite_test_id = get("breakdown", $scores["breakdown_id"], "suite_test_id");
 		$suite_version_id = get("suite_test", $suite_test_id, "suite_version_id");
@@ -89,26 +91,23 @@ for ($i=0; $i < count($ids); $i++) {
             "noise" => $scores["noise"]
 		);
 
-		//if (!$minimal) { // minimal outdated. Used to be slow. Not anymore.
-        if ($output["prev_build_id"] && !$minimal) {
-            $qPrevScore = mysql_query("SELECT awfy_breakdown.score
-                                       FROM awfy_breakdown
-                                       LEFT JOIN awfy_score ON score_id = awfy_score.id
-                                       WHERE awfy_score.build_id = ".$output["prev_build_id"]." AND
-                                             suite_test_id = ".$suite_test_id."
-                                       LIMIT 1") or die(mysql_error());
-            if (mysql_num_rows($qPrevScore) == 1) {
-                $prevScore = mysql_fetch_assoc($qPrevScore);
-                $score["prev_score"] = $prevScore["score"];
-                $score["prev_cset"] = get("build", $output["prev_build_id"], "cset");
-            }
-        }
+		$qPrevScore = mysql_query("SELECT awfy_breakdown.score
+								   FROM awfy_breakdown
+								   LEFT JOIN awfy_score ON score_id = awfy_score.id
+								   WHERE awfy_score.build_id = ".$db_prev_build->id." AND
+										 suite_test_id = ".$suite_test_id."
+								   LIMIT 1") or die(mysql_error());
+		if (mysql_num_rows($qPrevScore) == 1) {
+			$prevScore = mysql_fetch_assoc($qPrevScore);
+			$score["prev_score"] = $prevScore["score"];
+			$score["prev_cset"] = $db_prev_build->revision();
+		}
 
 		$regression["scores"][] = $score;
 	}
 	if (!$minimal) {
 		$qStatus = mysql_query("SELECT * FROM awfy_regression_status
-								WHERE regression_id = '".$output["id"]."'
+								WHERE regression_id = '".$db_prev_build->id."'
 								ORDER BY stamp DESC
 								LIMIT 1") or die(mysql_error());
 		$status = mysql_fetch_assoc($qStatus);

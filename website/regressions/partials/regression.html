@@ -54,9 +54,15 @@
 		<span ng-if="regression.detector==0">No (new regression might still get detected in the future.)</span>
     </td></tr>
     <tr class='retriggerable' ng-if='regression.retriggerable'><th>Retrigger</th><td>
-		<a class='link' ng-click='showRetriggerPopup(regression)'>Click here to re-run the benchmarks.</a>
+		<a class='link' ng-click='showRetriggerPopup(regression, regression.cset)'>Click here to re-run the benchmarks.</a>
     </td></tr>
   	</table>
+  </div>
+
+  <div class='info'>
+	<div ng-if='obsolete'>
+		This regression report is possibly obsolete. More specific revisions have been triggered and finished. Please annotate/report the more specific regression and mark this as obsolete.
+	</div>
   </div>
 
   <div class='status'>
@@ -64,16 +70,19 @@
   	<table class='box'>
   	<tr ng-if="addComment">
   		<td class='stamp'></td>
-  		<td class='name'>{{currentUser}}</td>
   		<td class='extra'>
           <input type='text' ng-model='newcomment'>
           <input type='button' value='Save' ng-click='saveCommentFn(newcomment)'>
         </td>
   	</tr>
   	<tr ng-repeat="status in states">
-  		<td class='stamp'>{{status.stamp | date:'dd MMM yy HH:mm'}}</td>
-  		<td class='name'>{{status.name}}</td>
-  		<td class='extra' ng-bind-html="status.extra | linkify"></td>
+  		<td class='stamp' ng-attr-title='{{status.stamp | date:"dd MMM yy HH:mm"}}'>
+			{{status.stamp | fromNow}}
+		</td>
+  		<td class='extra'>
+			<span ng-bind-html="status.extra | linkify"></span>
+  			- <span class='name'>by {{status.name}}</span>
+		</td>
   	</tr>
   	</table>
   </div>
@@ -122,7 +131,20 @@
       Regression range:
     </div>
     <div class='content' ng-if='regression.range_url'>
-      <iframe ng-src='{{regression.range_url}}'></iframe>
+      <div class='inline_regression' ng-if=regression.retriggerable>
+		<center ng-if='regression.range == undefined'>- loading -</center>
+		<table ng-if='regression.range != undefined'>
+		<tr><th>Push date</th><th>Changeset</th><th>Author</th><th>Commit message</th><th>run</th</tr>
+		<tr ng-repeat='range in regression.range'>
+			<td>{{range.date}}</td><td>{{range.revision}}</td>
+			<td>{{range.author}}</td><td>{{range.message}}</td>
+			<td>
+				<a class='link' ng-click='showRetriggerPopup(regression, range.revision)'>run</a>
+			</td>
+		</tr>
+		</table>
+	  </div>
+      <iframe ng-src='{{regression.range_url}}' ng-if='!regression.retriggerable'></iframe>
     </div>
     <div class='content' ng-if='!regression.range_url'>
       <center>- There are different regression ranges for the different scores. To see the regression range click on a specific score and on the graph click the regressed point. Click on the 'changelog' there. -</center>
