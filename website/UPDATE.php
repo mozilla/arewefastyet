@@ -3,6 +3,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+if (strpos(__FILE__, "UPDATE.php") !== false)
+	die("Please rename this file to something more unknown.");
+
 require_once("internals.php");
 
 init_database();
