@@ -33,6 +33,10 @@ class DBTable(object):
     self.initialized = False
     self.cached = None
 
+  def exists(self):
+    self.initialize()
+    return self.cached != None
+
   def prefetch(self):
     if self.table() not in self.__class__.globalcache:
       self.__class__.globalcache[self.table()] = {}
@@ -60,7 +64,8 @@ class DBTable(object):
         return
 
     self.prefetch()
-    self.cached = self.__class__.globalcache[self.table()][self.id]
+    if self.id in self.__class__.globalcache[self.table()]:
+        self.cached = self.__class__.globalcache[self.table()][self.id]
     return
 
   def get(self, field):
@@ -86,7 +91,7 @@ class DBTable(object):
 
   def delete(self):
     c = awfy.db.cursor()
-    c.execute("DELETE FROM "+self.table()+"										\
+    c.execute("DELETE FROM "+self.table()+"                                        \
                WHERE id = %s", (self.id, ))
 
   @staticmethod
@@ -246,7 +251,7 @@ class Regression(DBTable):
 class RegressionScore(DBTable):
 
   def score(self):
-	return self.get("score")
+    return self.get("score")
 
   @staticmethod
   def table():
@@ -288,7 +293,7 @@ class RegressionScoreNoise(DBTable):
 class RegressionBreakdown(DBTable):
 
   def score(self):
-	return self.get("breakdown")
+    return self.get("breakdown")
 
   @staticmethod
   def table():
@@ -633,7 +638,7 @@ class Score(RegressionTools):
                      suite_version_id = %s AND                                        \
                      status = 1                                                       \
                ORDER BY sort_order DESC                                               \
-               LIMIT 1", (sort_order, machine, mode, suite))
+               LIMIT "+str(limit), (sort_order, machine, mode, suite))
     rows = c.fetchall()
     return [Score(row[0]) for row in rows]
 
