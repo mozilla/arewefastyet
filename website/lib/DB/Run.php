@@ -10,6 +10,17 @@ class Run extends DB {
         $this->id = $id;
     }
 
+    public static function withMachineAndSortOrder($machine_id, $sort_order) {
+        $qRun = mysql_query("SELECT id FROM awfy_run
+                               WHERE machine = $machine_id AND
+                                     sort_order = $sort_order
+                               LIMIT 1") or die(mysql_error());
+        if (mysql_num_rows($qRun) == 0)
+            return null;
+        $run = mysql_fetch_object($qRun);
+        return new Run($run->id);
+    } 
+
     public static function insert($machine_id, $sort_order, $approx_stamp = 0) {
         $approx_stamp = intval($approx_stamp);
         if ($approx_stamp == 0)
@@ -53,6 +64,10 @@ class Run extends DB {
         return $this->select("sort_order");
     }
 
+    public function machine_id() {
+        return $this->select("machine");
+    }
+
     public function approx_stamp() {
         return $this->select("approx_stamp");
     }
@@ -69,5 +84,29 @@ class Run extends DB {
         // or if this run is an out of order run. Out of order runs immediately
         // add their build info.
         return $this->isFinished() || $this->isOutOfOrder() || $this->hasError();
+    }
+
+    public function next() {
+        $sort_order = $this->sort_order();
+        $machine = $this->machine_id();
+        $qRun = mysql_query("SELECT id from awfy_run
+                             WHERE sort_order > {$sort_order} AND
+                                   machine = {$machine}
+                             ORDER BY sort_order ASC
+                             LIMIT 1") or throw_exception(mysql_error());
+        $run = mysql_fetch_object($qRun);
+        return new Run($run->id);
+    }
+
+    public function prev() {
+        $sort_order = $this->sort_order();
+        $machine = $this->machine_id();
+        $qRun = mysql_query("SELECT id from awfy_run
+                             WHERE sort_order < {$sort_order} AND
+                                   machine = {$machine}
+                             ORDER BY sort_order DESC
+                             LIMIT 1") or throw_exception(mysql_error());
+        $run = mysql_fetch_object($qRun);
+        return new Run($run->id);
     }
 }

@@ -15,7 +15,7 @@ class RetriggerController {
         $retrigger = new RetriggerController();
         $retrigger->unit_id = $unit_id;
 
-		$qTask = mysql_query("SELECT * FROM control_tasks WHERE control_unit_id = $unit_id");
+        $qTask = mysql_query("SELECT * FROM control_tasks WHERE control_unit_id = $unit_id");
         while ($task = mysql_fetch_object($qTask)) {
             $task = new ManipulateTask($task->task);
             $retrigger->tasks[] = $task;
@@ -27,7 +27,7 @@ class RetriggerController {
         $retrigger = new RetriggerController();
         $mode = new Mode($mode_id);
 
-		$qTask = mysql_query("SELECT * FROM control_tasks WHERE machine_id = $machine_id") or die(mysql_error());
+        $qTask = mysql_query("SELECT * FROM control_tasks WHERE machine_id = $machine_id") or die(mysql_error());
         while ($task = mysql_fetch_object($qTask)) {
             if (!($mode_id == 0 || $task->mode_id == 0 || $task->mode_id == $mode_id))
                 continue;
@@ -47,18 +47,18 @@ class RetriggerController {
     }
 
     public static function retriggerable($machine_id, $mode_id) {
-		$retrigger = RetriggerController::fromMachine($machine_id, $mode_id);
-		if (count($retrigger->tasks) == 0)
-			return false;
+        $retrigger = RetriggerController::fromMachine($machine_id, $mode_id);
+        if (count($retrigger->tasks) == 0)
+            return false;
 
-		try {
-			VersionControl::forMode($mode_id);	
-		} catch(Exception $e) {
-			return false;
-		}
+        try {
+            VersionControl::forMode($mode_id);    
+        } catch(Exception $e) {
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
     public function convertToRevision($mode_id, $revision, $run_before_id, $run_after_id) {
         $mode = new Mode($mode_id);
@@ -70,40 +70,39 @@ class RetriggerController {
         }
     }
 
-	private function normalizeBenchmark($benchmark) {
-		$benchmark = str_replace("local.", "", $benchmark);
-		$benchmark = str_replace("remote.", "", $benchmark);
-		$benchmark = str_replace("shell.", "", $benchmark);
-		$benchmark = str_replace("-", "", $benchmark);
-		$benchmark = str_replace("misc", "assorted", $benchmark);
-		$benchmark = str_replace("asmjsubench", "asmjsmicro", $benchmark);
-		echo $benchmark;
-		return $benchmark;
-	}
+    private function normalizeBenchmark($benchmark) {
+        $benchmark = str_replace("local.", "", $benchmark);
+        $benchmark = str_replace("remote.", "", $benchmark);
+        $benchmark = str_replace("shell.", "", $benchmark);
+        $benchmark = str_replace("-", "", $benchmark);
+        $benchmark = str_replace("misc", "assorted", $benchmark);
+        $benchmark = str_replace("asmjsubench", "asmjsmicro", $benchmark);
+        return $benchmark;
+    }
 
     private function benchmarksEqual($benchmark1, $benchmark2) {
-		return $this->normalizeBenchmark($benchmark1) == $this->normalizeBenchmark($benchmark2);
-	}
+        return $this->normalizeBenchmark($benchmark1) == $this->normalizeBenchmark($benchmark2);
+    }
 
-	public function selectBenchmarks($benchmarks) {
-		foreach ($this->tasks as $task) {
-			$new_benchmarks = Array();
-			foreach ($task->benchmarks() as $task_benchmark) {
-				foreach ($benchmarks as $benchmark) {
-					if ($this->benchmarksEqual($benchmark, $task_benchmark))
-						$new_benchmarks[] = $task_benchmark;
-				}
-			}
-			$task->update_benchmarks($new_benchmarks);
-		}
-	}
+    public function selectBenchmarks($benchmarks) {
+        foreach ($this->tasks as $task) {
+            $new_benchmarks = Array();
+            foreach ($task->benchmarks() as $task_benchmark) {
+                foreach ($benchmarks as $benchmark) {
+                    if ($this->benchmarksEqual($benchmark, $task_benchmark))
+                        $new_benchmarks[] = $task_benchmark;
+                }
+            }
+            $task->update_benchmarks($new_benchmarks);
+        }
+    }
 
     public function enqueue() {
         if ($this->unit_id == 0)
             throw new Exception("No control_unit specified.");
 
         foreach ($this->tasks as $task) {
-			mysql_query("INSERT INTO control_task_queue
+            mysql_query("INSERT INTO control_task_queue
                          (control_unit_id, task)
                          VALUES ({$this->unit_id}, '".mysql_escape_string($task->task())."')") or throw_exception(mysql_error());
         }

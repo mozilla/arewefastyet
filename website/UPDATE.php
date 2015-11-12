@@ -4,7 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 if (strpos($_SERVER['SCRIPT_FILENAME'], "UPDATE.php") !== false)
-	die("Please rename this file to something more unknown.");
+    die("Please rename this file to something more unknown.");
 
 require_once("internals.php");
 
@@ -29,7 +29,7 @@ if (GET_string("run") == 'yes') {
 // Start an out of order run. Retriggering a particular mode.
 if (GET_string("run") == 'ooo') {
     $machine_id = GET_int('MACHINE');
-    $mode = Mode::FromMode(GET_string('name'));
+    $mode = Mode::FromMode(GET_string('mode'));
     $revision = GET_string('revision');
     $run_before_id = GET_int('run_before_id');
     $run_after_id = GET_int('run_after_id');
@@ -63,7 +63,7 @@ if (GET_string("run") == 'addEngine') {
     $mode = Mode::FromMode(GET_string('name'));
 
     if ($run->isFinished() || $run->hasError())
-        throw new Error("Run was already finished or error'ed");
+        throw new Exception("Run was already finished or error'ed");
 
     if ($run->isOutOfOrder()) {
         // out of order builds cannot add extra modes. The available

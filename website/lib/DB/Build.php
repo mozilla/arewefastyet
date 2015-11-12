@@ -1,6 +1,7 @@
 <?php
 
 require_once("DB.php");
+require_once("Run.php");
 
 class Build extends DB {
 
@@ -15,6 +16,8 @@ class Build extends DB {
                                WHERE run_id = $run_id AND
                                      mode_id = $mode_id
                                LIMIT 1") or die(mysql_error());
+        if (mysql_num_rows($qBuild) == 0)
+            return null;
         $build = mysql_fetch_object($qBuild);
         return new Build($build->id);
     }
@@ -32,11 +35,15 @@ class Build extends DB {
     }
 
     public function revision() {
-        return $this->select("revision");
+        return $this->select("cset");
     }
 
     public function run_id() {
         return $this->select("run_id");
+    }
+
+    public function run() {
+        return new Run($this->run_id());
     }
 
     public function mode_id() {

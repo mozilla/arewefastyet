@@ -36,7 +36,7 @@ class HGWeb {
         if (strpos($html, "pushlogentry") !== false)
             return true;
 
-        throw new Exception("Could find relationship between $revision1 and $revision2.");
+        throw new Exception("Couldn't find relationship between $revision1 and $revision2.");
     }
 
 }

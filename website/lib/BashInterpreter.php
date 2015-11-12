@@ -3,7 +3,7 @@
 class BashInterpreter {
     public static function matchCommand($text, $command) {
         $command = str_replace("/", "\/", $command);
-        preg_match_all("/(".$command." .*)[;$\r\n#]/", $text, $matches);
+        preg_match_all("/(".$command." [^;$\n\r\r\n#]*)/", $text, $matches);
         return $matches[1];
     }
 

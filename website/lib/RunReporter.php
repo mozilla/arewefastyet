@@ -3,6 +3,7 @@
 require_once("DB/Run.php");
 require_once("DB/Mode.php");
 require_once("DB/Build.php");
+require_once("VersionControl.php");
 
 class RunReporter {
 
@@ -24,28 +25,50 @@ class RunReporter {
         // Find the sorting order where we could add this revision;
         $sort_order = RunReporter::findSortOrder($run_before, $mode_id, $revision);
 
+        // Get the approx stamp of the run with the sort_order before the one we are replacing.
+        $old_run = Run::withMachineAndSortOrder($machine_id, $sort_order - 1);
+        $approx_stamp = $old_run->approx_stamp(); 
+
         // sanity check.
-        if ($sort_order >= $run_after->sort_order())
-            throw new Exception("Given run bounds were incorrect.");
+        RunReporter::assertInBound($run_before, $run_after, $mode_id, $sort_order);
 
         // Create a space at the given sort_order, by shifting all sort_order,
         // equal or higher than the given sort_order.
         RunReporter::increaseNextSortOrder($machine_id, $sort_order);
 
-        $run = Run::insert($machine_id, $sort_order, $run_before->approx_stamp());
+        $run = Run::insert($machine_id, $sort_order, $approx_stamp);
+        $run->updateInt("out_of_order", 1);
         $build = Build::insert($run, $mode_id, $revision);
         return $run;
+    }
+
+    private static function assertInBound($run_before, $run_after, $mode_id, $sort_order) {
+        if ($sort_order <= $run_before->sort_order())
+            throw new Exception("bound is lower.");
+        if ($sort_order > $run_after->sort_order()) {
+            // It is allowed to have a not in bound $sort_order,
+            // when the revision stays the same between $run_after and the $sort_order.
+            $current_run = Run::withMachineAndSortOrder($run_after->machine_id(), $sort_order)->prev();
+            $current_build = Build::withRunAndMode($current_run->id, $mode_id);
+            $after_build = Build::withRunAndMode($run_after->id, $mode_id);
+            if ($current_build->revision() != $after_build->revision())
+                throw new Exception("bound is higher.");
+        }
     }
 
     private static function findSortOrder($run, $mode_id, $revision)
     {
         $version_control = VersionControl::forMode($mode_id);
 
+        $j = 0;
         while (True) {
+            if ($j++ > 30)
+                throw new Exception("There shouldn't be too many runs in between");
+
             if (!$run->isBuildInfoComplete())
                 throw new Exception("Encountered an incomplete run.");
                 
-            $build = Build::withRunAndMode($run_before->id, $mode_id);
+            $build = Build::withRunAndMode($run->id, $mode_id);
 
             // We can safely ignore runs that have no results with the requested mode_id
             if (!$build) {
@@ -62,8 +85,9 @@ class RunReporter {
 
             // Using version control take a peek if the revision
             // is later/earlier than this one.
-            if ($version_control->isAfter($build->revision(), $revision))
+            if ($version_control->isAfter($build->revision(), $revision)) {
                 return $run->sort_order();
+            }
 
             $run = $run->next();
         }

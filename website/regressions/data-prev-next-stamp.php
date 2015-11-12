@@ -4,49 +4,24 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 require_once("../internals.php");
-require_once("data-func.php");
 init_database();
+
+require_once("../lib/ScoreTools.php");
+require_once("../lib/DB/Score.php");
+require_once("../lib/DB/Breakdown.php");
 
 $postdata = file_get_contents("php://input");
 $request = json_decode($postdata);
 
-if (!empty($request->score_id)) {
-	$suite_version_id = get("score", (int)$request->score_id, "suite_version_id");
-	$build_id = get("score", (int)$request->score_id, "build_id"); 
-	$run_id = get("build", $build_id, "run_id"); 
-	$sort_order_id = get("run", $run_id, "sort_order"); 
-	$machine = get("run", $run_id, "machine"); 
-	$mode_id = get("build", $build_id, "mode_id"); 
+$score = isset($request->score_id) ? Score::FromId($request->score_id) :
+                                     Breakdown::FromId($request->breakdown_id);
+if (!$score)
+    die();
 
-	if ($request->type == "prev") {
-		$prev = prev_($sort_order_id, $machine, $mode_id, $suite_version_id, (int)$request->amount);
-		$last = array_pop($prev);
-	} else {
-		$next = next_($sort_order_id, $machine, $mode_id, $suite_version_id, (int)$request->amount);
-		$last = array_pop($next);
-	}
-	$build_id = get("score", $last["id"], "build_id"); 
-} else {
-	$suite_test_id = get("breakdown", (int)$request->breakdown_id, "suite_test_id");
-	$score_id = get("breakdown", (int)$request->breakdown_id, "score_id"); 
-	$build_id = get("score", (int)$score_id, "build_id"); 
-	$run_id = get("build", $build_id, "run_id"); 
-	$sort_order_id = get("run", $run_id, "sort_order"); 
-	$machine = get("run", $run_id, "machine"); 
-	$mode_id = get("build", $build_id, "mode_id"); 
+if ($request->type == "prev")
+    $list = ScoreTools::prevList($score, (int)$request->amount);
+else
+    $list = ScoreTools::nextList($score, (int)$request->amount);
 
-	if ($request->type == "prev") {
-		$prev = prev_suite_test($sort_order_id, $machine, $mode_id, $suite_test_id, (int)$request->amount);
-		$last = array_pop($prev);
-	} else {
-		$next = next_suite_test($sort_order_id, $machine, $mode_id, $suite_test_id, (int)$request->amount);
-		$last = array_pop($next);
-	}
-	$score_id = get("breakdown", $last["id"], "score_id"); 
-	$build_id = get("score", $score_id, "build_id"); 
-}
-
-$run_id = get("build", $build_id, "run_id"); 
-$stamp = get("run", $run_id, "finish_stamp"); 
-
-echo $stamp;
+$last = array_pop($list);
+echo ScoreTools::build($last)->run()->approx_stamp(); 
