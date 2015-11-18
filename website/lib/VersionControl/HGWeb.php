@@ -13,35 +13,38 @@ class HGWeb {
 
     public function isAfter($revision1, $revision2) {
         // test if is before
-        $html = file_get_contents($this->url."pushloghtml?fromchange=$revision1&tochange=$revision2");
-        if (strpos($html, "pushlogentry") !== false)
+        $html = file_get_contents($this->url."log?rev=$revision1%3A%3A$revision2%20and%20!$revision1");
+        if (strpos($html, 'class="log_body"') !== false)
             return false;
 
         // test if is after
-        $html = file_get_contents($this->url."pushloghtml?fromchange=$revision2&tochange=$revision1");
-        if (strpos($html, "pushlogentry") !== false)
+        $html = file_get_contents($this->url."log?rev=$revision2%3A%3A$revision1%20and%20!$revision2");
+        if (strpos($html, 'class="log_body"') !== false)
             return true;
 
         throw new Exception("Couldn't find relationship between $revision1 and $revision2.");
     }
 
 	public function revisions($from, $to) {
-        $html = file_get_contents($this->url."pushloghtml?fromchange=$from&tochange=$to");
-		preg_match_all('#<tr class="pushlogentry .*"><td>(<cite>(.*)<br/><span class="date">(.*)</span></cite>)*</td><td class="age"><a href="/integration/mozilla-inbound/rev/.*">(.*)</a></td><td><strong>(.*) &mdash; (.*)</td></tr>#', $html, $matches);
+        $html = file_get_contents($this->url."log?rev=$from%3A%3A$to%20and%20!$from");
+		$html = preg_replace("/[\r\n]*/", "", $html); 
+		$html = str_replace('<div class="title">', "\n<div class=\"title\">", $html);
+		
+
+		$pattern = '#<div class="title">([a-zA-Z0-9]*): (.*)<span class="logtags"> </span></div><div class="title_text"><div class="log_link"><a href="/integration/mozilla-inbound/rev/.*">diff</a><br/><a href="/integration/mozilla-inbound/file/.*">browse</a></div><cite>(.*)</cite> - (.*) - rev [0-9]*<br/></div><div class="log_body">.*<br/><br/></div>#';
+		preg_match_all($pattern, $html, $matches);
 
 		$revisions = Array();
-		$prev_date = "";	
 		for ($i = 0; $i < count($matches[0]); $i++) {
-			$date = empty($matches[3][$i]) ? $prev_date : $matches[3][$i];
-			$revision = $matches[4][$i];
-			$author = $matches[5][$i];
-			$message = $matches[6][$i];
+			$date = $matches[4][$i];
+			$revision = $matches[1][$i];
+			$author = $matches[3][$i];
+			$message = $matches[2][$i];
 
 			$message = strip_tags($message);
+			$author = html_entity_decode($author);
 
 			$revisions[] = new Revision($author, $date, $revision, $message);
-
-			$prev_date = $date;
 		}
 		return $revisions;
 	}
