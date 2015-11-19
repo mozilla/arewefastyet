@@ -221,9 +221,9 @@ if __name__ == "__main__":
                       help="OutOfOrder: Give the mode")
     parser.add_option("--revision", dest="rev", type="string",
                       help="OutOfOrder: Give the revision")
-    parser.add_option("--run_before", dest="run_before", type="id",
+    parser.add_option("--run_before", dest="run_before", type="int",
                       help="OutOfOrder: Give the run id whereafter this new run needs to come")
-    parser.add_option("--run_after", dest="run_after", type="id",
+    parser.add_option("--run_after", dest="run_after", type="int",
                       help="OutOfOrder: Give the run id before which this new run needs to come")
 
     # all other cases need session info
