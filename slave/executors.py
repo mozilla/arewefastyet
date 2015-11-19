@@ -113,6 +113,34 @@ class ChromeExecutor(BrowserExecutor):
         # kill browser
         runner.kill(process)
 
+class WebKitExecutor(BrowserExecutor):
+
+    def execute(self, page, env, args):
+        runner = runners.getRunner(self.engineInfo["platform"], {
+            "osx_mount_point": "/Volumes/WebKit",
+            "osx_binary": "/Volumes/WebKit/WebKit.app/Contents/MacOS/WebKit"
+            #"android_processname": "org.mozilla.fennec",
+            #"linux_processname": "firefox"
+        })
+
+        # kill all possible running instances.
+        runner.killAllInstances()
+
+        # if needed install the executable
+        binary = runner.install(self.engineInfo["binary"])
+
+        # reset the result
+        self.resetResults()
+
+        # start browser
+        process = runner.start("open", ["-F", "-a", binary] + args, env)
+
+        # wait for results
+        self.waitForResults()
+
+        # kill browser
+        runner.kill(process)
+
 class ServoExecutor(BrowserExecutor):
     def execute(self, page, env, args):
         runner = runners.getRunner(self.engineInfo["platform"], {})
@@ -145,6 +173,8 @@ def getExecutor(engineInfo):
         return FirefoxExecutor(engineInfo)
     if engineInfo["engine_type"] == "chrome" and not engineInfo["shell"]:
         return ChromeExecutor(engineInfo)
+    if engineInfo["engine_type"] == "webkit" and not engineInfo["shell"]:
+        return WebKitExecutor(engineInfo)
     if engineInfo["engine_type"] == "servo":
         return ServoExecutor(engineInfo)
 

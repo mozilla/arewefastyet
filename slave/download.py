@@ -37,6 +37,8 @@ class DownloadTools(object):
             return MozillaRevisionFinder(repo)
         if "chromium" in repo:
             return ChromeRevisionFinder(repo)
+        if "webkit" in repo:
+            return WebKitRevisionFinder(repo)
         raise Exception("Unknown repo")
 
     @classmethod
@@ -84,6 +86,14 @@ class ChromeRevisionFinder(RevisionFinder):
         cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
 
         return [self._url_base() + chromium_rev + "/"]
+
+class WebKitRevisionFinder(RevisionFinder):
+
+    def latest(self):
+        response = urllib2.urlopen("http://nightly.webkit.org/")
+        cset = re.findall('WebKit r([0-9]*)<', response.read())[0]
+
+        return ["http://builds.nightly.webkit.org/files/trunk/mac/WebKit-SVN-r" + cset + ".dmg"]
 
 class MozillaRevisionFinder(RevisionFinder):
 
@@ -327,6 +337,30 @@ class GoogleAPISDownloader(Downloader):
         info["engine_type"] = "chrome"
         info["shell"] = False
         info["binary"] = os.path.abspath(self.getbinary())
+
+        return info
+
+class BuildsWebkitDownloader(Downloader):
+
+    def __init__(self, url):
+        self.file = url.split("/")[-1]
+        self.url = "/".join(url.split("/")[0:-1])
+        if not url.endswith("/"):
+            url += "/"
+        self.folder = "./"
+
+    def getfilename(self):
+        return self.file
+
+    def retrieveInfo(self):
+        print self.file
+        cset = re.findall('-r([a-z0-9]*)\.dmg', self.file)[0]
+
+        info = {}
+        info["revision"] = cset
+        info["engine_type"] = "webkit"
+        info["shell"] = False
+        info["binary"] = os.path.abspath(self.folder + self.file)
 
         return info
 
