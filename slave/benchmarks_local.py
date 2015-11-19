@@ -14,6 +14,11 @@ class Benchmark:
         self.version = suite+" "+version
         self.page = page
 
+	host = utils.config.get('main', 'serverUrl')
+        if host[-1] != "/":
+            host += "/"
+        self.url = host + self.page
+
     def run(self, engine, submit):
         # Run tests.
         runOneBenchmark = False

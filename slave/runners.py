@@ -50,7 +50,6 @@ class LinuxRunner(Runner):
         while process.poll() is None:
             time.sleep(0.5)
 
-
     def killAllInstances(self):
         print "killallinstances"
         self.killall("firefox")
@@ -60,7 +59,7 @@ class LinuxRunner(Runner):
         return subprocess.Popen([exe] + args, env=env)
 
     def install(self, exe):
-        pass
+        return exe
 
 class OSXRunner(Runner):
     def killall(self, name):
@@ -76,11 +75,13 @@ class OSXRunner(Runner):
 
         subprocess.check_output(["hdiutil", "detach", "-force", self.info["osx_mount_point"]])
 
-    def start(self, path, args, env):
-        pass
+    def start(self, exe, args = [], env = {}):
+        print "start", exe, args, env
+        return subprocess.Popen([exe] + args, env=env)
 
     def install(self, exe):
         subprocess.check_output(["hdiutil", "attach", exe])
+        return self.info["osx_binary"]
 
 class AndroidRunner(Runner):
     def killall(self, name):

@@ -245,12 +245,12 @@ class ArchiveMozillaDownloader(Downloader):
             return self.folder + "firefox/firefox.exe"
         if os.path.exists(self.folder + "firefox/firefox"):
             return self.folder + "firefox/firefox"
-        files = os.listdirs()
+        files = os.listdir(self.folder)
         assert len(files) == 1
         if files[0].endswith(".apk"):
-            return files[0]
+            return self.folder + files[0]
         if files[0].endswith(".dmg"):
-            return files[0]
+            return self.folder + files[0]
         assert False
 
     def retrieveInfo(self):

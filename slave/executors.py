@@ -55,6 +55,7 @@ class FirefoxExecutor(BrowserExecutor):
     def execute(self, page, env, args):
         runner = runners.getRunner(self.engineInfo["platform"], {
             "osx_mount_point": "/Volumes/Nightly",
+            "osx_binary": "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox",
             "android_processname": "org.mozilla.fennec" 
         })
 
@@ -63,7 +64,7 @@ class FirefoxExecutor(BrowserExecutor):
         runner.killall("plugin-container")
 
         # if needed install the executable
-        runner.install(self.engineInfo["binary"])
+        binary = runner.install(self.engineInfo["binary"])
 
         # delete profile
         runner.rm("profile/")
@@ -78,7 +79,7 @@ class FirefoxExecutor(BrowserExecutor):
         self.resetResults()
 
         # start browser
-        process = runner.start(self.engineInfo["binary"], args + ["--profile", runner.getdir("profile")], env)
+        process = runner.start(binary, args + ["--profile", runner.getdir("profile")], env)
         
         # wait for results
         self.waitForResults()
