@@ -59,8 +59,8 @@ awfyCtrl.service('RegressionService', ["MasterService",
 
         var vendor_id = master["modes"][regression["mode_id"]]["vendor_id"]
         var range_url = master["vendors"][vendor_id]["rangeURL"]
-        range_url = range_url.replace('{from}', prev_cset);
-        range_url = range_url.replace('{to}', regression["cset"]);
+        range_url = range_url.replace(/{from}/g, prev_cset);
+        range_url = range_url.replace(/{to}/g, regression["cset"]);
         range_url = range_url.replace('http://', "//");
         regression["range_url"] = range_url
       }
