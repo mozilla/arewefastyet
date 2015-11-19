@@ -35,6 +35,8 @@ class DownloadTools(object):
     def getRevisionFinder(cls, repo):
         if "mozilla" in repo:
             return MozillaRevisionFinder(repo)
+        if "chromium" in repo:
+            return ChromeRevisionFinder(repo)
         raise Exception("Unknown repo")
 
     @classmethod
@@ -58,6 +60,30 @@ class RevisionFinder(object):
             if downloader.valid():
                 return downloader
         raise Exception("couldn't find the revision.")
+
+class ChromeRevisionFinder(RevisionFinder):
+
+    def _url_base(self):
+        platform = self._platform()
+        return "http://commondatastorage.googleapis.com/chromium-browser-continuous/"+platform+"/"
+
+    def _platform(self):
+        if platform.system() == "Linux":
+            return "Linux"
+        if platform.system() == "Darwin":
+            return "Mac"
+        if platform.system() == "Windows":
+            return "Win"
+        raise Exception("Unknown platform: " + platform.system())
+
+    def latest(self):
+        response = urllib2.urlopen(self._url_base() + "LAST_CHANGE")
+        chromium_rev = response.read()
+
+        response = urllib2.urlopen(self._url_base() + chromium_rev + "/REVISIONS")
+        cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
+
+        return [self._url_base() + chromium_rev + "/"]
 
 class MozillaRevisionFinder(RevisionFinder):
 
@@ -262,6 +288,43 @@ class ArchiveMozillaDownloader(Downloader):
         info = {}
         info["revision"] = raw_info["moz_source_stamp"]
         info["engine_type"] = "firefox"
+        info["shell"] = False
+        info["binary"] = os.path.abspath(self.getbinary())
+
+        return info
+
+class GoogleAPISDownloader(Downloader):
+
+    def getfilename(self):
+        platform = self.url.split("/")[-3]
+        if platform == "Linux":
+            return "chrome-linux.zip"
+        elif platform == "Mac":
+            return "chrome-mac.zip"
+        elif platform == "Win":
+            return "chrome-win32.zip"
+        elif platform == "Android":
+            return "chrome-android.zip"
+        raise Exception("Unknown platform: " + platform)
+
+    def getbinary(self):
+        if os.path.exists(self.folder + "chrome-linux/chrome"):
+            return self.folder + "chrome-linux/chrome"
+        if os.path.exists(self.folder + "chrome-win32/chrome.exe"):
+            return self.folder + "chrome-win32/chrome.exe"
+        if os.path.exists(self.folder + "chrome-mac/Chromium.app/Contents/MacOS/Chromium"):
+            return self.folder + "chrome-mac/Chromium.app/Contents/MacOS/Chromium"
+        if os.path.exists(self.folder + "chrome-android/apks/ChromeShell.apk"):
+            return self.folder + "chrome-android/apks/ChromeShell.apk"
+        assert False
+
+    def retrieveInfo(self):
+        response = urllib2.urlopen(self.url + "REVISIONS")
+        cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
+
+        info = {}
+        info["revision"] = cset
+        info["engine_type"] = "chrome"
         info["shell"] = False
         info["binary"] = os.path.abspath(self.getbinary())
 

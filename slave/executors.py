@@ -9,7 +9,7 @@ import utils
 class ShellExecutor(object):
     def __init__(self, engineInfo):
         self.engineInfo = engineInfo
-    
+
     def run(self, benchmark, config):
         env = os.environ.copy()
         env.update(config.env())
@@ -20,10 +20,10 @@ class ShellExecutor(object):
             return benchmark.benchmark(self.engineInfo["binary"], env, args)
 
 class BrowserExecutor(object):
-    
+
     def __init__(self, engineInfo):
         self.engineInfo = engineInfo
-    
+
     def run(self, benchmark, config):
         env = os.environ.copy()
         env.update(config.env())
@@ -49,17 +49,18 @@ class BrowserExecutor(object):
         while not os.path.exists("results") and timeout > 0:
             time.sleep(10)
             timeout -= 10
-    
+
 class FirefoxExecutor(BrowserExecutor):
-    
+
     def execute(self, page, env, args):
         runner = runners.getRunner(self.engineInfo["platform"], {
             "osx_mount_point": "/Volumes/Nightly",
             "osx_binary": "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox",
-            "android_processname": "org.mozilla.fennec" 
+            "android_processname": "org.mozilla.fennec",
+            "linux_processname": "firefox"
         })
 
-        # kill all possible running instances. 
+        # kill all possible running instances.
         runner.killAllInstances()
         runner.killall("plugin-container")
 
@@ -72,7 +73,7 @@ class FirefoxExecutor(BrowserExecutor):
         # create new profile
         runner.mkdir("profile/")
 
-        # Update profile to disable slow script dialog 
+        # Update profile to disable slow script dialog
         runner.write("profile/prefs.js", "user_pref(\"dom.max_script_run_time\", 0);")
 
         # reset the result
@@ -80,7 +81,32 @@ class FirefoxExecutor(BrowserExecutor):
 
         # start browser
         process = runner.start(binary, args + ["--profile", runner.getdir("profile")], env)
-        
+
+        # wait for results
+        self.waitForResults()
+
+        # kill browser
+        runner.kill(process)
+
+class ChromeExecutor(BrowserExecutor):
+
+    def execute(self, page, env, args):
+        runner = runners.getRunner(self.engineInfo["platform"], {
+            #"osx_mount_point": "/Volumes/Nightly",
+            #"osx_binary": "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox",
+            #"android_processname": "org.mozilla.fennec"
+            "linux_processname": "chrome"
+        })
+
+        # kill all possible running instances.
+        runner.killAllInstances()
+
+        # reset the result
+        self.resetResults()
+
+        # start browser
+        process = runner.start(self.engineInfo["binary"], ["--disable-setuid-sandbox"] + args, env)
+
         # wait for results
         self.waitForResults()
 
@@ -117,6 +143,8 @@ def getExecutor(engineInfo):
         return ShellExecutor(engineInfo)
     if engineInfo["engine_type"] == "firefox" and not engineInfo["shell"]:
         return FirefoxExecutor(engineInfo)
+    if engineInfo["engine_type"] == "chrome" and not engineInfo["shell"]:
+        return ChromeExecutor(engineInfo)
     if engineInfo["engine_type"] == "servo":
         return ServoExecutor(engineInfo)
 
