@@ -35,6 +35,10 @@ class DownloadTools(object):
     def getRevisionFinder(cls, repo):
         if "mozilla" in repo:
             return MozillaRevisionFinder(repo)
+        if "chrome" in repo:
+            return ChromeRevisionFinder(repo)
+        if "webkit" in repo:
+            return WebKitRevisionFinder(repo)
         raise Exception("Unknown repo")
 
     @classmethod
@@ -58,6 +62,38 @@ class RevisionFinder(object):
             if downloader.valid():
                 return downloader
         raise Exception("couldn't find the revision.")
+
+class ChromeRevisionFinder(RevisionFinder):
+
+    def _url_base(self):
+        platform = self._platform()
+        return "http://commondatastorage.googleapis.com/chromium-browser-continuous/"+platform+"/"
+
+    def _platform(self):
+        if platform.system() == "Linux":
+            return "Linux"
+        if platform.system() == "Darwin":
+            return "Mac"
+        if platform.system() == "Windows":
+            return "Win"
+        raise Exception("Unknown platform: " + platform.system())
+
+    def latest(self):
+        response = urllib2.urlopen(self._url_base() + "LAST_CHANGE")
+        chromium_rev = response.read()
+
+        response = urllib2.urlopen(self._url_base() + chromium_rev + "/REVISIONS")
+        cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
+
+        return [self._url_base() + chromium_rev + "/"]
+
+class WebKitRevisionFinder(RevisionFinder):
+
+    def latest(self):
+        response = urllib2.urlopen("http://nightly.webkit.org/")
+        cset = re.findall('WebKit r([0-9]*)<', response.read())[0]
+
+        return ["http://builds.nightly.webkit.org/files/trunk/mac/WebKit-SVN-r" + cset + ".dmg"]
 
 class MozillaRevisionFinder(RevisionFinder):
 
@@ -245,12 +281,12 @@ class ArchiveMozillaDownloader(Downloader):
             return self.folder + "firefox/firefox.exe"
         if os.path.exists(self.folder + "firefox/firefox"):
             return self.folder + "firefox/firefox"
-        files = os.listdirs()
+        files = os.listdir(self.folder)
         assert len(files) == 1
         if files[0].endswith(".apk"):
-            return files[0]
+            return self.folder + files[0]
         if files[0].endswith(".dmg"):
-            return files[0]
+            return self.folder + files[0]
         assert False
 
     def retrieveInfo(self):
@@ -264,6 +300,70 @@ class ArchiveMozillaDownloader(Downloader):
         info["engine_type"] = "firefox"
         info["shell"] = False
         info["binary"] = os.path.abspath(self.getbinary())
+        info["folder"] = os.path.abspath(self.folder)
+
+        return info
+
+class GoogleAPISDownloader(Downloader):
+
+    def getfilename(self):
+        platform = self.url.split("/")[-3]
+        if platform == "Linux":
+            return "chrome-linux.zip"
+        elif platform == "Mac":
+            return "chrome-mac.zip"
+        elif platform == "Win":
+            return "chrome-win32.zip"
+        elif platform == "Android":
+            return "chrome-android.zip"
+        raise Exception("Unknown platform: " + platform)
+
+    def getbinary(self):
+        if os.path.exists(self.folder + "chrome-linux/chrome"):
+            return self.folder + "chrome-linux/chrome"
+        if os.path.exists(self.folder + "chrome-win32/chrome.exe"):
+            return self.folder + "chrome-win32/chrome.exe"
+        if os.path.exists(self.folder + "chrome-mac/Chromium.app/Contents/MacOS/Chromium"):
+            return self.folder + "chrome-mac/Chromium.app/Contents/MacOS/Chromium"
+        if os.path.exists(self.folder + "chrome-android/apks/ChromeShell.apk"):
+            return self.folder + "chrome-android/apks/ChromeShell.apk"
+        assert False
+
+    def retrieveInfo(self):
+        response = urllib2.urlopen(self.url + "REVISIONS")
+        cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
+
+        info = {}
+        info["revision"] = cset
+        info["engine_type"] = "chrome"
+        info["shell"] = False
+        info["binary"] = os.path.abspath(self.getbinary())
+        info["folder"] = os.path.abspath(self.folder)
+
+        return info
+
+class BuildsWebkitDownloader(Downloader):
+
+    def __init__(self, url):
+        self.file = url.split("/")[-1]
+        self.url = "/".join(url.split("/")[0:-1])
+        if not self.url.endswith("/"):
+            self.url += "/"
+        self.folder = "./"
+
+    def getfilename(self):
+        return self.file
+
+    def retrieveInfo(self):
+        print self.file
+        cset = re.findall('-r([a-z0-9]*)\.dmg', self.file)[0]
+
+        info = {}
+        info["revision"] = cset
+        info["engine_type"] = "webkit"
+        info["shell"] = False
+        info["binary"] = os.path.abspath(self.folder + self.file)
+        info["folder"] = os.path.abspath(self.folder)
 
         return info
 
