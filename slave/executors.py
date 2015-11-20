@@ -106,6 +106,11 @@ class ChromeExecutor(BrowserExecutor):
         # make binary executable
         runner.set_exec_bit(self.engineInfo["binary"])
 
+        # Chromium Helper needs to be executable too
+        helpers = runner.find(self.engineInfo["folder"], "Chromium Helper")
+        for helper in helpers:
+            runner.set_exec_bit(helper)
+
         # reset the result
         self.resetResults()
 

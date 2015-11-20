@@ -300,6 +300,7 @@ class ArchiveMozillaDownloader(Downloader):
         info["engine_type"] = "firefox"
         info["shell"] = False
         info["binary"] = os.path.abspath(self.getbinary())
+        info["folder"] = os.path.abspath(self.folder)
 
         return info
 
@@ -337,6 +338,7 @@ class GoogleAPISDownloader(Downloader):
         info["engine_type"] = "chrome"
         info["shell"] = False
         info["binary"] = os.path.abspath(self.getbinary())
+        info["folder"] = os.path.abspath(self.folder)
 
         return info
 
@@ -361,6 +363,7 @@ class BuildsWebkitDownloader(Downloader):
         info["engine_type"] = "webkit"
         info["shell"] = False
         info["binary"] = os.path.abspath(self.folder + self.file)
+        info["folder"] = os.path.abspath(self.folder)
 
         return info
 

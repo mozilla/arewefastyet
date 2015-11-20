@@ -49,6 +49,12 @@ class Runner(object):
         st = os.stat(path)
         os.chmod(path, st.st_mode | stat.S_IEXEC)
 
+    def find(self, path, file):
+        paths = subprocess.check_output(["find", path])
+	paths = [path.rstrip() for path in paths.splitlines()]
+        print [(path, path.endswith(file), file) for path in paths]
+        return [path for path in paths if path.endswith(file)]
+
 class LinuxRunner(Runner):
     def killall(self, name):
         print "killall", name
