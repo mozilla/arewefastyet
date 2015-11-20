@@ -87,6 +87,8 @@ class FirefoxExecutor(BrowserExecutor):
 
         # kill browser
         runner.kill(process)
+        runner.killAllInstances()
+        runner.killall("plugin-container")
 
 class ChromeExecutor(BrowserExecutor):
 
@@ -101,6 +103,9 @@ class ChromeExecutor(BrowserExecutor):
         # kill all possible running instances.
         runner.killAllInstances()
 
+        # make binary executable
+        runner.set_exec_bit(self.engineInfo["binary"])
+
         # reset the result
         self.resetResults()
 
@@ -112,6 +117,7 @@ class ChromeExecutor(BrowserExecutor):
 
         # kill browser
         runner.kill(process)
+        runner.killAllInstances()
 
 class WebKitExecutor(BrowserExecutor):
 
@@ -125,6 +131,9 @@ class WebKitExecutor(BrowserExecutor):
 
         # kill all possible running instances.
         runner.killAllInstances()
+
+	# remove the saved tabs.
+	runner.rm(os.path.join(os.environ.get("HOME"), "Library","Saved Application State","com.apple.Safari.savedState"))
 
         # if needed install the executable
         binary = runner.install(self.engineInfo["binary"])
@@ -140,6 +149,7 @@ class WebKitExecutor(BrowserExecutor):
 
         # kill browser
         runner.kill(process)
+        runner.killAllInstances()
 
 class ServoExecutor(BrowserExecutor):
     def execute(self, page, env, args):

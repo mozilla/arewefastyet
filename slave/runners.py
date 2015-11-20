@@ -2,16 +2,18 @@ import subprocess
 import shutil
 import time
 import os
+import stat
 
 class Runner(object):
     def __init__(self, info):
         self.info = info
 
     def rm(self, path):
-        print "rm", path
         if not os.path.exists(path):
+            print "rm", path, "(non-existing)"
             return 
 
+        print "rm", path
         shutil.rmtree(path)
 
     def kill(self, process):
@@ -41,6 +43,11 @@ class Runner(object):
 
     def getdir(self, path):
         return path
+
+    def set_exec_bit(self, path):
+        print "chmod u+x", path
+        st = os.stat(path)
+        os.chmod(path, st.st_mode | stat.S_IEXEC)
 
 class LinuxRunner(Runner):
     def killall(self, name):
@@ -73,7 +80,15 @@ class OSXRunner(Runner):
         if not os.path.exists(self.info["osx_mount_point"]):
             return
 
-        subprocess.check_output(["hdiutil", "detach", "-force", self.info["osx_mount_point"]])
+        print "killallinstances"
+        try:
+            subprocess.check_output("kill $(ps aux | grep '"+self.info["osx_mount_point"]+"[^[]' | awk '{print $2}')", shell=True)
+        except:
+            pass
+        try:
+            subprocess.check_output(["hdiutil", "detach", "-force", self.info["osx_mount_point"]])
+        except:
+            pass
 
     def start(self, exe, args = [], env = {}):
         print "start", exe, args, env
@@ -81,6 +96,7 @@ class OSXRunner(Runner):
 
     def install(self, exe):
         if exe.endswith(".dmg"):
+            print "install", exe
             subprocess.check_output(["hdiutil", "attach", exe])
             return self.info["osx_binary"]
         else:

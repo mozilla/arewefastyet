@@ -35,7 +35,7 @@ class DownloadTools(object):
     def getRevisionFinder(cls, repo):
         if "mozilla" in repo:
             return MozillaRevisionFinder(repo)
-        if "chromium" in repo:
+        if "chrome" in repo:
             return ChromeRevisionFinder(repo)
         if "webkit" in repo:
             return WebKitRevisionFinder(repo)
@@ -345,8 +345,8 @@ class BuildsWebkitDownloader(Downloader):
     def __init__(self, url):
         self.file = url.split("/")[-1]
         self.url = "/".join(url.split("/")[0:-1])
-        if not url.endswith("/"):
-            url += "/"
+        if not self.url.endswith("/"):
+            self.url += "/"
         self.folder = "./"
 
     def getfilename(self):
