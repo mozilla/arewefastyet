@@ -32,6 +32,26 @@
   }
 }
 
+.info {
+	border: 1px SOLID #B6B37D;
+	background-color: #E3DFA6;
+    padding: $unit;
+	padding-left: 50px + $unit;
+
+	.info-sign {
+		margin-left: -40px;
+		font-family: 'Glyphicons Halflings';
+		font-style: normal;
+		font-weight: normal;
+		margin-right: $unit;
+		font-size: 30px;
+		display: block;
+		float: left;
+	}
+
+	margin-bottom:$unit*5;
+}
+
 .link {
   text-decoration: underline; 
   cursor: pointer;
