@@ -59,10 +59,12 @@
   	</table>
   </div>
 
-  <div class='info'>
-	<div ng-if='obsolete'>
-		This regression report is possibly obsolete. More specific revisions have been triggered and finished. Please annotate/report the more specific regression and mark this as obsolete.
-	</div>
+  <div class='info' ng-if='regression.inbetween.length > 0'>
+  	<span class="info-sign">&#xE086;</span>
+  	There are benchmarking scores available from revisions in this regressions range.
+  	<div ng-repeat="revision in regression.inbetween track by $index">
+  	 - {{revision}}
+  	</div>
   </div>
 
   <div class='status'>

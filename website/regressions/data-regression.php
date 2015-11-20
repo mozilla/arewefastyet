@@ -10,6 +10,7 @@ require_once("data-func.php");
 
 require_once("../lib/RetriggerController.php");
 require_once("../lib/DB/Regression.php");
+require_once("../lib/RegressionTools.php");
 
 $postdata = file_get_contents("php://input");
 $request = json_decode($postdata);
@@ -53,6 +54,12 @@ for ($i=0; $i < count($ids); $i++) {
 		"retriggerable" => RetriggerController::retriggerable($db_run->machine_id(),
 															  $db_build->mode_id())
 	);
+
+	$inbetween = Array();
+	foreach (RegressionTools::inbetweenBuilds($db_regression) as $build) {
+		$inbetween[] = $build->revision();
+	}
+	$regression["inbetween"] = $inbetween;
 
 	$qScores = mysql_query("SELECT * FROM awfy_regression_score
 						    WHERE regression_id = '".$regression["id"]."'") or die(mysql_error());

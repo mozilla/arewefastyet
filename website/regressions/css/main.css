@@ -341,6 +341,21 @@ html, body {
     margin-right: 6px;
     float: right;
     cursor: pointer; }
+.regression .info {
+  border: 1px SOLID #B6B37D;
+  background-color: #E3DFA6;
+  padding: 6px;
+  padding-left: 56px;
+  margin-bottom: 30px; }
+  .regression .info .info-sign {
+    margin-left: -40px;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: normal;
+    margin-right: 6px;
+    font-size: 30px;
+    display: block;
+    float: left; }
 .regression .link {
   text-decoration: underline;
   cursor: pointer; }

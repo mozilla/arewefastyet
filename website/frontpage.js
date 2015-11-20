@@ -523,8 +523,8 @@ Display.prototype.createToolTip = function (item, extended) {
         if (point.length > 1 && point[2] && point[1] != point[2]) {
             if (vendor.rangeURL) {
                 var url = vendor.rangeURL
-                            .replace("{from}", point[1])
-                            .replace("{to}", point[2]);
+                            .replace(/{from}/g, point[1])
+                            .replace(/{to}/g, point[2]);
                 text += so + 'revs: ' + sc +
                              '<a href="' + url + '">' + point[1] + " to " + point[2] + '</a>';
             } else {
@@ -539,9 +539,9 @@ Display.prototype.createToolTip = function (item, extended) {
 
             if (prev && vendor.rangeURL) {
                 var url = vendor.rangeURL
-                            .replace("{from}", prev[1])
-                            .replace("{to}", point[1])
-                            .replace("{num}", point[1] - prev[1]);
+                            .replace(/{from}/g, prev[1])
+                            .replace(/{to}/g, point[1])
+                            .replace(/{num}/g, point[1] - prev[1]);
                 text += ' (<a href="' + url + '">changelog</a>)';
             }
         }

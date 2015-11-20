@@ -82,6 +82,7 @@ awfyApp.controller('pageCtrl', ['$scope', 'MasterService', '$http',
 							  {"name":"fixed"},
 							  {"name":"wontfix"},
 							  {"name":"noise"},
+							  {"name":"obsolete"},
 							  {"name":"infrastructure"},
                               {"name":"triage"}];
 

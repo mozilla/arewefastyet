@@ -2,6 +2,7 @@
 
 require_once("DB.php");
 require_once("Run.php");
+require_once("Score.php");
 
 class Build extends DB {
 
@@ -32,6 +33,16 @@ class Build extends DB {
                      ({$run->id}, $mode_id, '".mysql_real_escape_string($revision)."')")
                      or die("ERROR: " . mysql_error());
         return new Build(mysql_insert_id());
+    }
+
+    public function scores() {
+        $qScore = mysql_query("SELECT id FROM awfy_score
+                               WHERE build_id = {$this->id}") or die(mysql_error());
+		$scores = Array();
+		while ($score = mysql_fetch_object($qScore)) {
+			$scores[] = new Score($score->id);
+		}
+		return $scores;
     }
 
     public function revision() {
