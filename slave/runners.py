@@ -93,7 +93,7 @@ class WindowsRunner(LinuxRunner):
         paths = subprocess.check_output(["find", path])
         paths = [path.rstrip() for path in paths.splitlines()]
         for path in paths:
-            os.set_exec_bit(self, path)
+            self.set_exec_bit(path)
 
         return exe
 
