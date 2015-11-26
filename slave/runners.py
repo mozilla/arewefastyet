@@ -51,7 +51,7 @@ class Runner(object):
 
     def find(self, path, file):
         paths = subprocess.check_output(["find", path])
-	paths = [path.rstrip() for path in paths.splitlines()]
+        paths = [path.rstrip() for path in paths.splitlines()]
         print [(path, path.endswith(file), file) for path in paths]
         return [path for path in paths if path.endswith(file)]
 
@@ -73,6 +73,20 @@ class LinuxRunner(Runner):
 
     def install(self, exe):
         return exe
+
+class WindowsRunner(LinuxRunner):
+    """ we assume cygwin, e.g. similar to the linux runner """
+
+    def killAllInstances(self):
+        print "killallinstances"
+        self.killall(self.info["windows_processname"])
+
+    def killall(self, name):
+        print "killall", name
+        try:
+            subprocess.check_output("kill $(ps aux | grep '"+name+"$' | awk '{print $2}')", shell=True)
+        except:
+            pass
 
 class OSXRunner(Runner):
     def killall(self, name):

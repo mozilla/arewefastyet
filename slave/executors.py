@@ -58,6 +58,7 @@ class FirefoxExecutor(BrowserExecutor):
             "osx_binary": "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox",
             "android_processname": "org.mozilla.fennec",
             "linux_processname": "firefox"
+            "windows_processname": "firefox.exe"
         })
 
         # kill all possible running instances.
