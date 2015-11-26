@@ -88,6 +88,15 @@ class WindowsRunner(LinuxRunner):
         except:
             pass
 
+    def install(self, exe):
+        path = os.path.dirname(exe)
+        paths = subprocess.check_output(["find", path])
+        paths = [path.rstrip() for path in paths.splitlines()]
+        for path in paths:
+            os.set_exec_bit(self, path)
+
+        return exe
+
 class OSXRunner(Runner):
     def killall(self, name):
         print "killall", name
