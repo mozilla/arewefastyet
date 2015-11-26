@@ -34,13 +34,18 @@ class Task {
         );
     }
 
-    public function __construct($task) {
+    public function __construct($task, $available_at = 0) {
         $this->task = $task;
+		$this->available_at = $available_at;
     }
 
     public function task() {
         return $this->task;
     }
+
+    public function available_at() {
+		return $this->available_at;
+	}
 
     public function configs() {
         $configs = Array();

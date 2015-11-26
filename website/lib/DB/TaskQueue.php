@@ -38,15 +38,17 @@ class TaskQueue {
                                     start = 0
                               ORDER BY id LIMIT 1") or die(mysql_error());
         return mysql_num_rows($qTask) != 0;
-
     }
 
-    function get_oldest_queued_tasks() {
+    function get_oldest_available_queued_task() {
         $qTask = mysql_query("SELECT id
                               FROM control_task_queue
                               WHERE control_unit_id = {$this->unit_id} AND
-                                    start = 0
+                                    start = 0 AND
+                                    available_at <= UNIX_TIMESTAMP()
                               ORDER BY id LIMIT 1") or die(mysql_error());
+		if (mysql_num_rows($qTask) == 0)
+			return null;
         $task = mysql_fetch_object($qTask);
         return new QueuedTask($task->id);
     }

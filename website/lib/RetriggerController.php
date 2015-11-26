@@ -17,7 +17,10 @@ class RetriggerController {
 
         $qTask = mysql_query("SELECT * FROM control_tasks WHERE control_unit_id = $unit_id");
         while ($task = mysql_fetch_object($qTask)) {
-            $task = new ManipulateTask($task->task);
+			$available_at = 0;
+			if ($task->delay)
+				$available_at = $task->last_scheduled + $task->delay;
+            $task = new ManipulateTask($task->task, $available_at);
             $retrigger->tasks[] = $task;
         }
         return $retrigger;
@@ -37,7 +40,11 @@ class RetriggerController {
 
             $retrigger->unit_id = $task->control_unit_id;
 
-            $task = new ManipulateTask($task->task);
+			$available_at = 0;
+			if ($task->delay)
+				$available_at = $task->last_scheduled + $task->delay;
+
+            $task = new ManipulateTask($task->task, $available_at);
             if ($mode_id != 0)
                 $task->update_modes(Array($mode->mode()));
 
@@ -59,6 +66,17 @@ class RetriggerController {
 
         return true;
     }
+
+    public static function fillQueue($unit_id) {
+        $retrigger = RetriggerController::fromUnit($unit_id);
+		if (count($retrigger->tasks) == 0)
+			return false;
+        $retrigger->enqueueRespectDelay();
+        mysql_query("UPDATE control_tasks
+					 SET last_scheduled = UNIX_TIMESTAMP()
+					 WHERE control_unit_id = $unit_id") or die(mysql_error());
+		return true;
+	}
 
     public function convertToRevision($mode_id, $revision, $run_before_id, $run_after_id) {
         $mode = new Mode($mode_id);
@@ -98,7 +116,7 @@ class RetriggerController {
         }
     }
 
-    public function enqueue() {
+    public function enqueueNow() {
         if ($this->unit_id == 0)
             throw new Exception("No control_unit specified.");
 
@@ -106,6 +124,18 @@ class RetriggerController {
             mysql_query("INSERT INTO control_task_queue
                          (control_unit_id, task)
                          VALUES ({$this->unit_id}, '".mysql_escape_string($task->task())."')") or throw_exception(mysql_error());
+        }
+    }
+
+    public function enqueueRespectDelay() {
+        if ($this->unit_id == 0)
+            throw new Exception("No control_unit specified.");
+
+        foreach ($this->tasks as $task) {
+            mysql_query("INSERT INTO control_task_queue
+                         (control_unit_id, task, available_at)
+						 VALUES ({$this->unit_id}, '".mysql_escape_string($task->task())."',".
+								 $task->available_at().")") or throw_exception(mysql_error());
         }
     }
 }

@@ -22,13 +22,19 @@ if ($unit = GET_int("unit")) {
     }
 
     if (!$queue->has_queued_tasks()) {
-        $retrigger = RetriggerController::fromUnit($unit);
-		if (count($retrigger->tasks) == 0)
+        if (!RetriggerController::fillQueue($unit))
 			die("No tasks to schedule");
-        $retrigger->enqueue();
     }
 
-    $task = $queue->get_oldest_queued_tasks();
+    $task = $queue->get_oldest_available_queued_task();
+	if (!$task) {
+		echo json_encode(Array(
+			"task" => "sleep 60",
+			"id" => 0
+		));
+		die();
+	}
+
     $task->setStarted();
 
     echo json_encode(Array(

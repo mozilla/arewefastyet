@@ -21,5 +21,5 @@ $benchmarks = $request->benchmarks;
 $retrigger = RetriggerController::fromMachine($machine_id, $mode_id);
 $retrigger->convertToRevision($mode_id, $revision, $run_before_id, $run_after_id);
 $retrigger->selectBenchmarks($benchmarks);
-$retrigger->enqueue();
+$retrigger->enqueueNow();
 
