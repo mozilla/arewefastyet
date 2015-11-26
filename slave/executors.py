@@ -45,7 +45,7 @@ class BrowserExecutor(object):
         os.unlink("results")
 
     def waitForResults(self):
-        timeout = utils.config.Timeout * 60
+        timeout = utils.config.Timeout
         while not os.path.exists("results") and timeout > 0:
             time.sleep(10)
             timeout -= 10
