@@ -76,6 +76,8 @@ class ChromeRevisionFinder(RevisionFinder):
             return "Mac"
         if platform.system() == "Windows":
             return "Win"
+        if platform.system().startswith("CYGWIN"):
+            return "Win"
         raise Exception("Unknown platform: " + platform.system())
 
     def latest(self):
@@ -111,6 +113,8 @@ class MozillaRevisionFinder(RevisionFinder):
         if platform.system() == "Darwin":
             return "macosx64"
         if platform.system() == "Windows":
+            return "win"+arch
+        if platform.system().startswith("CYGWIN"):
             return "win"+arch
         raise Exception("Unknown platform: " + platform.system())
 
