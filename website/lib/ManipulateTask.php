@@ -43,6 +43,17 @@ class ManipulateTask extends Task {
             }
         }
 
+        // Download engines
+        $commands = BashInterpreter::matchCommand($this->task, "python download.py");
+        foreach ($commands as $command) {
+            $source_matches = BashInterpreter::matchFlag($command, "--repo");
+			$source_rules = $this->source_rules();
+            $engine = $source_rules[$source_matches[0]];
+            if (in_array($engine, $removed_engines)) {
+                $this->removeBuildOrDownloadCommand($command);
+            }
+        }
+
         $this->optimize();
     }
 
@@ -69,6 +80,7 @@ class ManipulateTask extends Task {
     public function setBuildRevision($new_revision) {
         $this->removeBuildRevisionInfo();
         $this->task = BashInterpreter::addFlagToCommands($this->task, "python build.py", "-r ".$new_revision);
+        $this->task = BashInterpreter::addFlagToCommands($this->task, "python download.py", "-r ".$new_revision);
     }
 
     public function setSubmitterOutOfOrder($mode_name, $revision, $run_before_id, $run_after_id) {
@@ -88,8 +100,12 @@ class ManipulateTask extends Task {
 
     private function removeBuildRevisionInfo() {
         $commands = BashInterpreter::matchCommand($this->task, "python download.py");
-        if (count($commands) != 0)
-            throw new Exception("Not yet supported to specify revision for downloaded builds.");
+        foreach ($commands as $command) {
+            $revision_matches = BashInterpreter::matchFlag($command, "-r");
+            foreach ($revision_matches as $revision) {
+                $this->task = BashInterpreter::removeFlagFromCommand($this->task, $command, "-r ".$revision);
+            }
+        }
 
         $commands = BashInterpreter::matchCommand($this->task, "python build.py");
         foreach ($commands as $command) {

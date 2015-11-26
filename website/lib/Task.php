@@ -9,7 +9,9 @@ class Task {
     public function source_rules() {
         return Array(
             "mozilla" => "firefox",
+            "mozilla-inbound" => "firefox",
             "v8" => "chrome",
+            "chrome" => "chrome",
             "webkit" => "webkit"
         );
     }
@@ -67,7 +69,16 @@ class Task {
         }
 
         // Fetch all engines that have been downloaded.
-        // TODO.
+        $commands = BashInterpreter::matchCommand($this->task, "python download.py");
+        foreach ($commands as $command) {
+            $source_matches = BashInterpreter::matchFlag($command, "--repo");
+            if (count($source_matches) != 1)
+                throw new Error("Expected one match.");
+
+			$source_rules = $this->source_rules();
+            $engines[] = $source_rules[$source_matches[0]];
+        }
+
         return array_unique($engines);
     }
 

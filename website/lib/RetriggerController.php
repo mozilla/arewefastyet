@@ -76,6 +76,7 @@ class RetriggerController {
         $benchmark = str_replace("shell.", "", $benchmark);
         $benchmark = str_replace("-", "", $benchmark);
         $benchmark = str_replace("misc", "assorted", $benchmark);
+        $benchmark = str_replace("ss", "sunspider", $benchmark);
         $benchmark = str_replace("asmjsubench", "asmjsmicro", $benchmark);
         return $benchmark;
     }
