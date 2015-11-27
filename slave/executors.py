@@ -32,6 +32,9 @@ class BrowserExecutor(object):
 
         self.execute(benchmark, env, args)
 
+        if not os.path.exists("results"):
+            return None
+
         fp = open("results", "r")
         results = json.loads(fp.read())
         fp.close()
@@ -49,6 +52,32 @@ class BrowserExecutor(object):
         while not os.path.exists("results") and timeout > 0:
             time.sleep(10)
             timeout -= 10
+
+class EdgeExecutor(BrowserExecutor):
+    def execute(self, page, env, args):
+        runner = runners.getRunner(self.engineInfo["platform"], {
+            "windows_processname": "cmd.exe"
+        })
+
+        # kill browser
+        process = runner.start("cmd.exe", ["/C", "taskkill", "/IM", "MicrosoftEdge.exe", "/F"], env)
+        process.wait()
+
+        # reset tabs
+        process = runner.start("cmd.exe", ["/C", "del", "/Q", "C:\Users\%username%\AppData\Local\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\User\Default\Recovery\Active"], env)
+        process.wait()
+
+        # reset the result
+        self.resetResults()
+
+        # run edge.
+        process = runner.start("cmd.exe", ["/C", "start", "microsoft-edge:" + args[0]] + args[1:], env)
+
+        # wait for results
+        self.waitForResults()
+
+        # kill browser
+        runner.start("cmd.exe", ["/C", "taskkill", "/IM", "MicrosoftEdge.exe", "/F"], env)
 
 class FirefoxExecutor(BrowserExecutor):
 
@@ -191,6 +220,8 @@ def getExecutor(engineInfo):
         return ChromeExecutor(engineInfo)
     if engineInfo["engine_type"] == "webkit" and not engineInfo["shell"]:
         return WebKitExecutor(engineInfo)
+    if engineInfo["engine_type"] == "edge" and not engineInfo["shell"]:
+        return EdgeExecutor(engineInfo)
     if engineInfo["engine_type"] == "servo":
         return ServoExecutor(engineInfo)
 

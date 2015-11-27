@@ -97,6 +97,8 @@ for benchmark in benchmarks:
                 continue
 
             results = executor.run(benchmark, config)
+            if not results:
+                continue
 
             mode = submitter.mode(info["engine_type"], config_name)
             submitter.addTests(results, benchmark.suite, benchmark.version, mode)

@@ -23,6 +23,8 @@ class Default(object):
             pass
         elif engine == "ie":
             pass
+        elif engine == "edge":
+            pass
         elif engine == "servo":
             pass
         else:
