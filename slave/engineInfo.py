@@ -14,7 +14,7 @@ def getInfo(path):
     elif info["binary"].endswith(".dmg"):
         info["platform"] = "osx"
     elif info["binary"].endswith(".exe"):
-        info["platform"] = "win"
+        info["platform"] = "windows"
     else:
         info["platform"] = "linux"
 

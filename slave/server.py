@@ -9,18 +9,34 @@ import httplib
 from SocketServer     import ThreadingMixIn
 import hashlib
 import pickle
-
-# we allow to view the top directory
-os.chdir("../")
+import utils
+import signal
 
 class FakeHandler(SimpleHTTPRequestHandler):
+
+    def handle_one_request(self):
+        """ This sometimes times out. Don't block """
+        with utils.Handler(signal.SIGALRM, utils.timeout_handler):
+            try:
+                signal.alarm(20)
+
+                SimpleHTTPRequestHandler.handle_one_request(self)
+
+                signal.alarm(0)
+            except utils.TimeException:
+                print "timeout"
+                pass
+
+
     def do_GET(self):
         if self.remoteBenchmark():
             return
 
         parsedParams = urlparse.urlparse(self.path)
-        self.localBenchmark(parsedParams.query)
-        self.send_response(200)
+        if self.localBenchmark(parsedParams.query):
+            return
+
+        self.send_error(404, "File not found")
 
     def do_POST(self):
         length = int(self.headers.getheader('content-length', 0))
@@ -29,8 +45,10 @@ class FakeHandler(SimpleHTTPRequestHandler):
         if self.remoteBenchmark(postdata):
             return
 
-        self.localBenchmark(postdata)
-        self.send_response(200)
+        if self.localBenchmark(postdata):
+            return
+
+        self.send_error(404, "File not found")
 
     def localBenchmark(self, query = None):
         if self.path.startswith("/submit"):
@@ -47,12 +65,14 @@ class FakeHandler(SimpleHTTPRequestHandler):
             content = self.injectData("localhost", self.path, content)
             self.wfile.write(bytes(content))
             f.close()
+        return True
 
     def captureResults(self, query):
         queryParsed = urlparse.parse_qs(query)
-        fp = open("slave/results", "w");
+        fp = open("results", "w");
         fp.write(queryParsed["results"][0]);
         fp.close()
+        return False
 
     def returnSunspiderJS(self, query):
         queryParsed = urlparse.parse_qs(query)
@@ -89,7 +109,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-type", "application/javascript")
         self.end_headers()
         self.wfile.write(bytes(output))
-        return
+        return True
 
     def translatePath(self, host, path):
         if host.startswith("massive."):
