@@ -661,7 +661,7 @@ AWFY.showSingle = function (name, subtest, start, end) {
         var callback = (function (id, domid) {
                 return (function (received) {
                     if (received[0])
-                    this.computeBreakdown(received[0], id, domid);
+                        this.computeBreakdown(received[0], id, domid);
                     this.drawLegend();
                     }).bind(this);
                 }).bind(this)(id, domid);
@@ -745,7 +745,7 @@ AWFY.requestRedraw = function () {
             var callback = (function (id, domid) {
                     return (function (received) {
                         if (received[0])
-                        this.computeBreakdown(received[0], id, domid);
+                            this.computeBreakdown(received[0], id, domid);
                         this.drawLegend();
                         }).bind(this);
                     }).bind(this)(id, domid);
@@ -757,7 +757,7 @@ AWFY.requestRedraw = function () {
             var callback = (function (id, domid) {
                     return (function (received) {
                         if (received[0])
-                        this.computeBreakdown(received[0], id, domid);
+                            this.computeBreakdown(received[0], id, domid);
                         this.drawLegend();
                         }).bind(this);
                     }).bind(this)(id, domid);
@@ -836,9 +836,18 @@ AWFY.parseURL = function () {
         view = 'overview';
     if (view == 'breakdown' || view == 'single') {
         var suiteName = this.queryParams['suite'];
-        if (!suiteName || !AWFYMaster.suites[suiteName])
-            view = 'overview';
+        if (!suiteName || !AWFYMaster.suites[suiteName]) {
+			window.location.hash = "#machine=" + machineId;
+			return
+		}
     }
+	if (view == 'breakdown') {
+		// Speedometer has no subscores. Show total score.
+		if (AWFYMaster.suites[suiteName].tests.length == 0) {
+			window.location.hash = "#machine=" + machineId + "&view=single&suite=" + suiteName;
+			return;
+		}
+	}
     var start = null;
     var end = null;
     if (view == 'single') {
@@ -853,7 +862,8 @@ AWFY.parseURL = function () {
             break;
         }
         if (subtest && !found) {
-            view = 'breakdown';
+			window.location.hash = "#machine=" + machineId + "&view=breakdown&suite=" + suiteName;
+			return;
         } else {
             start = (this.queryParams['start'])?parseInt(this.queryParams['start']):null;
             end = (this.queryParams['end'])?parseInt(this.queryParams['end']):null;
@@ -972,8 +982,7 @@ AWFY.updateSuiteList = function (machineId) {
             return (function(event) {
                 $('#breakdownlist .clicked').removeClass('clicked');
                 $(event.target).addClass('clicked');
-                this.showBreakdown(name);
-                this.pushState();
+			    window.location.hash = "#machine=" + this.machineId + "&view=breakdown&suite=" + name;
                 return false;
             }).bind(this);
         }).bind(this)(name));
