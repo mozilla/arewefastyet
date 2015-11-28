@@ -19,6 +19,11 @@ navigator.id.watch({
 
 // Do login in
 var doPersonaLogin = function() {
+  if (location.href.substring(0, 9) == "https://") {
+    alert("please use https:// to log in");
+    return;
+  }
+
   request = true;
   navigator.id.request();
 }
