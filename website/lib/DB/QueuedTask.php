@@ -26,5 +26,21 @@ class QueuedTask extends DB {
     function task() {
         return $this->select("task");
     }
+
+	function start_time() {
+        return $this->select("start");
+	}
+
+	function finish_time() {
+        return $this->select("finish");
+	}
+
+	function hasError() {
+		return $this->select("error") != "";
+	}
+
+	function error() {
+		return $this->select("error");
+	}
 }
 

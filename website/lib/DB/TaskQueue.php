@@ -40,6 +40,30 @@ class TaskQueue {
         return mysql_num_rows($qTask) != 0;
     }
 
+    function get_queued_tasks() {
+        $qTask = mysql_query("SELECT id
+                              FROM control_task_queue
+                              WHERE control_unit_id = {$this->unit_id} AND
+                                    start = 0
+                              ORDER BY id LIMIT 1") or die(mysql_error());
+		$tasks = Array();
+		while ($task = mysql_fetch_object($qTask)) {
+			$tasks[] = QueuedTask::FromId($task->id);
+		}
+		return $tasks;
+    }
+
+    function last_finished_task() {
+        $qTask = mysql_query("SELECT id
+                              FROM control_task_queue
+                              WHERE control_unit_id = {$this->unit_id} AND
+                                    finish > 0
+                              ORDER BY finish DESC LIMIT 1") or die(mysql_error());
+        $task = mysql_fetch_object($qTask);
+		if (!$task) return null;
+        return new QueuedTask($task->id);
+    }
+
     function get_oldest_available_queued_task() {
         $qTask = mysql_query("SELECT id
                               FROM control_task_queue

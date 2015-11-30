@@ -32,4 +32,8 @@ class Mode extends DB {
     public function mode() {
         return $this->select("mode");
     }
+
+    public function name() {
+        return $this->select("name");
+    }
 }
