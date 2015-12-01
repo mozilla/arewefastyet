@@ -19,14 +19,11 @@ class FakeHandler(SimpleHTTPRequestHandler):
         with utils.Handler(signal.SIGALRM, utils.timeout_handler):
             try:
                 signal.alarm(20)
-
                 SimpleHTTPRequestHandler.handle_one_request(self)
-
-                signal.alarm(0)
             except utils.TimeException:
                 print "timeout"
-                pass
-
+            finally:
+                signal.alarm(0)
 
     def do_GET(self):
         if self.remoteBenchmark():
