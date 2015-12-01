@@ -15,7 +15,7 @@ function assertEq(result, expected) {
     throw "Assertion: Expected " + expected + ", got " + result;
 }
 
-var iter = 10000;
+var iter = 1000;
 var reps = 100;
 var sumval = 10;		// Sum of a subarray
 var arrays = [[1,2,3,4],
