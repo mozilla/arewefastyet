@@ -20,6 +20,9 @@ function time_diff($ptime1, $ptime2) {
 		$sec -= $mins * 60;
 		$string = $mins."min";
 	}
+	if (!isset($hours) && !isset($mins)) {
+		$string = $sec."s";
+	}
 	return $string;
 }
 function time_ago($ptime, $reference = null) {
@@ -79,14 +82,28 @@ while($unit = mysql_fetch_object($qUnits)) {
 	echo "<td>";
 	if ($queue->has_active_task()) {
 		$active = $queue->get_active_task();
-		echo "running, started ".time_ago($active->start_time())." ago";
+		echo "running";
+		echo "<span title='".date("G:i d/m/Y", $active->start_time())."'> started ".time_ago($active->start_time())." ago</span>";
 	} else {
 		echo "not running";
 	}
 
 	echo "<td>";
 	if ($queue->has_queued_tasks()) {
-		echo count($queue->get_queued_tasks())." tasks";
+		$tasks = $queue->get_queued_tasks();
+		$count = count($tasks);
+		echo $count." tasks";
+		if ($count > 0 && !$queue->has_active_task()) {
+			$min = $tasks[0]->available_time();
+			foreach ($tasks as $task) {
+				if ($min > $task->available_time())
+					$min = $task->available_time();
+			}
+			if ($min < time())
+				echo " starting immediately";
+			else
+				echo " starting in ".time_diff(time(), $min);
+		}
 	} else {
 		echo "empty";
 	}
@@ -94,7 +111,7 @@ while($unit = mysql_fetch_object($qUnits)) {
 	echo "<td>";
 	if ($last = $queue->last_finished_task()) {
 		echo "finished ";
-		echo time_ago($last->finish_time())." ago, ";
+		echo "<span title='".date("G:i d/m/Y", $last->finish_time())."'>".time_ago($last->finish_time())." ago, </span>";
 		echo "(took ".time_diff($last->start_time(), $last->finish_time()).")";
 		if ($last->hasError()) {
 			echo " unsuccesfull (error: ".html_special_chars($last->error()).")";
