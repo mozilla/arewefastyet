@@ -7,6 +7,7 @@ import re
 import urllib
 import urllib2
 import json
+import contextlib
 
 import utils
 
@@ -57,13 +58,13 @@ class RemoteSubmitter(Submitter):
                 url += '&MACHINE=' + str(self.machine)
                 if timestamp:
                     url += "&stamp=" + str(timestamp)
-                url = urllib2.urlopen(url)
-                contents = url.read()
-                m = re.search('id=(\d+)', contents)
-                if m == None:
-                    self.runIds[i] = None
-                else:
-                    self.runIds[i] = int(m.group(1))
+                with contextlib.closing(urllib2.urlopen(url)) as url:
+                    contents = url.read()
+                    m = re.search('id=(\d+)', contents)
+                    if m == None:
+                        self.runIds[i] = None
+                    else:
+                        self.runIds[i] = int(m.group(1))
             except urllib2.URLError:
                 self.runIds[i] = None
 
@@ -78,13 +79,13 @@ class RemoteSubmitter(Submitter):
                 url += '&revision=' + str(revision)
                 url += '&run_before_id=' + str(run_before)
                 url += '&run_after_id=' + str(run_after)
-                url = urllib2.urlopen(url)
-                contents = url.read()
-                m = re.search('id=(\d+)', contents)
-                if m == None:
-                    self.runIds[i] = None
-                else:
-                    self.runIds[i] = int(m.group(1))
+                with contextlib.closing(urllib2.urlopen(url)) as url:
+                    contents = url.read()
+                    m = re.search('id=(\d+)', contents)
+                    if m == None:
+                        self.runIds[i] = None
+                    else:
+                        self.runIds[i] = int(m.group(1))
             except urllib2.URLError:
                 self.runIds[i] = None
 
@@ -100,7 +101,8 @@ class RemoteSubmitter(Submitter):
                      'cset': cset
                    }
             url = self.urls[i] + '?' + urllib.urlencode(args)
-            urllib2.urlopen(url)
+            with contextlib.closing(urllib2.urlopen(url)) as url:
+                pass
         return mode
 
     def addTests(self, tests, suite, suiteversion, mode, extra_info = ""):
@@ -133,13 +135,13 @@ class RemoteSubmitter(Submitter):
                      'extra_info': extra_info
                    }
             url = submiturl + '?' + urllib.urlencode(args)
-            url = urllib2.urlopen(url)
-            contents = url.read()
-            m = re.search('id=(\d+)', contents)
-            if m == None:
-                return None
-            else:
-                return int(m.group(1))
+            with contextlib.closing(urllib2.urlopen(url)) as url:
+                contents = url.read()
+                m = re.search('id=(\d+)', contents)
+                if m == None:
+                    return None
+                else:
+                    return int(m.group(1))
         except urllib2.URLError:
             return None
 
@@ -154,7 +156,8 @@ class RemoteSubmitter(Submitter):
                  'time': str(time)
                }
         url = submiturl + '?' + urllib.urlencode(args)
-        urllib2.urlopen(url)
+        with contextlib.closing(urllib2.urlopen(url)) as url:
+            pass
 
     def finish(self, status = 1):
         for i in range(len(self.urls)):
@@ -165,7 +168,8 @@ class RemoteSubmitter(Submitter):
             url += '?run=finish'
             url += '&status=' + str(status)
             url += '&runid=' + str(self.runIds[i])
-            urllib2.urlopen(url)
+            with contextlib.closing(urllib2.urlopen(url)) as url:
+                pass
 
 class PrintSubmitter(Submitter):
     def __init__(self):

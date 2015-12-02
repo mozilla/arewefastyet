@@ -113,7 +113,7 @@ class Kraken(SunSpiderBased):
 
 class Assorted(SunSpiderBased):
     def __init__(self):
-        super(Assorted, self).__init__('misc', '0.5', 'misc', 3)
+        super(Assorted, self).__init__('misc', '0.6', 'misc', 3)
 
 class AsmJSBased(Benchmark):
     def __init__(self, suite, version, folder):
