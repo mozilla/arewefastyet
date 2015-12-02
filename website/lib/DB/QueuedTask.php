@@ -35,6 +35,10 @@ class QueuedTask extends DB {
         return $this->select("finish");
 	}
 
+	function available_time() {
+		return $this->select("available_at");
+	}
+
 	function hasError() {
 		return $this->select("error") != "";
 	}

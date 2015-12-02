@@ -114,7 +114,7 @@ while($unit = mysql_fetch_object($qUnits)) {
 		echo "<span title='".date("G:i d/m/Y", $last->finish_time())."'>".time_ago($last->finish_time())." ago, </span>";
 		echo "(took ".time_diff($last->start_time(), $last->finish_time()).")";
 		if ($last->hasError()) {
-			echo " unsuccesfull (error: ".html_special_chars($last->error()).")";
+			echo " unsuccesfull (error: ".htmlspecialchars($last->error()).")";
 		}
 	} else {
 		echo "/";
