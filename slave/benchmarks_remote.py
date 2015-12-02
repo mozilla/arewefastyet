@@ -152,7 +152,7 @@ class SunSpider(Benchmark):
 class Browsermark(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "browsermark", "2.1")
-        self.url = "http://browsermark.local/"
+        self.url = "http://browsermark.local:8082/"
 
     def processResults(self, results):
         ret = []

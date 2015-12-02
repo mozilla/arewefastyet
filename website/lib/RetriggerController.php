@@ -71,9 +71,11 @@ class RetriggerController {
         $retrigger = RetriggerController::fromUnit($unit_id);
 		if (count($retrigger->tasks) == 0)
 			return false;
-        $retrigger->enqueueRespectDelay();
+
+        $start_time = $retrigger->enqueueRespectDelay();
+        $last_scheduled = ($start_time == 0) ? "UNIX_TIMESTAMP()" : $start_time;
         mysql_query("UPDATE control_tasks
-					 SET last_scheduled = UNIX_TIMESTAMP()
+					 SET last_scheduled = ".$last_scheduled."
 					 WHERE control_unit_id = $unit_id") or die(mysql_error());
 		return true;
 	}
@@ -131,11 +133,15 @@ class RetriggerController {
         if ($this->unit_id == 0)
             throw new Exception("No control_unit specified.");
 
+        $min = 0;
         foreach ($this->tasks as $task) {
+            $available_at = $task->available_at();
             mysql_query("INSERT INTO control_task_queue
                          (control_unit_id, task, available_at)
-						 VALUES ({$this->unit_id}, '".mysql_escape_string($task->task())."',".
-								 $task->available_at().")") or throw_exception(mysql_error());
+                         VALUES ({$this->unit_id}, '".mysql_escape_string($task->task())."',".
+                                 $available_at.")") or throw_exception(mysql_error());
+            $min = ($available_at < $min || $min == 0) ? $available_at : $min; 
         }
+        return $min;
     }
 }
