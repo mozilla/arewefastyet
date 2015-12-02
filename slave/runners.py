@@ -129,6 +129,12 @@ class OSXRunner(Runner):
             subprocess.check_output(["hdiutil", "attach", exe])
             return self.info["osx_binary"]
         else:
+            path = os.path.dirname(exe)
+            paths = subprocess.check_output(["find", path])
+            paths = [path.rstrip() for path in paths.splitlines()]
+            for path in paths:
+                self.set_exec_bit(path)
+
             return exe
 
 class AndroidRunner(Runner):
