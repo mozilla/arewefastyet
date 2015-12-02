@@ -113,7 +113,7 @@ class Task {
     }
 
     protected function configs($command) {
-        $configs = [];
+        $configs = Array();
         $config_matches = BashInterpreter::matchFlag($command, "-c");
         if (count($config_matches) == 0) {
             $configs[] = "default";
