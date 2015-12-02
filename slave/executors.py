@@ -127,14 +127,15 @@ class ChromeExecutor(BrowserExecutor):
             #"osx_mount_point": "/Volumes/Nightly",
             #"osx_binary": "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox",
             #"android_processname": "org.mozilla.fennec"
-            "linux_processname": "chrome"
+            "linux_processname": "chrome",
+            "windows_processname": "chrome.exe"
         })
 
         # kill all possible running instances.
         runner.killAllInstances()
 
-        # make binary executable
-        runner.set_exec_bit(self.engineInfo["binary"])
+        # if needed install the executable
+        binary = runner.install(self.engineInfo["binary"])
 
         # Chromium Helper needs to be executable too
         helpers = runner.find(self.engineInfo["folder"], "Chromium Helper")
@@ -145,7 +146,7 @@ class ChromeExecutor(BrowserExecutor):
         self.resetResults()
 
         # start browser
-        process = runner.start(self.engineInfo["binary"], ["--disable-setuid-sandbox"] + args, env)
+        process = runner.start(binary, ["--disable-setuid-sandbox"] + args, env)
 
         # wait for results
         self.waitForResults()
