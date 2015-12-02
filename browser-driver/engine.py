@@ -297,7 +297,7 @@ class Chrome(Engine):
 
         # Step 5: Install on device
         if self.slaveType == "android":
-            print subprocess.check_output(["adb", "install", "-r", self.tmp_dir+"/chrome-android/apks/ChromeShell.apk"])
+            print subprocess.check_output(["adb", "install", "-r", self.tmp_dir+"/chrome-android/apks/ChromePublic.apk"])
 
         # Step 6: Save info
         self.updated = True
