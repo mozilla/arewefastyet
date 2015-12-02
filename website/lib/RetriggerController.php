@@ -71,6 +71,7 @@ class RetriggerController {
         $retrigger = RetriggerController::fromUnit($unit_id);
 		if (count($retrigger->tasks) == 0)
 			return false;
+
         $start_time = $retrigger->enqueueRespectDelay();
         $last_scheduled = ($start_time == 0) ? "UNIX_TIMESTAMP()" : $start_time;
         mysql_query("UPDATE control_tasks

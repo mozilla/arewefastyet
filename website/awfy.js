@@ -838,14 +838,14 @@ AWFY.parseURL = function () {
         var suiteName = this.queryParams['suite'];
         if (!suiteName || !AWFYMaster.suites[suiteName]) {
 			window.location.hash = "#machine=" + machineId;
-			return
+			return false;
 		}
     }
 	if (view == 'breakdown') {
 		// Speedometer has no subscores. Show total score.
 		if (AWFYMaster.suites[suiteName].tests.length == 0) {
 			window.location.hash = "#machine=" + machineId + "&view=single&suite=" + suiteName;
-			return;
+			return false;
 		}
 	}
     var start = null;
@@ -863,7 +863,7 @@ AWFY.parseURL = function () {
         }
         if (subtest && !found) {
 			window.location.hash = "#machine=" + machineId + "&view=breakdown&suite=" + suiteName;
-			return;
+			return false;
         } else {
             start = (this.queryParams['start'])?parseInt(this.queryParams['start']):null;
             end = (this.queryParams['end'])?parseInt(this.queryParams['end']):null;
@@ -889,13 +889,13 @@ AWFY.parseURL = function () {
             if (machineId != this.machineId)
                 this.changeMachine(machineId);
             this.lastHash = window.location.hash;
-            return;
+            return true;
         } else if (view == 'breakdown' || view == 'single') {
             if (suiteName == this.suiteName) {
                 if (machineId != this.machineId) 
                     this.changeMachine(machineId);
                 this.lastHash = window.location.hash;
-                return;
+                return true;
             }
         }
     }
@@ -911,6 +911,7 @@ AWFY.parseURL = function () {
         this.showSingle(suiteName, subtest, start, end);
 
     this.lastHash = window.location.hash;
+	return true;
 }
 
 AWFY.updateMachineList = function (machineId) {
@@ -999,7 +1000,7 @@ AWFY.startup = function () {
                   $('#kraken-graph'),
                   $('#octane-graph')];
 
-    this.parseURL();
+    while (!this.parseURL()) {}
 
     // Add machine information to the menu.
     var menu = $('#machinelist');
