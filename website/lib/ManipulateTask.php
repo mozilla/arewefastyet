@@ -16,15 +16,16 @@ class ManipulateTask extends Task {
         $this->optimize();
     }
 
-    public function update_configs($new_configs) {
+    protected function update_configs($command, $new_configs) {
         //Note: Impossible to add new configs using this command. Only possible to prune ones.
-        $old_configs= $this->configs();
+        $old_configs= $this->configs($command);
         $removed_configs = array_diff($old_configs, $new_configs);
+        if (count($removed_configs) == count($old_configs))
+            return "";
         foreach($removed_configs as $removed) {
-            $this->task = BashInterpreter::removeFlagFromCommands($this->task, "python execute.py", "-c ".$removed);
+            $command = BashInterpreter::_removeFlagFromCommand($command, "-c ".$removed);
         }
-
-        $this->optimize();
+        return $command;
     }
 
     public function update_engines($new_engines) {
@@ -54,23 +55,39 @@ class ManipulateTask extends Task {
             }
         }
 
+        // Edge engine
+        $commands = BashInterpreter::matchCommand($this->task, "python edge.py");
+        foreach ($commands as $command) {
+            if (in_array("edge", $removed_engines)) {
+                $this->removeBuildOrDownloadCommand($command);
+            }
+        }
+
         $this->optimize();
     }
 
     public function update_modes($modes) {
         $engines = Array();
-        $configs = Array();
-        $mode_rules = array_flip($this->mode_rules());
 
-        foreach ($modes as $mode) {
-            $rule = $mode_rules[$mode];
-            $rule = split(",", $rule);
-            $engines[] = $rule[0];
-            $configs[] = $rule[1];
+        $commands = BashInterpreter::matchCommand($this->task, "python execute.py");
+        foreach ($commands as $command) {
+            $mode_rules = array_flip($this->mode_rules($command));
+
+            $configs = Array();
+            foreach ($modes as $mode) {
+                if (!isset($mode_rules[$mode]))
+                    continue;
+                $rule = $mode_rules[$mode];
+                $rule = split(",", $rule);
+                $engines[] = $rule[0];
+                $configs[] = $rule[1];
+            }
+
+            $new_command = $this->update_configs($command, $configs);
+            $this->task = str_replace($command, $new_command, $this->task);
         }
 
         $this->update_engines($engines);
-        $this->update_configs($configs);
     }
 
     public function setBuildRevisionToTip() {
@@ -81,6 +98,10 @@ class ManipulateTask extends Task {
         $this->removeBuildRevisionInfo();
         $this->task = BashInterpreter::addFlagToCommands($this->task, "python build.py", "-r ".$new_revision);
         $this->task = BashInterpreter::addFlagToCommands($this->task, "python download.py", "-r ".$new_revision);
+
+        $commands = BashInterpreter::matchCommand($this->task, "python edge.py");
+        if (count($commands) > 0)
+            throw new Exception("Not possible to set revision for the edge browser.");
     }
 
     public function setSubmitterOutOfOrder($mode_name, $revision, $run_before_id, $run_after_id) {

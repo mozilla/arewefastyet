@@ -1,6 +1,22 @@
 <?php
 
 class BashInterpreter {
+    private function startsWith($haystack, $needle)
+    {
+        $length = strlen($needle);
+        return (substr($haystack, 0, $length) === $needle);
+    }
+
+    private function endsWith($haystack, $needle)
+    {
+        $length = strlen($needle);
+        if ($length == 0) {
+            return true;
+        }
+
+        return (substr($haystack, -$length) === $needle);
+    }
+
     public static function matchCommand($text, $command) {
         $command = str_replace("/", "\/", $command);
         preg_match_all("/(".$command." [^;$\n\r\r\n#]*)/", $text, $matches);
@@ -9,12 +25,23 @@ class BashInterpreter {
 
     public static function matchFlag($command, $flag) {
         $flag = str_replace("/", "\/", $flag);
-        preg_match_all("/".$flag." ([a-zA-Z0-9.~\-\/]*)/", $command, $matches);
+        preg_match_all("/".$flag." ([a-zA-Z0-9,:_.~\-\/\"]*)/", $command, $matches);
+        for($i = 0; $i < count($matches[1]); $i++) {
+            if (BashInterpreter::startsWith($matches[1][$i], '"') &&
+                BashInterpreter::endsWith($matches[1][$i], '"'))
+            {
+                $matches[1][$i] = substr($matches[1][$i], 1, -1);
+            }
+        }
         return $matches[1];
     }
 
+    public static function _removeFlagFromCommand($full_command, $full_flag) {
+        return str_replace($full_flag, "", $full_command);
+    }
+
     public static function removeFlagFromCommand($text, $full_command, $full_flag) {
-        $replaced = str_replace($full_flag, "", $full_command);
+        $replaced = BashInterpreter::_removeFlagFromCommand($full_command, $full_flag);
         $text = str_replace($full_command, $replaced, $text);
         return $text;
     }

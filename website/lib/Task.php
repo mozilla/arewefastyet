@@ -20,7 +20,7 @@ class Task {
     // mode it should send this data to. These contain the default rules.
     // Though it is possible to add some extra rules in the task
     // itself. These are not accounted for (TODO).
-    public function mode_rules() {
+    public function default_mode_rules() {
         return Array(
             "firefox,default" => "jmim",
             "firefox,noasmjs" => "noasmjs",
@@ -47,17 +47,23 @@ class Task {
 		return $this->available_at;
 	}
 
+/*
     public function configs() {
         $configs = Array();
         $commands = BashInterpreter::matchCommand($this->task, "python execute.py");
         foreach ($commands as $command) {
             $config_matches = BashInterpreter::matchFlag($command, "-c");
-            foreach ($config_matches as $match) {
-                $configs[] = $match;
+            if (count($config_matches) == 0) {
+                $configs[] = "default";
+            } else {
+                foreach ($config_matches as $match) {
+                    $configs[] = $match;
+                }
             }
         }
         return array_unique($configs);
     }
+    */
 
     public function engines() {
         $engines = Array();
@@ -84,35 +90,71 @@ class Task {
             $engines[] = $source_rules[$source_matches[0]];
         }
 
-        return array_unique($engines);
+        // Fetch all engines that have been downloaded.
+        $commands = BashInterpreter::matchCommand($this->task, "python edge.py");
+        if (count($commands) != 0)
+            $engines[] = "edge";
+
+        return array_values(array_unique($engines));
     }
 
-    public function modes() {
-        $configs = $this->configs();
-        $engines = $this->engines();
-        $mode_rules = $this->mode_rules();
-
-        $modes = Array();
-        foreach ($configs as $config) {
-            foreach ($engines as $engine) {
-                $rule = $engine.",".$config;
-                if (isset($mode_rules[$rule])) {
-                    $modes[] = $mode_rules[$rule];
-                }
+    protected function mode_rules($command) {
+        $mode_matches = BashInterpreter::matchFlag($command, "--submitter-mode");
+        if (count($mode_matches) == 0) {
+            $mode_rules = $this->default_mode_rules();
+        } else {
+            $mode_rules = Array();
+            foreach ($mode_matches as $mode_match) {
+                $mode_match = split(":", $mode_match);
+                $mode_rules[$mode_match[0]] = $mode_match[1];
             }
         }
-        return $modes;
+        return $mode_rules;
     }
 
-    public function benchmarks() {
-        $configs = Array();
-        $commands = BashInterpreter::matchCommand($this->task, "python execute.py");
-        foreach ($commands as $command) {
-            $config_matches = BashInterpreter::matchFlag($command, "-b");
+    protected function configs($command) {
+        $configs = [];
+        $config_matches = BashInterpreter::matchFlag($command, "-c");
+        if (count($config_matches) == 0) {
+            $configs[] = "default";
+        } else {
             foreach ($config_matches as $match) {
                 $configs[] = $match;
             }
         }
-        return array_unique($configs);
+        return $configs;
+    }
+
+    public function modes() {
+        $engines = $this->engines();
+
+        $commands = BashInterpreter::matchCommand($this->task, "python execute.py");
+        foreach ($commands as $command) {
+            $mode_rules = $this->mode_rules($command);
+            $configs = $this->configs($command);
+
+            foreach ($configs as $config) {
+                foreach ($engines as $engine) {
+                    $rule = $engine.",".$config;
+                    if (isset($mode_rules[$rule])) {
+                        $modes[] = $mode_rules[$rule];
+                    }
+                }
+            }
+        }
+
+        return array_values(array_unique($modes));
+    }
+
+    public function benchmarks() {
+        $benchmarks = Array();
+        $commands = BashInterpreter::matchCommand($this->task, "python execute.py");
+        foreach ($commands as $command) {
+            $benchmark_matches = BashInterpreter::matchFlag($command, "-b");
+            foreach ($benchmark_matches as $match) {
+                $benchmarks[] = $match;
+            }
+        }
+        return array_values(array_unique($benchmarks));
     }
 }
