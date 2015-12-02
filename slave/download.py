@@ -70,14 +70,17 @@ class ChromeRevisionFinder(RevisionFinder):
         return "http://commondatastorage.googleapis.com/chromium-browser-continuous/"+platform+"/"
 
     def _platform(self):
+        arch, _ = platform.architecture()
+        arch = arch[0:2]
         if platform.system() == "Linux":
             return "Linux"
         if platform.system() == "Darwin":
             return "Mac"
-        if platform.system() == "Windows":
-            return "Win"
-        if platform.system().startswith("CYGWIN"):
-            return "Win"
+        if platform.system() == "Windows" or platform.system().startswith("CYGWIN"):
+            if arch == '32':
+                return "Win"
+            elif arch == '64':
+                return "Win_x64"
         raise Exception("Unknown platform: " + platform.system())
 
     def latest(self):
