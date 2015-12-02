@@ -12,9 +12,6 @@ class QueuedTask extends DB {
 
     function setStarted() {
         $this->updateRaw("start", "UNIX_TIMESTAMP()");
-        mysql_query("UPDATE control_tasks
-					 SET last_scheduled = UNIX_TIMESTAMP()
-					 WHERE control_unit_id = ".$this->control_unit_id()) or die(mysql_error());
     }
 
     function setFinished() {
