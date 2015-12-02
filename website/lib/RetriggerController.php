@@ -73,7 +73,7 @@ class RetriggerController {
 			return false;
 
         $start_time = $retrigger->enqueueRespectDelay();
-        $last_scheduled = ($start_time == 0) ? "UNIX_TIMESTAMP()" : $start_time;
+        $last_scheduled = ($start_time < time()) ? "UNIX_TIMESTAMP()" : $start_time;
         mysql_query("UPDATE control_tasks
 					 SET last_scheduled = ".$last_scheduled."
 					 WHERE control_unit_id = $unit_id") or die(mysql_error());
