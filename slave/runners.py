@@ -52,7 +52,6 @@ class Runner(object):
     def find(self, path, file):
         paths = subprocess.check_output(["find", path])
         paths = [path.rstrip() for path in paths.splitlines()]
-        print [(path, path.endswith(file), file) for path in paths]
         return [path for path in paths if path.endswith(file)]
 
 class LinuxRunner(Runner):
@@ -106,7 +105,8 @@ class OSXRunner(Runner):
             time.sleep(0.5)
 
     def killAllInstances(self):
-        if not os.path.exists(self.info["osx_mount_point"]):
+
+        if "osx_mount_point" not in self.info or not os.path.exists(self.info["osx_mount_point"]):
             return
 
         print "killallinstances"
@@ -129,6 +129,12 @@ class OSXRunner(Runner):
             subprocess.check_output(["hdiutil", "attach", exe])
             return self.info["osx_binary"]
         else:
+            path = os.path.dirname(exe)
+            paths = subprocess.check_output(["find", path])
+            paths = [path.rstrip() for path in paths.splitlines()]
+            for path in paths:
+                self.set_exec_bit(path)
+
             return exe
 
 class AndroidRunner(Runner):
