@@ -1,5 +1,4 @@
 <?php
-session_start();
 
 // Demo site using Auth_BrowserID for authentication
 
@@ -15,6 +14,7 @@ if(isset($_GET['persona'])) {
     $result = $verifier->verifyAssertion($_GET['assertion']);
 
     if ($result->status === 'okay') {
+      session_start();
       $email = htmlentities($result->email, ENT_QUOTES);
       $_SESSION["persona"] = $email;
       setcookie ("persona", $email, 0, "/");
@@ -23,11 +23,13 @@ if(isset($_GET['persona'])) {
   
   // Logout
   if(isset($_GET['logout'])) {
+    session_start();
     unset($_SESSION['persona']);
     setcookie ("persona", "", 1, "/");
   }
 
   if(isset($_GET['check'])) {
+    session_start();
     echo isset($_SESSION['persona'])?$_SESSION['persona']:"";
     exit();
   }
