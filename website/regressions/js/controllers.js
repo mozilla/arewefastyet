@@ -74,6 +74,9 @@ awfyCtrl.controller('regressionCtrl', ['$scope', '$http', '$routeParams', '$q', 
 	  $http.post('data-regression-range.php', {id:regression_id}).then(function(data){
 		$scope.regression.range = data.data
 	  });
+	  $http.post('data-regression-inbetween.php', {id:regression_id}).then(function(data){
+		$scope.regression.inbetween = data.data
+	  });
     });
 
     $scope.statusPopup = function(regression) {

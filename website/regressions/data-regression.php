@@ -55,12 +55,6 @@ for ($i=0; $i < count($ids); $i++) {
 															  $db_build->mode_id())
 	);
 
-	$inbetween = Array();
-	foreach (RegressionTools::inbetweenBuilds($db_regression) as $build) {
-		$inbetween[] = $build->revision();
-	}
-	$regression["inbetween"] = $inbetween;
-
 	$qScores = mysql_query("SELECT * FROM awfy_regression_score
 						    WHERE regression_id = '".$regression["id"]."'") or die(mysql_error());
 	while ($scores = mysql_fetch_assoc($qScores)) {
