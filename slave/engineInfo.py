@@ -11,7 +11,7 @@ def getInfo(path):
     # which platform to execute:
     if info["binary"].endswith(".apk"):
         info["platform"] = "android"
-    elif info["binary"].endswith(".dmg"):
+    elif info["binary"].endswith(".dmg") or "mac" in info["binary"]:
         info["platform"] = "osx"
     elif info["binary"].endswith(".exe"):
         info["platform"] = "windows"
