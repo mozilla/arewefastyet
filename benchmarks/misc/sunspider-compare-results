@@ -30,32 +30,20 @@ use File::Basename;
 my $showHelp = 0;
 my $jsShellPath;
 my $suite = "";
-my $ubench = 0;
-my $v8suite = 0;
-my $parseOnly = 0;
 
 my $programName = basename($0);
 my $usage = <<EOF;
 Usage: $programName --shell=[path] [options] FILE FILE
   --help        Show this help message
   --shell       Path to javascript shell
-  --suite           Select a specific benchmark suite. The default is sunspider-0.9.1
-  --ubench          Use microbenchmark suite instead of regular tests. Same as --suite=ubench
-  --v8-suite        Use the V8 benchmark suite. Same as --suite=v8-v4
-  --parse-only  Compare the parse-only benchmark results
+  --suite       Select a specific benchmark suite. The default is assorted
 EOF
 
 GetOptions('shell=s' => \$jsShellPath,
            'suite=s' => \$suite,
-           'ubench' => \$ubench,
-           'v8-suite' => \$v8suite,
-           'parse-only' => \$parseOnly,
            'help' => \$showHelp);
 
-$suite = "ubench" if ($ubench);
-$suite = "v8-v4" if ($v8suite);
-$suite = "parse-only" if ($parseOnly);
-$suite = "sunspider-0.9.1" if (!$suite);
+$suite = "assorted" if (!$suite);
 
 my $resultDirectory = "${suite}-results";
 
@@ -158,4 +146,4 @@ $output .= "var output2 = " . readResultsFile($file2) . ";\n";
 
 dumpToFile($output, "$resultDirectory/sunspider-comparison-data.js");
 
-system($jsShellPath, "-f", "$resultDirectory/sunspider-test-prefix.js", "-f", "$resultDirectory/sunspider-comparison-data.js", "-f", "resources/sunspider-compare-results.js", "-f", "resources/sunspider-standalone-compare.js");
+system($jsShellPath, "-f", "$resultDirectory/sunspider-test-prefix.js", "-f", "$resultDirectory/sunspider-comparison-data.js", "-f", "resources/compare-results.js", "-f", "resources/sunspider-standalone-compare.js");
