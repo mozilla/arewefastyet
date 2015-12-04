@@ -55,7 +55,7 @@ GetOptions('shell=s' => \$jsShellPath,
 $suite = "ubench" if ($ubench);
 $suite = "v8-v4" if ($v8suite);
 $suite = "parse-only" if ($parseOnly);
-$suite = "sunspider-0.9.1" if (!$suite);
+$suite = "kraken-1.1" if (!$suite);
 
 my $resultDirectory = "${suite}-results";
 
@@ -158,4 +158,4 @@ $output .= "var output2 = " . readResultsFile($file2) . ";\n";
 
 dumpToFile($output, "$resultDirectory/sunspider-comparison-data.js");
 
-system($jsShellPath, "-f", "$resultDirectory/sunspider-test-prefix.js", "-f", "$resultDirectory/sunspider-comparison-data.js", "-f", "resources/sunspider-compare-results.js", "-f", "resources/sunspider-standalone-compare.js");
+system($jsShellPath, "-f", "$resultDirectory/sunspider-test-prefix.js", "-f", "$resultDirectory/sunspider-comparison-data.js", "-f", "resources/compare-results.js", "-f", "resources/sunspider-standalone-compare.js");
