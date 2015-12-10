@@ -37,3 +37,5 @@ misc-bugs-1131099-lodash2
 misc-bugs-1131099-underscore
 misc-bugs-1090583-dart2js-tracer
 misc-basic-hoist-bounds-check
+misc-apply-array
+misc-apply-array-headroom
