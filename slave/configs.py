@@ -75,7 +75,7 @@ class NoAsmjs(Default):
             
 class NonWritableJitcode(Default):
     def __init__(self, engine, shell):
-        super(NoAsmjs, self).__init__(engine, shell)
+        super(NonWritableJitcode, self).__init__(engine, shell)
         if engine == "firefox" and shell:
             self.args_.append("--non-writable-jitcode");
         else:
