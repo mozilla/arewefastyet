@@ -72,6 +72,14 @@ class NoAsmjs(Default):
             self.args_.append("--no-asmjs");
         else:
             self.omit_ = True
+            
+class NonWritableJitcode(Default):
+    def __init__(self, engine, shell):
+        super(NoAsmjs, self).__init__(engine, shell)
+        if engine == "firefox" and shell:
+            self.args_.append("--non-writable-jitcode");
+        else:
+            self.omit_ = True
 
 def getConfig(name, info):
     if name == "default":
@@ -84,4 +92,6 @@ def getConfig(name, info):
         return TurboFan(info["engine_type"], info["shell"])
     if name == "noasmjs":
         return NoAsmjs(info["engine_type"], info["shell"])
+    if name == "nonwritablejitcode":
+        return NonWritableJitcode(info["engine_type"], info["shell"])
     raise Exception("Unknown config")
