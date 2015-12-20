@@ -51,6 +51,7 @@ if options.mode_rules is None:
         "firefox,noasmjs:noasmjs",
         "firefox,unboxedobjects:unboxedobjects",
         "firefox,testbedregalloc:testbed",
+        "firefox,nonwritablejitcode:nonwritablejitcode",
         "chrome,default:v8",
         "chrome,turbofan:v8-turbofan",
         "webkit,default:jsc",
