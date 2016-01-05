@@ -158,7 +158,7 @@ class AsmJSBased(Benchmark):
 
 class AsmJSMicro(AsmJSBased):
     def __init__(self):
-        super(AsmJSMicro, self).__init__('asmjs-ubench', '0.4.3', 'asmjs-ubench')
+        super(AsmJSMicro, self).__init__('asmjs-ubench', '0.4.4', 'asmjs-ubench')
 
 class AsmJSApps(AsmJSBased):
     def __init__(self):
