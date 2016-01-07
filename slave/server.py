@@ -51,7 +51,6 @@ class FakeHandler(SimpleHTTPRequestHandler):
         if self.path.startswith("/submit"):
             return self.captureResults(query)
         else:
-            print self.path
             return self.retrieveOffline();
 
     def retrieveOffline(self):
@@ -246,6 +245,10 @@ class FakeHandler(SimpleHTTPRequestHandler):
             if path == "/benchmarks/misc-desktop/hosted/assorted/driver.html":
                 return data.replace('location = "results.html?" + encodeURI(outputString);',
                                     'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
+        if host == "localhost":
+            if path == "/benchmarks/webaudio-benchmark/webaudio-bench.js":
+                return data.replace('xhr.open("POST", "/results", true);',
+                                    'xhr.open("POST", "/submit", true);');
         if host.startswith("dromaeo."):
             if path == "/webrunner.js":
                 data = data.replace('function init(){',
