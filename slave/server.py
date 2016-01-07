@@ -50,9 +50,8 @@ class FakeHandler(SimpleHTTPRequestHandler):
     def localBenchmark(self, query = None):
         if self.path.startswith("/submit"):
             return self.captureResults(query)
-        elif self.path.startswith("/sunspider.js"):
-            return self.returnSunspiderJS(query)
         else:
+            print self.path
             return self.retrieveOffline();
 
     def retrieveOffline(self):
@@ -66,47 +65,10 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
     def captureResults(self, query):
         queryParsed = urlparse.parse_qs(query)
-        fp = open("results", "w");
+        fp = open("slave/results", "w");
         fp.write(queryParsed["results"][0]);
         fp.close()
         return False
-
-    def returnSunspiderJS(self, query):
-        queryParsed = urlparse.parse_qs(query)
-        tests = queryParsed["tests"][0]
-
-        fp = open(tests+"/LIST", "r");
-        test_list = fp.read()
-        test_list = test_list.replace("\r\n", "\n").replace("\r", "\n")
-        test_list = test_list.split("\n")
-        if test_list[-1].strip() == "":
-            test_list = test_list[:-1]
-        fp.close()
-
-        output = "var tests = " + json.dumps(test_list)+";\n"
-
-        test_content = []
-        for t in test_list:
-            content = ""
-
-            if os.path.exists(tests+"/"+t+"-data.js"):
-                fp = open(tests+"/"+t+"-data.js", "r");
-                content += fp.read()
-                fp.close()
-
-            fp = open(tests+"/"+t+".js", "r");
-            content += fp.read()
-            fp.close()
-
-            test_content.append(content)
-
-        output += "var testContents = " + json.dumps(test_content)+";\n"
-
-        self.send_response(200)
-        self.send_header("Content-type", "application/javascript")
-        self.end_headers()
-        self.wfile.write(bytes(output))
-        return True
 
     def translatePath(self, host, path):
         if host.startswith("massive."):
@@ -317,10 +279,14 @@ Protocol     = "HTTP/1.0"
 Port = 8000
 ServerAddress = ('', Port)
 
-HandlerClass.protocol_version = Protocol
-httpd = ServerClass(ServerAddress, HandlerClass)
+import os
+import utils
+path = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
+with utils.FolderChanger(path):
+    HandlerClass.protocol_version = Protocol
+    httpd = ServerClass(ServerAddress, HandlerClass)
 
-sa = httpd.socket.getsockname()
-print "Serving HTTP on", sa[0], "port", sa[1], "..."
+    sa = httpd.socket.getsockname()
+    print "Serving HTTP on", sa[0], "port", sa[1], "..."
 
-httpd.serve_forever()
+    httpd.serve_forever()

@@ -4,8 +4,6 @@ import os
 import time
 import json
 import sys
-
-sys.path.insert(1, '../driver')
 import utils
 
 class Benchmark:
@@ -54,27 +52,6 @@ class Benchmark:
     def processResults(self, results):
         return results
 
-class Octane(Benchmark):
-    def __init__(self):
-        Benchmark.__init__(self, "octane", "2.0.1", "browser-driver/octane.html")
-
-    def processResults(self, results):
-        ret = []
-        for key in results:
-            if key == "total":
-                ret.append({'name': "__total__", 'time': results[key]})
-            else:
-                ret.append({'name': key, 'time': results[key]})
-        return ret
-
-class SunSpider(Benchmark):
-    def __init__(self):
-        Benchmark.__init__(self, "ss", "1.0.1", "browser-driver/ss.html")
-
-class Kraken(Benchmark):
-    def __init__(self):
-        Benchmark.__init__(self, "kraken", "1.1", "browser-driver/kraken.html")
-
 class AssortedDOM(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "assorteddom", "0.1", "benchmarks/misc-desktop/hosted/assorted/driver.html")
@@ -104,12 +81,6 @@ class WebGLSamples(Benchmark):
         Benchmark.__init__(self, "webglsamples", "0.1", "browser-driver/webglsamples.html")
 
 def getBenchmark(name):
-    if name == "octane":
-        return Octane()
-    if name == "sunspider":
-        return SunSpider()
-    if name == "kraken":
-        return Kraken()
     if name == "webglsamples":
         return WebGLSamples()
     if name == "assorteddom":

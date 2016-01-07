@@ -6,7 +6,6 @@ import submitter
 import json
 
 import sys
-sys.path.insert(1, '../driver')
 import utils
 
 from optparse import OptionParser
