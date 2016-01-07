@@ -82,7 +82,7 @@ class WebGLSamples(Benchmark):
 
 class WebAudio(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "webaudio", "0.1", "benchmarks/webaudio-benchmark/index.html")
+        Benchmark.__init__(self, "webaudio", "0.1", "benchmarks/webaudio/index.html")
 
     def processResults(self, results):
         ret = []
@@ -93,6 +93,19 @@ class WebAudio(Benchmark):
             ret.append({'name': item['name'], 'time': item['duration'] })
         return ret
 
+class UnityWebGL(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "unity-webgl", "0.1", "benchmarks/unity-webgl/index.html")
+
+    def processResults(self, results):
+        ret = []
+        total = 0
+        for item in results:
+            if item['benchmark'] == "Geometric Mean":
+                item['name'] = "__total__"
+            ret.append({'name': item['benchmark'], 'time': item['result'] })
+        return ret
+
 def getBenchmark(name):
     if name == "webglsamples":
         return WebGLSamples()
@@ -100,6 +113,8 @@ def getBenchmark(name):
         return AssortedDOM()
     if name == "webaudio":
         return WebAudio()
+    if name == "unity-webgl":
+        return UnityWebGL()
     raise Exception("Unknown benchmark")
 
 # Test if server is running and start server if needed.

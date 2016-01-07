@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | unity_bench2</title>
+    <style type="text/css">
+    <!--
+    body {
+      font-family: Helvetica, Verdana, Arial, sans-serif;
+      text-align: center;
+    }
+    a:link, a:visited {
+      color: #000;
+    }
+    a:active, a:hover {
+      color: #666;
+    }
+    p.header {
+      font-size: small;
+    }
+    p.header span {
+      font-weight: bold;
+    }
+    p.footer {
+      font-size: x-small;
+    }
+    -->
+    </style>
+    <style>
+      .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
+      textarea.emscripten { font-family: monospace; width: 80%; }
+      div.emscripten { text-align: center; }
+      canvas.emscripten { border: 0px none; }
+    </style>
+    <link rel="stylesheet" href="Data/style.css">
+    <link rel="shortcut icon" href="Data/favicon.ico" />
+    <script src="Data/UnityProgress.js"></script>
+    <script src="Data/UnityConfig.js"></script>
+  </head>
+  <body class="template">
+    <p class="header"><span>Unity WebGL Player | </span>unity_bench2</p>
+    <div class="template-wrap clear">
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" height="720px" width="1280px"></canvas>
+      <div class="logo"></div>
+      <div class="fullscreen"><img src="Data/fullscreen.png" width="38" height="38" alt="Fullscreen" title="Fullscreen" onclick="SetFullscreen(1);" /></div>
+      <div class="title">unity_bench2</div>
+    </div>
+    <p class="footer">&laquo; created with <a href="http://unity3d.com/" title="Go to unity3d.com">Unity</a> &raquo;</p>
+    <script type="text/javascript" src="Data/mozbench.js"></script>
+    <script type='text/javascript'>
+      // connect to canvas
+      var Module = {
+        filePackagePrefixURL: "Data/",
+        memoryInitializerPrefixURL: "Data/",
+        preRun: [],
+        postRun: [],
+        print: (function() {
+          return function(text) {
+            processText(text);
+            console.log (text);
+          };
+        })(),
+        printErr: function(text) {
+          console.error (text);
+        },
+        canvas: document.getElementById('canvas'),
+        progress: null,
+        setStatus: function(text) {
+          if (this.progress == null) 
+          {
+            if (typeof UnityProgress != 'function')
+              return;
+            this.progress = new UnityProgress (canvas, {
+              logoimage: "Data/progresslogo.png",
+              progressframeimage: "Data/loadingbar.png",
+              progressbarimage: "Data/fullbar.png",
+              backgroundcolor: "4D4D4D",
+            });
+          }
+          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+          if (text === Module.setStatus.text) return;
+          this.progress.SetMessage (text);
+          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+          if (m)
+            this.progress.SetProgress (parseInt(m[2])/parseInt(m[4]));
+          if (text === "") 
+            this.progress.Clear()
+        },
+        totalDependencies: 0,
+        monitorRunDependencies: function(left) {
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+        }
+      };
+      Module.setStatus('Downloading (0.0/1)');
+    </script>
+    <script src="Data/fileloader.js"></script>
+    <script>if (!(!Math.fround)) {
+  var script = document.createElement('script');
+  script.src = "Data/WebGLBenchmarks.js";
+  document.body.appendChild(script);
+} else {
+  var codeXHR = new XMLHttpRequest();
+  codeXHR.open('GET', 'Data/WebGLBenchmarks.js', true);
+  codeXHR.onload = function() {
+    var code = codeXHR.responseText;
+    if (!Math.fround) { 
+console.log('optimizing out Math.fround calls');
+code = code.replace(/Math_fround\(/g, '(').replace("'use asm'", "'almost asm'")
+ }
+
+    var blob = new Blob([code], { type: 'text/javascript' });
+    codeXHR = null;
+    var src = URL.createObjectURL(blob);
+    var script = document.createElement('script');
+    script.src = URL.createObjectURL(blob);
+    script.onload = function() {
+      URL.revokeObjectURL(script.src);
+    };
+    document.body.appendChild(script);
+  };
+  codeXHR.send(null);
+}
+</script>
+  </body>
+</html>

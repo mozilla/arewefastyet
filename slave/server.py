@@ -246,9 +246,12 @@ class FakeHandler(SimpleHTTPRequestHandler):
                 return data.replace('location = "results.html?" + encodeURI(outputString);',
                                     'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
         if host == "localhost":
-            if path == "/benchmarks/webaudio-benchmark/webaudio-bench.js":
+            if path == "/benchmarks/webaudio/webaudio-bench.js":
                 return data.replace('xhr.open("POST", "/results", true);',
                                     'xhr.open("POST", "/submit", true);');
+            if path == "/benchmarks/unity-webgl/Data/mozbench.js":
+                return data.replace('xmlHttp.open("POST", "/results", true);',
+                                    'xmlHttp.open("POST", "/submit", true);');
         if host.startswith("dromaeo."):
             if path == "/webrunner.js":
                 data = data.replace('function init(){',
