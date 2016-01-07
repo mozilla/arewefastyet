@@ -317,7 +317,10 @@ def condense_suite(cx, machine, suite):
                     }
                 export(prefix + 'bk-aggregate-' + test_path + '.json', j)
 
+    if not os.path.exists(os.path.join(awfy.path, aggregated_file)):
+        return None
     return retrieve_graph(cx, aggregated_file)
+
 
 def condense_all(cx):
     for machine in cx.machines:
@@ -333,6 +336,8 @@ def condense_all(cx):
             if suite.name == 'misc':
                 continue
             if suite.visible == 2:
+                continue
+            if suite_aggregate == None:
                 continue
             aggregates[suite.name] = suite_aggregate
 
