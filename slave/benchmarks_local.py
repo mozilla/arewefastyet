@@ -78,7 +78,7 @@ class AssortedDOM(Benchmark):
 
 class WebGLSamples(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "webglsamples", "0.1", "browser-driver/webglsamples.html")
+        Benchmark.__init__(self, "webglsamples", "0.1", "benchmarks/webglsamples/test.html")
 
 def getBenchmark(name):
     if name == "webglsamples":
