@@ -30,7 +30,7 @@ class BrowserExecutor(object):
         env.update(self.engineInfo["env"])
         args = [benchmark.url] + config.args() + self.engineInfo["args"]
 
-        self.execute(benchmark, env, args)
+        self.execute(benchmark, env, args, config.profile())
 
         if not os.path.exists("results"):
             return None
@@ -54,7 +54,7 @@ class BrowserExecutor(object):
             timeout -= 10
 
 class EdgeExecutor(BrowserExecutor):
-    def execute(self, page, env, args):
+    def execute(self, page, env, args, profile):
         runner = runners.getRunner(self.engineInfo["platform"], {
             "windows_processname": "cmd.exe"
         })
@@ -81,7 +81,7 @@ class EdgeExecutor(BrowserExecutor):
 
 class FirefoxExecutor(BrowserExecutor):
 
-    def execute(self, page, env, args):
+    def execute(self, page, env, args, profile):
         runner = runners.getRunner(self.engineInfo["platform"], {
             "osx_mount_point": "/Volumes/Nightly",
             "osx_binary": "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox",
@@ -104,7 +104,7 @@ class FirefoxExecutor(BrowserExecutor):
         runner.mkdir("profile/")
 
         # Update profile to disable slow script dialog
-        runner.write("profile/prefs.js", "user_pref(\"dom.max_script_run_time\", 0);")
+        runner.write("profile/prefs.js", profile)
 
         # reset the result
         self.resetResults()
@@ -122,7 +122,7 @@ class FirefoxExecutor(BrowserExecutor):
 
 class ChromeExecutor(BrowserExecutor):
 
-    def execute(self, page, env, args):
+    def execute(self, page, env, args, profile):
         runner = runners.getRunner(self.engineInfo["platform"], {
             #"osx_mount_point": "/Volumes/Nightly",
             #"osx_binary": "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox",
@@ -157,7 +157,7 @@ class ChromeExecutor(BrowserExecutor):
 
 class WebKitExecutor(BrowserExecutor):
 
-    def execute(self, page, env, args):
+    def execute(self, page, env, args, profile):
         runner = runners.getRunner(self.engineInfo["platform"], {
             "osx_mount_point": "/Volumes/WebKit",
             "osx_binary": "/Volumes/WebKit/WebKit.app/Contents/MacOS/WebKit"
@@ -188,7 +188,7 @@ class WebKitExecutor(BrowserExecutor):
         runner.killAllInstances()
 
 class ServoExecutor(BrowserExecutor):
-    def execute(self, page, env, args):
+    def execute(self, page, env, args, profile):
         runner = runners.getRunner(self.engineInfo["platform"], {})
 
         # kill all possible running instances.
