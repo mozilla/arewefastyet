@@ -99,6 +99,18 @@ class NoE10S(Default):
         else:
             self.omit_ = True
 
+class E10S(Default):
+    def __init__(self, engine, shell):
+        super(E10S, self).__init__(engine, shell)
+        if engine == "firefox" and not shell:
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart\", true);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.1\", true);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.2\", true);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.3\", true);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.4\", true);\n"
+        else:
+            self.omit_ = True
+
 def getConfig(name, info):
     if name == "default":
         return Default(info["engine_type"], info["shell"])
@@ -114,4 +126,6 @@ def getConfig(name, info):
         return NonWritableJitcode(info["engine_type"], info["shell"])
     if name == "noe10s":
         return NoE10S(info["engine_type"], info["shell"])
+    if name == "e10s":
+        return E10S(info["engine_type"], info["shell"])
     raise Exception("Unknown config")
