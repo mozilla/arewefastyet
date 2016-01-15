@@ -71,6 +71,12 @@ class LinuxRunner(Runner):
         return subprocess.Popen([exe] + args, env=env)
 
     def install(self, exe):
+        path = os.path.dirname(exe)
+        paths = subprocess.check_output(["find", path])
+        paths = [path.rstrip() for path in paths.splitlines()]
+        for path in paths:
+            self.set_exec_bit(path)
+
         return exe
 
 class WindowsRunner(LinuxRunner):
