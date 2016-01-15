@@ -7,10 +7,12 @@ import sys
 import utils
 
 class Benchmark:
-    def __init__(self, suite, version, page):
+    """ timeout is in minutes """
+    def __init__(self, suite, version, page, timeout=2):
         self.suite = suite
         self.version = suite+" "+version
         self.page = page
+        self.timeout = timeout
 
         host = utils.config.get('main', 'serverUrl')
         if host[-1] != "/":
@@ -29,7 +31,7 @@ class Benchmark:
                 host += "/"
             engine.run(host+self.page, modeInfo)
 
-            timeout = int(utils.config.get('main', 'timeout')) * 60
+            timeout = self.timeout * 60
             while not os.path.exists("results") and timeout > 0:
                 time.sleep(10)
                 timeout -= 10
@@ -54,7 +56,7 @@ class Benchmark:
 
 class AssortedDOM(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "assorteddom", "0.1", "benchmarks/misc-desktop/hosted/assorted/driver.html")
+        Benchmark.__init__(self, "assorteddom", "0.1", "benchmarks/misc-desktop/hosted/assorted/driver.html", 1)
         with utils.FolderChanger(os.path.join(utils.config.BenchmarkPath, "misc-desktop")):
             print subprocess.check_output(["python", "make-hosted.py"])
 
@@ -78,11 +80,11 @@ class AssortedDOM(Benchmark):
 
 class WebGLSamples(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "webglsamples", "0.1", "benchmarks/webglsamples/test.html")
+        Benchmark.__init__(self, "webglsamples", "0.1", "benchmarks/webglsamples/test.html", 1)
 
 class WebAudio(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "webaudio", "0.1", "benchmarks/webaudio/index.html")
+        Benchmark.__init__(self, "webaudio", "0.1", "benchmarks/webaudio/index.html", 2)
 
     def processResults(self, results):
         ret = []
@@ -95,7 +97,7 @@ class WebAudio(Benchmark):
 
 class UnityWebGL(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "unity-webgl", "0.1", "benchmarks/unity-webgl/index.html")
+        Benchmark.__init__(self, "unity-webgl", "0.1", "benchmarks/unity-webgl/index.html",  3)
 
     def processResults(self, results):
         ret = []

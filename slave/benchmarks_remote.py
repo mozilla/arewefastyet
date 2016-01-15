@@ -9,38 +9,12 @@ sys.path.insert(1, '../driver')
 import utils
 
 class Benchmark:
-    def __init__(self, suite, version):
+    """ timeout is in minutes """
+    def __init__(self, suite, version, timeout=2):
         self.suite = suite
         self.version = suite+" "+version
         self.url = 'http://' + self.suite + ".localhost:8000"
-
-    def run(self, engine, submit):
-        # Run tests.
-        runOneBenchmark = False
-        for modeInfo in engine.modes:
-            if os.path.exists("results"):
-                os.unlink("results")
-
-            engine.run(self.url, modeInfo)
-            timeout = int(utils.config.get('main', 'timeout')) * 60
-            while not os.path.exists("results") and timeout > 0:
-                time.sleep(10)
-                timeout -= 10
-            engine.kill()
-
-            if timeout <= 0:
-                print "Running benchmark timed out"
-                continue
-
-            fp = open("results", "r")
-            results = json.loads(fp.read())
-            fp.close()
-
-            results = self.processResults(results)
-            submit.AddTests(results, self.suite, self.version, modeInfo["name"])
-
-            runOneBenchmark = True
-        return runOneBenchmark
+        self.timeout = timeout
 
     def processResults(self, results):
         return results
@@ -60,7 +34,7 @@ class Octane(Benchmark):
 
 class Dromaeo(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "dromaeo", "1.0")
+        Benchmark.__init__(self, "dromaeo", "1.0", 17)
         self.url = 'http://' + self.suite + ".localhost:8000/?recommended"
 
     def processResults(self, results):
@@ -74,7 +48,7 @@ class Dromaeo(Benchmark):
 
 class Massive(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "massive", "1.2")
+        Benchmark.__init__(self, "massive", "1.2", 9)
 
     def processResults(self, results):
         ret = []
@@ -89,7 +63,7 @@ class Massive(Benchmark):
 
 class JetStream(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "jetstream", "1.0")
+        Benchmark.__init__(self, "jetstream", "1.0", 5)
 
     def processResults(self, results):
         ret = []
@@ -102,7 +76,7 @@ class JetStream(Benchmark):
 
 class Speedometer(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "speedometer", "1.0")
+        Benchmark.__init__(self, "speedometer", "1.0", 4)
 
 class Kraken(Benchmark):
     def __init__(self):
@@ -128,7 +102,7 @@ class Kraken(Benchmark):
 
 class SunSpider(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "ss", "1.0.2")
+        Benchmark.__init__(self, "ss", "1.0.2", 1)
         self.url = "http://sunspider.localhost:8000/"
 
     def processResults(self, results):
@@ -151,7 +125,7 @@ class SunSpider(Benchmark):
 
 class Browsermark(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "browsermark", "2.1")
+        Benchmark.__init__(self, "browsermark", "2.1", 5)
         self.url = "http://browsermark.local:8082/"
 
     def processResults(self, results):
