@@ -53,12 +53,6 @@ class Submission(object):
         if not self.client_id or not self.secret and self.url != "mock":
             raise ValueError('The client_id and secret for Treeherder must be set.')
 
-    def _get_treeherder_platform(self):
-        """Returns the Treeherder equivalent platform identifier of the current platform."""
-
-        #Todo
-        return ('linux', 'linux64', 'x86_64')
-
     def create_job(self, data=None, **kwargs):
         """Creates a new instance of a Treeherder job for submission.
 
@@ -83,7 +77,7 @@ class Submission(object):
 
             # Add platform and build information
             job.add_machine(socket.getfqdn())
-            platform = self._get_treeherder_platform()
+            platform = self.settings["treeherder"]["platform"]
             job.add_machine_info(*platform)
             job.add_build_info(*platform)
 

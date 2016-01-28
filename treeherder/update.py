@@ -30,7 +30,8 @@ class Submitter(object):
                 'group_name': 'AWFY',
                 'job_name': mode_info["job_name"],
                 'job_symbol': mode_info["job_symbol"],
-                "tier": mode_info["tier"]
+                "tier": mode_info["tier"],
+                "platform": mode_info["platform"]
             }
         }
 
