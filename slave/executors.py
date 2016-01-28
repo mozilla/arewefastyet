@@ -30,7 +30,7 @@ class BrowserExecutor(object):
         env.update(self.engineInfo["env"])
         args = [benchmark.url] + config.args() + self.engineInfo["args"]
 
-        self.execute(benchmark, env, args)
+        self.execute(benchmark, env, args, config.profile())
 
         if not os.path.exists("results"):
             return None
@@ -47,14 +47,14 @@ class BrowserExecutor(object):
 
         os.unlink("results")
 
-    def waitForResults(self):
-        timeout = utils.config.Timeout
+    def waitForResults(self, timeout):
+        timeout = timeout * 60
         while not os.path.exists("results") and timeout > 0:
             time.sleep(10)
             timeout -= 10
 
 class EdgeExecutor(BrowserExecutor):
-    def execute(self, page, env, args):
+    def execute(self, benchmark, env, args, profile):
         runner = runners.getRunner(self.engineInfo["platform"], {
             "windows_processname": "cmd.exe"
         })
@@ -74,14 +74,14 @@ class EdgeExecutor(BrowserExecutor):
         process = runner.start("cmd.exe", ["/C", "start", "microsoft-edge:" + args[0]] + args[1:], env)
 
         # wait for results
-        self.waitForResults()
+        self.waitForResults(benchmark.timeout)
 
         # kill browser
         runner.start("cmd.exe", ["/C", "taskkill", "/IM", "MicrosoftEdge.exe", "/F"], env)
 
 class FirefoxExecutor(BrowserExecutor):
 
-    def execute(self, page, env, args):
+    def execute(self, benchmark, env, args, profile):
         runner = runners.getRunner(self.engineInfo["platform"], {
             "osx_mount_point": "/Volumes/Nightly",
             "osx_binary": "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox",
@@ -104,7 +104,7 @@ class FirefoxExecutor(BrowserExecutor):
         runner.mkdir("profile/")
 
         # Update profile to disable slow script dialog
-        runner.write("profile/prefs.js", "user_pref(\"dom.max_script_run_time\", 0);")
+        runner.write("profile/prefs.js", profile)
 
         # reset the result
         self.resetResults()
@@ -113,7 +113,7 @@ class FirefoxExecutor(BrowserExecutor):
         process = runner.start(binary, args + ["--profile", runner.getdir("profile")], env)
 
         # wait for results
-        self.waitForResults()
+        self.waitForResults(benchmark.timeout)
 
         # kill browser
         runner.kill(process)
@@ -122,7 +122,7 @@ class FirefoxExecutor(BrowserExecutor):
 
 class ChromeExecutor(BrowserExecutor):
 
-    def execute(self, page, env, args):
+    def execute(self, benchmark, env, args, profile):
         runner = runners.getRunner(self.engineInfo["platform"], {
             #"osx_mount_point": "/Volumes/Nightly",
             #"osx_binary": "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox",
@@ -149,7 +149,7 @@ class ChromeExecutor(BrowserExecutor):
         process = runner.start(binary, ["--disable-setuid-sandbox"] + args, env)
 
         # wait for results
-        self.waitForResults()
+        self.waitForResults(benchmark.timeout)
 
         # kill browser
         runner.kill(process)
@@ -157,7 +157,7 @@ class ChromeExecutor(BrowserExecutor):
 
 class WebKitExecutor(BrowserExecutor):
 
-    def execute(self, page, env, args):
+    def execute(self, benchmark, env, args, profile):
         runner = runners.getRunner(self.engineInfo["platform"], {
             "osx_mount_point": "/Volumes/WebKit",
             "osx_binary": "/Volumes/WebKit/WebKit.app/Contents/MacOS/WebKit"
@@ -181,14 +181,14 @@ class WebKitExecutor(BrowserExecutor):
         process = runner.start("open", ["-F", "-a", binary] + args, env)
 
         # wait for results
-        self.waitForResults()
+        self.waitForResults(benchmark.timeout)
 
         # kill browser
         runner.kill(process)
         runner.killAllInstances()
 
 class ServoExecutor(BrowserExecutor):
-    def execute(self, page, env, args):
+    def execute(self, benchmark, env, args, profile):
         runner = runners.getRunner(self.engineInfo["platform"], {})
 
         # kill all possible running instances.
@@ -201,7 +201,7 @@ class ServoExecutor(BrowserExecutor):
         process = runner.start(self.engineInfo["binary"], args, env)
 
         # wait for results
-        self.waitForResults()
+        self.waitForResults(benchmark.timeout)
 
         # kill browser
         runner.kill(process)

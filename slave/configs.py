@@ -13,10 +13,12 @@ class Default(object):
     def __init__(self, engine, shell):
         self.args_ = []
         self.env_ = {}
+        self.profile_ = ""
         self.omit_ = False
 
         if engine == "firefox":
             self.env_["JSGC_DISABLE_POISONING"] = "1"
+            self.profile_ += "user_pref(\"dom.max_script_run_time\", 0);\n"
         elif engine == "chrome":
             pass
         elif engine == "webkit":
@@ -38,6 +40,10 @@ class Default(object):
 
     def env(self):
         return self.env_
+
+    def profile(self):
+        # Currently only for firefox profile js file.
+        return self.profile_
 
 class UnboxedObjects(Default):
     def __init__(self, engine, shell):
@@ -81,6 +87,30 @@ class NonWritableJitcode(Default):
         else:
             self.omit_ = True
 
+class NoE10S(Default):
+    def __init__(self, engine, shell):
+        super(NoE10S, self).__init__(engine, shell)
+        if engine == "firefox" and not shell:
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart\", false);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.1\", false);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.2\", false);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.3\", false);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.4\", false);\n"
+        else:
+            self.omit_ = True
+
+class E10S(Default):
+    def __init__(self, engine, shell):
+        super(E10S, self).__init__(engine, shell)
+        if engine == "firefox" and not shell:
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart\", true);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.1\", true);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.2\", true);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.3\", true);\n"
+            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.4\", true);\n"
+        else:
+            self.omit_ = True
+
 def getConfig(name, info):
     if name == "default":
         return Default(info["engine_type"], info["shell"])
@@ -94,4 +124,8 @@ def getConfig(name, info):
         return NoAsmjs(info["engine_type"], info["shell"])
     if name == "nonwritablejitcode":
         return NonWritableJitcode(info["engine_type"], info["shell"])
+    if name == "noe10s":
+        return NoE10S(info["engine_type"], info["shell"])
+    if name == "e10s":
+        return E10S(info["engine_type"], info["shell"])
     raise Exception("Unknown config")

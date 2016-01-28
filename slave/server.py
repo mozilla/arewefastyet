@@ -54,13 +54,50 @@ class FakeHandler(SimpleHTTPRequestHandler):
             return self.retrieveOffline();
 
     def retrieveOffline(self):
-        f = SimpleHTTPRequestHandler.send_head(self)
-        if f:
+        path = self.translate_path(self.path)
+        if os.path.isdir(path) and not self.path.endswith('/'):
+            # redirect browser - doing basically what apache does
+            self.send_response(301)
+            self.send_header("Location", self.path + "/")
+            self.end_headers()
+            return True
+        else:
+            f = None
+            # try to load index.html / index.htm
+            if os.path.isdir(path):
+                for index in "index.html", "index.htm":
+                    index = os.path.join(path, index)
+                    if os.path.exists(index):
+                        path = index
+                        break
+                else:
+                    # list directory
+                    f = self.list_directory(path)
+                    return True
+            # load file
+            ctype = self.guess_type(path)
+            try:
+                # Always read in binary mode. Opening files in text mode may cause
+                # newline translations, making the actual size of the content
+                # transmitted *less* than the content-length!
+                f = open(path, 'rb')
+            except IOError:
+                self.send_error(404, "File not found")
+                return True
+
             content = f.read()
             content = self.injectData("localhost", self.path, content)
+
+            self.send_response(200)
+            self.send_header("Content-type", ctype)
+            fs = os.fstat(f.fileno())
+            self.send_header("Content-Length", len(content))
+            self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
+            self.end_headers()
+
             self.wfile.write(bytes(content))
             f.close()
-        return True
+            return True
 
     def captureResults(self, query):
         queryParsed = urlparse.parse_qs(query)
