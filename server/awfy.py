@@ -15,6 +15,9 @@ except:
 db = None
 version = None
 path = None
+th_host = None
+th_user = None
+th_secret = None
 
 
 queries = 0
@@ -52,7 +55,7 @@ class DBCursor:
     return self.cursor.fetchall();
 
 def Startup():
-    global db, version, path
+    global db, version, path, th_host, th_user, th_secret
     config = ConfigParser.RawConfigParser()
     config.read("/etc/awfy-server.config")
 
@@ -69,5 +72,9 @@ def Startup():
 
     path = config.get('general', 'data_folder')
 
-Startup()
+    if config.has_section('treeherder'):
+		th_host = config.get('treeherder', 'host')
+		th_user = config.get('treeherder', 'user')
+		th_secret = config.get('treeherder', 'secret')
 
+Startup()

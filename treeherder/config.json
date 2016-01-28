@@ -1,0 +1,12 @@
+[{
+    "machine": 28,
+    "modes": [{
+        "mode": "jmim",
+        "repo": "mozilla-inbound",
+        "platform": ["linux", "linux32", "x86"],
+        "tier": 2,
+        "job_symbol": "shell",
+        "job_name": "shell",
+		"enabled": true
+    }]
+}]

@@ -28,6 +28,13 @@ def camelcase(string):
 class DBTable(object):
   globalcache = {}
 
+  @classmethod
+  def FromId(class_, id):
+    obj = class_(row[0])
+    if obj.exists():
+      return obj
+    return None
+    
   def __init__(self, id):
     self.id = int(id)
     self.initialized = False
@@ -141,6 +148,19 @@ class Run(DBTable):
   @staticmethod
   def table():
     return "awfy_run"
+
+  @staticmethod
+  def fromSortOrder(machine_id, sort_order):
+    c = awfy.db.cursor()
+    c.execute("SELECT id                                                              \
+               FROM awfy_run                                                          \
+               WHERE machine = %s AND                                                 \
+                     sort_order = %s", (machine_id, sort_order))
+    rows = c.fetchall()
+    if len(rows) == 0:
+        return None
+    assert len(rows) == 1
+    return Run(rows[0][0])
 
   def initialize(self):
     if self.initialized:
@@ -347,6 +367,19 @@ class Build(DBTable):
   @staticmethod
   def table():
     return "awfy_build"
+
+  @staticmethod
+  def fromRunAndMode(run_id, mode_id):
+    c = awfy.db.cursor()
+    c.execute("SELECT id                                                             \
+               FROM awfy_build                                                       \
+               WHERE run_id = %s AND                                                 \
+                     mode_id = %s", (run_id, mode_id))
+    rows = c.fetchall()
+    if len(rows) == 0:
+        return None
+    assert len(rows) == 1
+    return Build(rows[0][0])
 
   def getScores(self):
     scores = []
@@ -590,6 +623,29 @@ class Score(RegressionTools):
   @staticmethod
   def table():
     return "awfy_score"
+
+  @staticmethod
+  def fromBuildAndSuite(build_id, suite_version_id):
+    c = awfy.db.cursor()
+    c.execute("SELECT id                                                              \
+               FROM awfy_score                                                        \
+               WHERE build_id = %s AND                                                \
+                     suite_version_id = %s", (build_id, suite_version_id))
+    rows = c.fetchall()
+    if len(rows) == 0:
+        return None
+    assert len(rows) == 1
+    return Score(rows[0][0])
+
+  def getBreakdowns(self):
+    c = awfy.db.cursor()
+    c.execute("SELECT awfy_breakdown.id                                               \
+               FROM awfy_breakdown                                                    \
+               WHERE score_id = %s", (self.id,))
+    breakdowns = []
+    for row in c.fetchall():
+      breakdowns.append(Breakdown(row[0]))
+    return breakdowns
 
   def sane(self):
     if self.get("suite_version_id") == -1:

@@ -3,11 +3,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import awfy
+from optparse import OptionParser
 import sys
 import time
+
+sys.path.append("../server") 
+import awfy
 import tables
-from optparse import OptionParser
+
 
 parser = OptionParser(usage="usage: %prog [options]")
 parser.add_option("-n", "--non-existing", dest="nonexistonly", action="store_true", default=False,
