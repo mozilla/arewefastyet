@@ -88,6 +88,12 @@ class Submitter(object):
         run.update({"treeherder": 1})
         awfy.db.commit()
 
+        # Treeherder can't handle inter-push commits
+        if run.get("out_of_order") == 1:
+            print "Couldn't submit run", run.id
+            print "Out of order is currently not supported"
+            return
+
         # Send the data.
         modes = config.modes(run.get("machine_id"))
         for mode in modes:

@@ -4,9 +4,20 @@
         "mode": "jmim",
         "repo": "mozilla-inbound",
         "platform": ["linux", "linux32", "x86"],
-        "tier": 2,
-        "job_symbol": "shell",
+        "tier": 3,
+        "job_symbol": "s",
         "job_name": "shell",
-	"enabled": true
+        "enabled": true
+    }]
+}, {
+    "machine": 29,
+    "modes": [{
+        "mode": "jmim",
+        "repo": "mozilla-inbound",
+        "platform": ["linux", "linux64", "x86_64"],
+        "tier": 3,
+        "job_symbol": "s",
+        "job_name": "shell",
+        "enabled": true
     }]
 }]
