@@ -6,9 +6,11 @@
 
 from submission import Submission
 import json
+import os
 import sys
 
-sys.path.append("../server") 
+pwd = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(pwd + "/../server") 
 import awfy
 import tables
 
@@ -161,8 +163,8 @@ class Config(object):
     validate(self.data, schema)
 
 if __name__ == '__main__':
-    config = Config("config.json")
-    config.validate("config.schema")
+    config = Config(pwd+"/config.json")
+    config.validate(pwd+"/config.schema")
     
     submitter = Submitter()
     for run in tables.Run.where({"status": 1, "treeherder": 0}):

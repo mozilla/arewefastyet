@@ -4,10 +4,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from optparse import OptionParser
+import os
 import sys
 import time
 
-sys.path.append("../server") 
+pwd = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(pwd + "../server") 
 import awfy
 import tables
 
