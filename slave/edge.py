@@ -23,7 +23,7 @@ if __name__ == "__main__":
         options.output += "/"
 
     info = {}
-    info["revision"] = "20.10240.16384" 
+    info["revision"] = "25.10586.0.0" 
     info["engine_type"] = "edge"
     info["shell"] = False
     info["binary"] = "" 
