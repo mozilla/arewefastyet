@@ -97,7 +97,7 @@ class WebAudio(Benchmark):
 
 class UnityWebGL(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "unity-webgl", "0.1", "benchmarks/unity-webgl/index.html",  3)
+        Benchmark.__init__(self, "unity-webgl", "0.1", "benchmarks/unity-webgl/index.html",  6)
 
     def processResults(self, results):
         ret = []
