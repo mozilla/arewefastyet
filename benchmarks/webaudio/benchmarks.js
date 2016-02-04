@@ -237,19 +237,19 @@ registerTestCase({
     var offset = 0;
     while (offset < duration / samplerate) {
       var grain = oac.createBufferSource();
-      var enveloppe = oac.createGain();
-      grain.connect(enveloppe);
-      enveloppe.connect(oac.destination);
+      var gain = oac.createGain();
+      grain.connect(gain);
+      gain.connect(oac.destination);
       grain.buffer = audiobuffer;
       // get a random 100-ish ms with enveloppes
       var start = offset * Math.random() * 0.5;
       var end = start + 0.005 * (0.999 * Math.random());
       grain.start(offset, start, end);
-      enveloppe.gain.setValueAtTime(offset, 0);
-      enveloppe.gain.linearRampToValueAtTime(.5, offset + 0.005);
+      gain.gain.setValueAtTime(offset, 0);
+      gain.gain.linearRampToValueAtTime(.5, offset + 0.005);
       var startRelease = Math.max(offset + (end - start), 0);
-      enveloppe.gain.setValueAtTime(0.5, startRelease);
-      enveloppe.gain.linearRampToValueAtTime(0.0, startRelease + 0.05);
+      gain.gain.setValueAtTime(0.5, startRelease);
+      gain.gain.linearRampToValueAtTime(0.0, startRelease + 0.05);
 
       // some overlap
       offset += 0.005;
@@ -267,14 +267,14 @@ registerTestCase({
     var offset = 0;
     while (offset < duration) {
       var note = oac.createOscillator();
-      var enveloppe = oac.createGain();
+      var env = oac.createGain();
       note.type = "sawtooth";
       note.frequency.value = 110;
-      note.connect(enveloppe);
-      enveloppe.gain.setValueAtTime(0, 0);
-      enveloppe.gain.setValueAtTime(0.5, offset);
-      enveloppe.gain.setTargetAtTime(0, offset+0.01, 0.1);
-      enveloppe.connect(oac.destination);
+      note.connect(env);
+      env.gain.setValueAtTime(0, 0);
+      env.gain.setValueAtTime(0.5, offset);
+      env.gain.setTargetAtTime(0, offset+0.01, 0.1);
+      env.connect(oac.destination);
       note.start(offset);
       note.stop(offset + 1.0);
       offset += 140 / 60 / 4; // 140 bpm
@@ -313,6 +313,54 @@ registerTestCase({
     return oac;
   },
   name: "Substractive synth"
+});
+
+registerTestCase({
+  func: function () {
+    var oac = new OfflineAudioContext(2, 120 * samplerate, samplerate);
+    var source0 = oac.createBufferSource();
+    var panner = oac.createStereoPanner();
+    source0.buffer = getSpecificFile({rate: oac.samplerate, channels:2});
+    source0.loop = true;
+    panner.pan = 0.1;
+    source0.connect(panner);
+    panner.connect(oac.destination);
+    source0.start(0);
+    return oac;
+  },
+  name: "Stereo Panning"
+});
+
+registerTestCase({
+  func: function () {
+    var oac = new OfflineAudioContext(2, 120 * samplerate, samplerate);
+    var source0 = oac.createBufferSource();
+    var panner = oac.createStereoPanner();
+    source0.buffer = getSpecificFile({rate: oac.samplerate, channels:2});
+    source0.loop = true;
+    panner.pan.setValueAtTime(-0.1, 0.0);
+    panner.pan.setValueAtTime(0.2, 0.5);
+    source0.connect(panner);
+    panner.connect(oac.destination);
+    source0.start(0);
+    return oac;
+  },
+  name: "Stereo Panning with Automation"
+});
+
+registerTestCase({
+  func: function () {
+    var oac = new OfflineAudioContext(2, 120 * samplerate, samplerate);
+    var osc = oac.createOscillator();
+    osc.type = 'sawtooth';
+    var freq = 2000;
+    osc.frequency.value = freq;
+    osc.frequency.linearRampToValueAtTime(20, 10.0);
+    osc.connect(oac.destination);
+    osc.start(0);
+    return oac;
+  },
+  name: "Periodic Wave with Automation"
 });
 
 
