@@ -84,7 +84,7 @@ class WebGLSamples(Benchmark):
 
 class WebAudio(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "webaudio", "0.1", "benchmarks/webaudio/index.html", 2)
+        Benchmark.__init__(self, "webaudio", "0.2", "benchmarks/webaudio/index.html", 2)
 
     def processResults(self, results):
         ret = []
