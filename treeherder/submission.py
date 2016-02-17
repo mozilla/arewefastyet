@@ -17,6 +17,10 @@ except:
 	print "run 'sudo pip install treeherder-client' to install the needed libraries"
 	exit()
 
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'application/json',
+    'User-Agent': 'arewefastyet',
+}
 RESULTSET_FRAGMENT = 'api/project/{repository}/resultset/?revision={revision}'
 JOB_FRAGMENT = '/#/jobs?repo={repository}&revision={revision}'
 BUILD_STATES = ['running', 'completed']
@@ -114,7 +118,7 @@ class Submission(object):
 
         logger.info('Getting revision hash from: {}'.format(lookup_url))
 
-        response = requests.get(lookup_url)
+        response = requests.get(lookup_url, headers=DEFAULT_REQUEST_HEADERS)
         response.raise_for_status()
 
         if not response.json():

@@ -9,7 +9,9 @@ import commands
 import subprocess
 import signal
 import ConfigParser
+import json
 import urllib
+import urllib2
 import tarfile
 import zipfile
 import stat
@@ -188,6 +190,16 @@ def unzip(directory, name):
 def chmodx(file):
     st = os.stat(file)
     os.chmod(file, st.st_mode | stat.S_IEXEC)
+
+def fetch_json(url):
+    # TODO: Replace urllib2 with requests.
+    headers = {
+        'Accept': 'application/json',
+        'User-Agent': 'arewefastyet',
+    }
+    request = urllib2.Request(url, headers=headers)
+    response = urllib2.urlopen(request)
+    return json.load(response)
 
 def getOrDownload(directory, prefix, revision, file, output):
     rev_file = directory + "/" + prefix + "-revision"
