@@ -22,7 +22,7 @@ JOB_FRAGMENT = '/#/jobs?repo={repository}&revision={revision}'
 BUILD_STATES = ['running', 'completed']
 
 logging.basicConfig(format='%(asctime)s %(levelname)s | %(message)s', datefmt='%H:%M:%S')
-logger = logging.getLogger('mozmill-ci')
+logger = logging.getLogger('arewefastyet')
 logger.setLevel(logging.INFO)
 
 class Submission(object):
