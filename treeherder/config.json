@@ -20,4 +20,31 @@
         "job_name": "shell",
         "enabled": true
     }]
+}, {
+    "machine": 31,
+    "modes": [{
+        "mode": "firefox-linux",
+        "repo": "mozilla-inbound",
+        "platform": ["linux", "linux64", "x86_64"],
+        "tier": 3,
+        "job_symbol": "b",
+        "job_name": "browser",
+        "enabled": true
+	},{
+        "mode": "firefox-osx",
+        "repo": "mozilla-inbound",
+        "platform": ["mac", "osx-10-10", "x86_64"],
+        "tier": 3,
+        "job_symbol": "b",
+        "job_name": "browser",
+        "enabled": false
+	},{
+        "mode": "firefox-win",
+        "repo": "mozilla-inbound",
+        "platform": ["win", "windows10-64", "x86_64"],
+        "tier": 3,
+        "job_symbol": "b",
+        "job_name": "browser",
+        "enabled": false
+    }]
 }]

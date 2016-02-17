@@ -66,6 +66,10 @@ class Submitter(object):
             if not score.get("suite_version") or not score.get("suite_version").exists():
                 continue
             suite_version = score.get("suite_version")
+            if not suite_version.get("suite"):
+                continue
+            if suite_version.get("suite").get("visible") != 1:
+                continue
             perfdata.append({
                 "name": suite_version.get("name"),
                 "score": score.get("score"),
