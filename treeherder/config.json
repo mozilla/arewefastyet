@@ -23,7 +23,7 @@
 }, {
     "machine": 31,
     "modes": [{
-        "mode": "firefox-linux",
+        "mode": "firefox_linux",
         "repo": "mozilla-inbound",
         "platform": ["linux", "linux64", "x86_64"],
         "tier": 3,
@@ -31,20 +31,20 @@
         "job_name": "browser",
         "enabled": true
 	},{
-        "mode": "firefox-osx",
+        "mode": "firefox_osx",
         "repo": "mozilla-inbound",
         "platform": ["mac", "osx-10-10", "x86_64"],
         "tier": 3,
         "job_symbol": "b",
         "job_name": "browser",
-        "enabled": false
+        "enabled": true 
 	},{
-        "mode": "firefox-win",
+        "mode": "firefox_win10",
         "repo": "mozilla-inbound",
         "platform": ["win", "windows10-64", "x86_64"],
         "tier": 3,
         "job_symbol": "b",
         "job_name": "browser",
-        "enabled": false
+        "enabled": true 
     }]
 }]

@@ -15,7 +15,10 @@ import awfy
 import tables
 
 def first(gen):
-    return list(gen)[0]
+    li = list(gen)
+    if len(li) == 0:
+       return None
+    return li[0]
 
 class Submitter(object):
     def __init__(self):
@@ -104,8 +107,13 @@ class Submitter(object):
         # Send the data.
         modes = config.modes(run.get("machine_id"))
         for mode in modes:
-            mode = first(tables.Mode.where({"mode": mode}))
-            build = tables.Build.fromRunAndMode(run.id, mode.id)
+            mode_db = first(tables.Mode.where({"mode": mode}))
+            if not mode_db:
+                print "Didn't find db mode entry for", mode
+                continue
+            build = tables.Build.fromRunAndMode(run.id, mode_db.id)
+            if not build:
+                continue
             self.submitBuild(build)
 
     """
