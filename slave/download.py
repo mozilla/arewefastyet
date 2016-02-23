@@ -148,8 +148,7 @@ class MozillaRevisionFinder(RevisionFinder):
         if platform == "win32":
             return "windowsxp"
         if platform == "win64":
-            #return "windows8-64" # LATER??
-            return "windowsxp"
+            return "windows8-64" # LATER??
         if platform == "macosx64":
             return "osx-10-7"
 
@@ -319,7 +318,7 @@ class GoogleAPISDownloader(Downloader):
             return "chrome-linux.zip"
         elif platform == "Mac":
             return "chrome-mac.zip"
-        elif platform == "Win":
+        elif platform.startswith("Win"): # Yeah chrome puts win64 in win32 folder
             return "chrome-win32.zip"
         elif platform == "Android":
             return "chrome-android.zip"
