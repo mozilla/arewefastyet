@@ -161,8 +161,7 @@ class MozillaRevisionFinder(RevisionFinder):
 
     def _build_id(self, id):
         url = "https://treeherder.mozilla.org/api/project/"+self.repo+"/jobs/?count=2000&result_set_id="+str(id)+"&return_type=list"
-        response = urllib2.urlopen(url)
-        data = json.loads(response.read())
+        data = utils.fetch_json(url)
         builds = [i for i in data["results"] if i[1] == "buildbot"] # Builds
         builds = [i for i in builds if i[25] == "B" or i[25] == "Bo"] # Builds
         builds = [i for i in builds if i[13] == self.treeherder_platform()] # platform
@@ -171,16 +170,14 @@ class MozillaRevisionFinder(RevisionFinder):
         assert len(builds) == 1
 
         url = "https://treeherder.mozilla.org/api/project/mozilla-inbound/job-log-url/?job_id="+str(builds[0][10])
-        response = urllib2.urlopen(url)
-        data = json.loads(response.read())
+        data = utils.fetch_json(url)
         return data[0]["url"].split("/")[-2]
 
     def urlForRevision(self, cset):
         # here we use a detour using treeherder to find the build_id,
         # corresponding to a revision.
         url = "https://treeherder.mozilla.org/api/project/"+self.repo+"/resultset/?full=false&revision="+cset
-        response = urllib2.urlopen(url)
-        data = json.loads(response.read())
+        data = utils.fetch_json(url)
 
         # No corresponding build found given revision
         if len(data["results"]) != 1:
