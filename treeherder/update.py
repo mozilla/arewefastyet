@@ -48,6 +48,7 @@ class Submitter(object):
 
         job = th.create_job(None)
         th.submit_completed_job(job, data)
+        print "Sending: ", repo, revision, settings, data
 
     """
     Takes all scores/subscores from a build and submit the data to treeherder.
@@ -75,10 +76,11 @@ class Submitter(object):
                 continue
             perfdata.append({
                 "name": suite_version.get("name"),
-                "score": score.get("score"),
                 "lowerIsBetter": suite_version.get("suite").get("better_direction") == -1,
                 "subscores": {}
             })
+            if not suite_versoin.get("suite").get("totalmeaningless"):
+                perfdata[-1]["score"] = score.get("score")
             for breakdown in score.getBreakdowns():
                 if not breakdown.get("suite_test") or not breakdown.get("suite_test").exists():
                     continue
@@ -178,6 +180,7 @@ if __name__ == '__main__':
     config = Config(pwd+"/config.json")
     config.validate(pwd+"/config.schema")
     
+    print "runnung update.py"
     submitter = Submitter()
     for run in tables.Run.where({"status": 1, "treeherder": 0}):
       submitter.submitRun(run)
