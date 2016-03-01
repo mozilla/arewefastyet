@@ -167,7 +167,7 @@ class Submission(object):
         job.add_state('running')
         self.submit(job)
 
-    def submit_completed_job(self, job, perfdata, state="success"):
+    def submit_completed_job(self, job, perfdata, state="success", loglink=""):
         """Submit job as state completed.
 
         :param job: Treeherder job instance to use for submission.
@@ -180,6 +180,9 @@ class Submission(object):
 
         jsondata = json.dumps({'performance_data': perfdata})
         job.add_artifact('performance_data', 'json', jsondata)
+
+        if loglink != "":
+            job.add_log_reference('buildbot_text', loglink)
 
         job.add_end_timestamp(int(time.time()))
 
