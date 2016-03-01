@@ -21,7 +21,7 @@
 # PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 use strict;
 use Getopt::Long;
@@ -82,7 +82,7 @@ sub readResultsFile($)
             } else {
                 $result .= $_;
             }
-        } 
+        }
     }
     close FILE;
 
@@ -138,6 +138,7 @@ if (scalar @ARGV == 2) {
     $file2 = $ARGV[1];
 } else {
     $file1 = readFile("$resultDirectory/baseline-filename.txt");
+    chomp($file1);
     $file2 = newestFile("$resultDirectory", qr/sunspider-results-.+\.js$/);
 }
 
