@@ -27,7 +27,7 @@ class Submitter(object):
     """
     Submit the given data
     """
-    def submit(self, revision, data, mode_info):
+    def submit(self, revision, data, mode_info, log = []):
         repo = mode_info["repo"]
         settings = {
             "treeherder": {
@@ -40,6 +40,15 @@ class Submitter(object):
             }
         }
 
+        logfile = create_log_item({
+            "repo": repo,
+            "revision": revision,
+            "settings": settings,
+            "perf_data": data,
+            "extra_log_info": log
+        })
+        loglink = "https://arewefastyet.com/data.php?file=treeherder-logs/"+logfile
+
         th = Submission(repo, revision,
                         treeherder_url = awfy.th_host,
                         treeherder_client_id = awfy.th_user, 
@@ -47,8 +56,7 @@ class Submitter(object):
                         settings = settings)
 
         job = th.create_job(None)
-        th.submit_completed_job(job, data)
-        print "Sending: ", repo, revision, settings, data
+        th.submit_completed_job(job, data, loglink = loglink)
 
     """
     Takes all scores/subscores from a build and submit the data to treeherder.
@@ -79,7 +87,7 @@ class Submitter(object):
                 "lowerIsBetter": suite_version.get("suite").get("better_direction") == -1,
                 "subscores": {}
             })
-            if not suite_versoin.get("suite").get("totalmeaningless"):
+            if suite_version.get("suite").get("totalmeaningless") == 0:
                 perfdata[-1]["score"] = score.get("score")
             for breakdown in score.getBreakdowns():
                 if not breakdown.get("suite_test") or not breakdown.get("suite_test").exists():
@@ -89,7 +97,11 @@ class Submitter(object):
 
         data = self.transform(perfdata)
 
-        self.submit(revision, data, mode_info)
+        self.submit(revision, data, mode_info, log = {
+            "run": build.get("run_id"),
+            "machine": machine_id,
+            "mode_symbol": mode_symbol
+        })
 
       
     """
@@ -132,10 +144,11 @@ class Submitter(object):
         for test in tests:
             testdata = {
                 "name": test["name"],
-                "value": float(test["score"]),
                 "subtests": [],
                 "lowerIsBetter": bool(test["lowerIsBetter"])
             }
+            if "score" in test:
+                testdata["value"] = float(test["score"])
             if "subscores" not in test:
                 test["subscores"] = []
             for subtest in test["subscores"]:
@@ -147,6 +160,20 @@ class Submitter(object):
                 testdata["subtests"].append(subtestdata)
             data["suites"].append(testdata)
         return data 
+
+def create_log_item(data):
+    import uuid
+    filename = str(uuid.uuid4().hex) + ".json"
+    location = os.path.join(awfy.path, "treeherder-logs", filename)
+    if os.path.exists(location):
+        return create_log_item(data) 
+
+    f = open(location, 'w')
+    json.dump(data, f);
+    f.close()
+
+    print json.dumps(data)
+    return filename
 
 class Config(object):
   def __init__(self, filename):
@@ -180,7 +207,7 @@ if __name__ == '__main__':
     config = Config(pwd+"/config.json")
     config.validate(pwd+"/config.schema")
     
-    print "runnung update.py"
+    print "running update.py"
     submitter = Submitter()
     for run in tables.Run.where({"status": 1, "treeherder": 0}):
       submitter.submitRun(run)
