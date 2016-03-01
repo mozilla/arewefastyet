@@ -13,15 +13,15 @@ function time_diff($ptime1, $ptime2) {
 	if ($sec > 3600) {
 		$hours = floor($sec / 3600);
 		$sec -= $hours * 3600;
-		$string = $hours."h";
+		$string .= $hours."h";
 	}
 	if ($sec > 60) {
 		$mins = floor($sec / 60);
 		$sec -= $mins * 60;
-		$string = $mins."min";
+		$string .= $mins."min";
 	}
-	if (!isset($hours) && !isset($mins)) {
-		$string = $sec."s";
+	if (empty($string)) {
+		$string .= $sec."s";
 	}
 	return $string;
 }
@@ -49,6 +49,12 @@ function time_ago($ptime, $reference = null) {
             return $r . ' ' . $str . ($r > 1 ? 's' : '');
         }
     }
+}
+
+if ($task_id = GET_int("start")) {
+	$task = QueuedTask::FromId($task_id);
+	if ($task && $task->finish_time() == 0) 
+		$task->set_available_time(0);
 }
 
 echo "<table width='100%'>";
@@ -95,14 +101,20 @@ while($unit = mysql_fetch_object($qUnits)) {
 		echo $count." tasks";
 		if ($count > 0 && !$queue->has_active_task()) {
 			$min = $tasks[0]->available_time();
+			$min_task = $task[0];
 			foreach ($tasks as $task) {
-				if ($min > $task->available_time())
-					$min = $task->available_time();
+				if ($min <= $task->available_time())
+					continue;
+
+				$min = $task->available_time();
+				$min_task = $task;
 			}
-			if ($min < time())
+			if ($min < time()) {
 				echo " starting immediately";
-			else
+			} else {
 				echo " starting in ".time_diff(time(), $min);
+				echo "<br><a href='?start=".$task->id."'>(overide)";
+			}
 		}
 	} else {
 		echo "empty";

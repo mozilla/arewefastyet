@@ -39,6 +39,10 @@ class QueuedTask extends DB {
 		return $this->select("available_at");
 	}
 
+	function set_available_time($time) {
+		return $this->updateInt("available_at", $time);
+	}
+
 	function control_unit_id() {
         return $this->select("control_unit_id");
 	}
