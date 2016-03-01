@@ -104,7 +104,7 @@ class UnityWebGL(Benchmark):
         total = 0
         for item in results:
             if item['benchmark'] == "Geometric Mean":
-                item['name'] = "__total__"
+                item['benchmark'] = "__total__"
             ret.append({'name': item['benchmark'], 'time': item['result'] })
         return ret
 
