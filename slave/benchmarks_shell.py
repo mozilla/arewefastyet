@@ -11,10 +11,17 @@ import submitter
 import utils
 
 class Benchmark(object):
-    def __init__(self, suite, version, folder):
+    def __init__(self, suite, folder):
+        if folder.endswith("/"):
+            folder = folder[:-1]
+
         self.suite = suite
-        self.version = suite+" "+version
         self.folder = folder
+
+        with utils.chdir(os.path.join(utils.config.BenchmarkPath, self.folder)):
+            fp = open("VERSION", 'r')
+            self.version = suite + " " + fp.read().strip("\r\n\r\n \t")
+            fp.close()
 
     def run(self, engine, submit):
         with utils.chdir(os.path.join(utils.config.BenchmarkPath, self.folder)):
@@ -36,7 +43,7 @@ class Benchmark(object):
 
 class Octane(Benchmark):
     def __init__(self):
-        super(Octane, self).__init__('octane', '2.0.1', 'octane')
+        super(Octane, self).__init__('octane', 'octane/')
 
     def benchmark(self, shell, env, args):
         full_args = [shell]
@@ -64,8 +71,8 @@ class Octane(Benchmark):
         return tests
 
 class SunSpiderBased(Benchmark):
-    def __init__(self, suite, version, folder, runs):
-        super(SunSpiderBased, self).__init__(suite, version, folder)
+    def __init__(self, suite, folder, runs):
+        super(SunSpiderBased, self).__init__(suite, folder)
         self.runs = runs
 
     def benchmark(self, shell, env, args):
@@ -105,15 +112,15 @@ class SunSpiderBased(Benchmark):
 
 class SunSpider(SunSpiderBased):
     def __init__(self):
-        super(SunSpider, self).__init__('ss', '1.0.1', 'SunSpider', 20)
+        super(SunSpider, self).__init__('ss', 'SunSpider/', 20)
 
 class Kraken(SunSpiderBased):
     def __init__(self):
-        super(Kraken, self).__init__('kraken', '1.1', 'kraken', 5)
+        super(Kraken, self).__init__('kraken', 'kraken/', 5)
 
 class Assorted(SunSpiderBased):
     def __init__(self):
-        super(Assorted, self).__init__('misc', '0.6', 'misc', 3)
+        super(Assorted, self).__init__('misc', 'misc/', 3)
 
 class AsmJSBased(Benchmark):
     def __init__(self, suite, version, folder):
@@ -158,15 +165,15 @@ class AsmJSBased(Benchmark):
 
 class AsmJSMicro(AsmJSBased):
     def __init__(self):
-        super(AsmJSMicro, self).__init__('asmjs-ubench', '0.4.4', 'asmjs-ubench')
+        super(AsmJSMicro, self).__init__('asmjs-ubench', 'asmjs-ubench/')
 
 class AsmJSApps(AsmJSBased):
     def __init__(self):
-        super(AsmJSApps, self).__init__('asmjs-apps', '0.2', 'asmjs-apps')
+        super(AsmJSApps, self).__init__('asmjs-apps', 'asmjs-apps/')
 
 class Dart(Benchmark):
     def __init__(self):
-        super(Dart, self).__init__('dart', '0.1', 'dart')
+        super(Dart, self).__init__('dart', 'dart/')
 
     def benchmark(self, shell, env, args):
         full_args = [shell]
