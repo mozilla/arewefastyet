@@ -98,8 +98,13 @@ for benchmark in benchmarks:
             if config.omit():
                 continue
 
-            results = executor.run(benchmark, config)
-            if not results:
+            try:
+                results = executor.run(benchmark, config)
+                if not results:
+                    continue
+            except Exception as e:
+                print('Failed to run ' + engine_path + ' - ' + benchmark.version + ' - ' + config_name + '!')
+                print('Exception: ' +  repr(e))
                 continue
 
             mode = submitter.mode(info["engine_type"], config_name)

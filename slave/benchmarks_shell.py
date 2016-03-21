@@ -123,8 +123,8 @@ class Assorted(SunSpiderBased):
         super(Assorted, self).__init__('misc', 'misc/', 3)
 
 class AsmJSBased(Benchmark):
-    def __init__(self, suite, version, folder):
-        super(AsmJSBased, self).__init__(suite, version, folder)
+    def __init__(self, suite, folder):
+        super(AsmJSBased, self).__init__(suite, folder)
 
     """
     def _run(self, submit, native, modes):
