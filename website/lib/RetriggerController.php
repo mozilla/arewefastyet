@@ -3,6 +3,8 @@
 require_once("ManipulateTask.php");
 require_once("VersionControl.php");
 require_once("DB/Mode.php");
+require_once("DB/Run.php");
+require_once("DB/Build.php");
 
 class RetriggerController {
 
@@ -80,9 +82,45 @@ class RetriggerController {
 		return true;
 	}
 
+    public static function computeBeforeAfterId($machine_id, $mode_id, $revision) {
+		$version_control = VersionControl::forMode($mode_id); 
+		if (!$version_control->exists($revision))
+			throw new Exception("Revision does not exists.");
+		$next_revision = $revision;
+		$run = null;
+		$it = 0;
+		while (!$run) {
+			$revisions = $version_control->before($next_revision);
+			assert($revisions[0] == $revision);
+			$run = Run::closestRun($machine_id, $mode_id, $revisions);
+			$next_revision = $revisions[count($revisions) - 1]->revision();
+			if ($it > 50)
+				throw new Exception("Too much revisions given revision and previous datapoint.");
+		}
+		
+		$run_before_id = $run->id;
+
+		$next = $run->next();
+		while (true) {
+			$cur = $next;
+			$next = $next->next();
+
+			if (!$cur)
+				throw new Exception("Couldn't find a revision with results after the given revision.");
+			if (!$cur->isFinished())
+				continue;
+		    if ($cur->hasError())
+				continue;
+            if (!Build::withRunAndMode($cur->id, $mode_id))
+				continue;
+			break;
+		}
+
+		$run_after_id = $cur->id;
+		return Array($run_before_id, $run_after_id);
+	}
     public function convertToRevision($mode_id, $revision, $run_before_id, $run_after_id) {
         $mode = new Mode($mode_id);
-
         foreach ($this->tasks as $task) {
             $task->update_modes(Array("jmim"/*$mode->mode()*/));
             $task->setBuildRevision($revision);
@@ -91,13 +129,17 @@ class RetriggerController {
     }
 
     private function normalizeBenchmark($benchmark) {
+		// Keep in accordance with retrigger/index.php
         $benchmark = str_replace("local.", "", $benchmark);
         $benchmark = str_replace("remote.", "", $benchmark);
         $benchmark = str_replace("shell.", "", $benchmark);
         $benchmark = str_replace("-", "", $benchmark);
-        $benchmark = str_replace("misc", "assorted", $benchmark);
-        $benchmark = str_replace("ss", "sunspider", $benchmark);
-        $benchmark = str_replace("asmjsubench", "asmjsmicro", $benchmark);
+		if ($benchmark == "misc")
+			$benchmark = "assorted";
+		if ($benchmark == "ss")
+			$benchmark = "sunspider";
+		if ($benchmark == "asmjsubench")
+			$benchmark = "asmjsmicro";
         return $benchmark;
     }
 

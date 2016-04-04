@@ -25,6 +25,12 @@ class HGWeb {
         throw new Exception("Couldn't find relationship between $revision1 and $revision2.");
     }
 
+	public function exists($revision) {
+        $html = file_get_contents($this->url."log?rev=$revision");
+		$pattern = '#<a href="/integration/mozilla-inbound/rev/'.$revision.'">diff</a><br/>#';
+		return preg_match($pattern, $html) == 1;
+	}
+
 	public function revisions($from, $to) {
         $html = file_get_contents($this->url."log?rev=$from%3A%3A$to%20and%20!$from");
 		$html = preg_replace("/[\r\n]*/", "", $html); 
@@ -47,5 +53,21 @@ class HGWeb {
 			$revisions[] = new Revision($author, $date, $revision, $message);
 		}
 		return $revisions;
+	}
+
+	public function before($revision) {
+        $html = file_get_contents($this->url."shortlog/".$revision);
+
+		$pattern = '#<a href="/integration/mozilla-inbound/rev/(.*)">diff</a><br/>#';
+		preg_match_all($pattern, $html, $matches);
+
+		$revisions = Array();
+		for ($i = 0; $i < count($matches[0]); $i++) {
+			$revision = $matches[1][$i];
+			$revisions[] = new Revision("", "", $revision, "");
+		}
+		assert($revisions[0] == $revision);
+		return $revisions;
+
 	}
 }
