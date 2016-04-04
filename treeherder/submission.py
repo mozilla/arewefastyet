@@ -12,10 +12,10 @@ from urlparse import urljoin, urlparse
 import uuid
 
 try:
-	from thclient import TreeherderClient, TreeherderJob, TreeherderJobCollection
+    from thclient import TreeherderClient, TreeherderJob, TreeherderJobCollection
 except:
-	print "run 'sudo pip install treeherder-client' to install the needed libraries"
-	exit()
+    print "run 'sudo pip install treeherder-client' to install the needed libraries"
+    exit()
 
 DEFAULT_REQUEST_HEADERS = {
     'Accept': 'application/json',
@@ -167,7 +167,7 @@ class Submission(object):
         job.add_state('running')
         self.submit(job)
 
-    def submit_completed_job(self, job, perfdata, state="success", loglink=""):
+    def submit_completed_job(self, job, perfdata, state="success", loglink="", retriggerlink=""):
         """Submit job as state completed.
 
         :param job: Treeherder job instance to use for submission.
@@ -180,6 +180,13 @@ class Submission(object):
 
         jsondata = json.dumps({'performance_data': perfdata})
         job.add_artifact('performance_data', 'json', jsondata)
+
+        if retriggerlink:
+            self._job_details.append({
+                                'url': retriggerlink,
+                                'value': "Retrigger",
+                                'content_type': 'link',
+                                'title': 'retrigger revision on AWFY'})
 
         if loglink != "":
             job.add_log_reference('buildbot_text', loglink)

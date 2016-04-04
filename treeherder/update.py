@@ -49,6 +49,10 @@ class Submitter(object):
         })
         loglink = "https://arewefastyet.com/data.php?file=treeherder-logs/"+logfile
 
+        retriggerlink = None
+        if "mode_id" in log and "machine_id" in log:
+            retriggerlink = "https://arewefastyet.com/retrigger/?machine_id="+machine_id+"&mode_id="+mode_id+"&revision="+revision
+
         th = Submission(repo, revision,
                         treeherder_url = awfy.th_host,
                         treeherder_client_id = awfy.th_user, 
@@ -56,7 +60,7 @@ class Submitter(object):
                         settings = settings)
 
         job = th.create_job(None)
-        th.submit_completed_job(job, data, loglink = loglink)
+        th.submit_completed_job(job, data, loglink = loglink, retriggerlink = retriggerlink)
 
     """
     Takes all scores/subscores from a build and submit the data to treeherder.
@@ -100,7 +104,8 @@ class Submitter(object):
         self.submit(revision, data, mode_info, log = {
             "run": build.get("run_id"),
             "machine": machine_id,
-            "mode_symbol": mode_symbol
+            "mode_symbol": mode_symbol,
+            "mode_id": build.get("mode_id")
         })
 
       
