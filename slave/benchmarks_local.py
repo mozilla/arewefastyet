@@ -8,11 +8,18 @@ import utils
 
 class Benchmark:
     """ timeout is in minutes """
-    def __init__(self, suite, version, page, timeout=2):
+    def __init__(self, suite, folder, page, timeout=2):
+        if folder.endswith("/"):
+            folder = folder[:-1]
+
         self.suite = suite
-        self.version = suite+" "+version
-        self.page = page
+        self.page = "benchmarks/" + folder + "/" + page
         self.timeout = timeout
+
+        with utils.chdir(os.path.join(utils.config.BenchmarkPath, folder)):
+            fp = open("VERSION", 'r')
+            self.version = suite + " " + fp.read().strip("\r\n\r\n \t")
+            fp.close()
 
         host = utils.config.get('main', 'serverUrl')
         if host[-1] != "/":
@@ -56,7 +63,7 @@ class Benchmark:
 
 class AssortedDOM(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "assorteddom", "0.1", "benchmarks/misc-desktop/hosted/assorted/driver.html", 1)
+        Benchmark.__init__(self, "assorteddom", "misc-desktop/", "hosted/assorted/driver.html", 1)
         with utils.FolderChanger(os.path.join(utils.config.BenchmarkPath, "misc-desktop")):
             print subprocess.check_output(["python", "make-hosted.py"])
 
@@ -80,11 +87,11 @@ class AssortedDOM(Benchmark):
 
 class WebGLSamples(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "webglsamples", "0.1", "benchmarks/webglsamples/test.html", 1)
+        Benchmark.__init__(self, "webglsamples", "webglsamples/", "test.html", 1)
 
 class WebAudio(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "webaudio", "0.2", "benchmarks/webaudio/index.html", 2)
+        Benchmark.__init__(self, "webaudio", "webaudio/", "index.html", 2)
 
     def processResults(self, results):
         ret = []
@@ -97,7 +104,7 @@ class WebAudio(Benchmark):
 
 class UnityWebGL(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "unity-webgl", "0.1", "benchmarks/unity-webgl/index.html",  6)
+        Benchmark.__init__(self, "unity-webgl", "unity-webgl/", "index.html",  6)
 
     def processResults(self, results):
         ret = []
