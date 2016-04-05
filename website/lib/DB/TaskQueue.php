@@ -45,7 +45,7 @@ class TaskQueue {
                               FROM control_task_queue
                               WHERE control_unit_id = {$this->unit_id} AND
                                     start = 0
-                              ORDER BY id LIMIT 1") or die(mysql_error());
+                              ORDER BY id") or die(mysql_error());
 		$tasks = Array();
 		while ($task = mysql_fetch_object($qTask)) {
 			$tasks[] = QueuedTask::FromId($task->id);

@@ -34,6 +34,32 @@ class Run extends DB {
         return new Run(mysql_insert_id());
     }
 
+	public static function closestRun($machine_id, $mode_id, $revisions) {
+		if (count($revisions) == 0)
+            throw new Exception("No revisions provided.");
+
+		$revs = "";
+		for ($i = 0; $i < count($revisions); $i++) {
+			if ($i != 0)
+				$revs .= ",";
+			$revs .= "'".$revisions[$i]->revision()."'";
+		}
+
+        $qRun = mysql_query("SELECT awfy_run.id FROM awfy_run
+			     			 LEFT JOIN awfy_build ON run_id = awfy_run.id
+                             WHERE cset IN (".$revs.") AND
+                                   machine = $machine_id AND
+                                   mode_id = $mode_id AND
+                                   status = 1 AND
+                                   error = ''
+                            ORDER BY sort_order DESC
+                            LIMIT 1") or die(mysql_error());
+        if (mysql_num_rows($qRun) == 0)
+            return null;
+        $run = mysql_fetch_object($qRun);
+        return new Run($run->id);
+	}
+
     public function finish($status, $error = "") {
         if (empty($error))
             $error = "NULL";
@@ -80,13 +106,6 @@ class Run extends DB {
         return $this->select("detector");
     }
 
-    public function builds() {
-        $qRun = mysql_query("SELECT approx_stamp from awfy_builds
-                             WHERE id = {$this->id}") or die(mysql_error());
-        $run = mysql_fetch_object($qRun);
-        return $run->approx_stamp;
-    }
-
     public function isBuildInfoComplete() {
         // The set of builds cannot change anymore, when the run is finished
         // or if this run is an out of order run. Out of order runs immediately
@@ -102,6 +121,8 @@ class Run extends DB {
                                    machine = {$machine}
                              ORDER BY sort_order ASC
                              LIMIT 1") or throw_exception(mysql_error());
+        if (mysql_num_rows($qRun) == 0)
+            return null;
         $run = mysql_fetch_object($qRun);
         return new Run($run->id);
     }
