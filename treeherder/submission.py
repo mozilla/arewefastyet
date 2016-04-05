@@ -167,7 +167,7 @@ class Submission(object):
         job.add_state('running')
         self.submit(job)
 
-    def submit_completed_job(self, job, perfdata, state="success", loglink="", retriggerlink=""):
+    def submit_completed_job(self, job, perfdata, state="success", loglink=None, retriggerlink=None):
         """Submit job as state completed.
 
         :param job: Treeherder job instance to use for submission.
@@ -188,7 +188,7 @@ class Submission(object):
                                 'content_type': 'link',
                                 'title': 'retrigger revision on AWFY'})
 
-        if loglink != "":
+        if loglink:
             job.add_log_reference('buildbot_text', loglink)
 
         job.add_end_timestamp(int(time.time()))

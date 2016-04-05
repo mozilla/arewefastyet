@@ -51,7 +51,7 @@ class Submitter(object):
 
         retriggerlink = None
         if "mode_id" in log and "machine_id" in log:
-            retriggerlink = "https://arewefastyet.com/retrigger/?machine_id="+machine_id+"&mode_id="+mode_id+"&revision="+revision
+            retriggerlink = "https://arewefastyet.com/retrigger/?machine_id="+str(log["machine_id"])+"&mode_id="+str(log["mode_id"])+"&revision="+revision
 
         th = Submission(repo, revision,
                         treeherder_url = awfy.th_host,
@@ -102,8 +102,8 @@ class Submitter(object):
         data = self.transform(perfdata)
 
         self.submit(revision, data, mode_info, log = {
-            "run": build.get("run_id"),
-            "machine": machine_id,
+            "run_id": build.get("run_id"),
+            "machine_id": machine_id,
             "mode_symbol": mode_symbol,
             "mode_id": build.get("mode_id")
         })
@@ -114,8 +114,9 @@ class Submitter(object):
     """
     def submitRun(self, run):
         # Annonate run that it was forwared to treeherder.
-        run.update({"treeherder": 1})
-        awfy.db.commit()
+        if awfy.th_host != "mock":
+            run.update({"treeherder": 1})
+            awfy.db.commit()
 
         # Treeherder can't handle inter-push commits
         if run.get("out_of_order") == 1:
