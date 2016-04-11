@@ -160,6 +160,7 @@ class Submitter(object):
             for subtest in test["subscores"]:
                 subtestdata = {
                     "lowerIsBetter": bool(test["lowerIsBetter"]),
+                    "shouldAlert": True,
                     "name": subtest,
                     "value": float(test["subscores"][subtest])
                 }
