@@ -73,8 +73,8 @@ def Startup():
     path = config.get('general', 'data_folder')
 
     if config.has_section('treeherder'):
-		th_host = config.get('treeherder', 'host')
-		th_user = config.get('treeherder', 'user')
-		th_secret = config.get('treeherder', 'secret')
+        th_host = config.get('treeherder', 'host')
+        th_user = config.get('treeherder', 'user')
+        th_secret = config.get('treeherder', 'secret')
 
 Startup()

@@ -84,20 +84,21 @@ class Submitter(object):
             suite_version = score.get("suite_version")
             if not suite_version.get("suite"):
                 continue
-            if suite_version.get("suite").get("visible") != 1:
+            if not suite_version.get("suite").get("th_send"):
                 continue
             perfdata.append({
                 "name": suite_version.get("name"),
                 "lowerIsBetter": suite_version.get("suite").get("better_direction") == -1,
                 "subscores": {}
             })
-            if suite_version.get("suite").get("totalmeaningless") == 0:
+            if suite_version.get("suite").get("th_send_total"):
                 perfdata[-1]["score"] = score.get("score")
-            for breakdown in score.getBreakdowns():
-                if not breakdown.get("suite_test") or not breakdown.get("suite_test").exists():
-                    continue
-                suite_test = breakdown.get("suite_test")
-                perfdata[-1]["subscores"][suite_test.get("name")] = breakdown.get("score")
+            if suite_version.get("suite").get("th_send_subscores"):
+                for breakdown in score.getBreakdowns():
+                    if not breakdown.get("suite_test") or not breakdown.get("suite_test").exists():
+                        continue
+                    suite_test = breakdown.get("suite_test")
+                    perfdata[-1]["subscores"][suite_test.get("name")] = breakdown.get("score")
 
         data = self.transform(perfdata)
 
