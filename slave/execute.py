@@ -78,18 +78,24 @@ else:
 
 
 # Submit the revisions for every build.
+engines = []
 for engine_path in options.engines:
-    info = engineInfo.getInfo(engine_path)
-    for config_name in options.configs:
-        config = configs.getConfig(config_name, info)
-        if config.omit():
-            continue
-        submitter.createBuild(info["engine_type"], config_name, info["revision"])
+    try:
+        info = engineInfo.getInfo(engine_path)
+        for config_name in options.configs:
+            config = configs.getConfig(config_name, info)
+            if config.omit():
+                continue
+            submitter.createBuild(info["engine_type"], config_name, info["revision"])
+        engines.append(engine_path)
+    except Exception as e:
+        print('Failed to get info about ' + engine_path + '!')
+        print('Exception: ' +  repr(e))
 
 # Run every benchmark for every build and config
 benchmarks = [benchmarks.getBenchmark(i) for i in options.benchmarks]
 for benchmark in benchmarks:
-    for engine_path in options.engines:
+    for engine_path in engines:
         info = engineInfo.getInfo(engine_path)
         executor = executors.getExecutor(info)  
 
