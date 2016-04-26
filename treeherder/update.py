@@ -49,6 +49,10 @@ class Submitter(object):
         })
         loglink = "https://arewefastyet.com/data.php?file=treeherder-logs/"+logfile
 
+        retriggerlink = None
+        if "mode_id" in log and "machine_id" in log:
+            retriggerlink = "https://arewefastyet.com/retrigger/?machine_id="+str(log["machine_id"])+"&mode_id="+str(log["mode_id"])+"&revision="+revision
+
         th = Submission(repo, revision,
                         treeherder_url = awfy.th_host,
                         treeherder_client_id = awfy.th_user, 
@@ -56,7 +60,7 @@ class Submitter(object):
                         settings = settings)
 
         job = th.create_job(None)
-        th.submit_completed_job(job, data, loglink = loglink)
+        th.submit_completed_job(job, data, loglink = loglink, retriggerlink = retriggerlink)
 
     """
     Takes all scores/subscores from a build and submit the data to treeherder.
@@ -80,27 +84,29 @@ class Submitter(object):
             suite_version = score.get("suite_version")
             if not suite_version.get("suite"):
                 continue
-            if suite_version.get("suite").get("visible") != 1:
+            if not suite_version.get("suite").get("th_send"):
                 continue
             perfdata.append({
                 "name": suite_version.get("name"),
                 "lowerIsBetter": suite_version.get("suite").get("better_direction") == -1,
                 "subscores": {}
             })
-            if suite_version.get("suite").get("totalmeaningless") == 0:
+            if suite_version.get("suite").get("th_send_total"):
                 perfdata[-1]["score"] = score.get("score")
-            for breakdown in score.getBreakdowns():
-                if not breakdown.get("suite_test") or not breakdown.get("suite_test").exists():
-                    continue
-                suite_test = breakdown.get("suite_test")
-                perfdata[-1]["subscores"][suite_test.get("name")] = breakdown.get("score")
+            if suite_version.get("suite").get("th_send_subscores"):
+                for breakdown in score.getBreakdowns():
+                    if not breakdown.get("suite_test") or not breakdown.get("suite_test").exists():
+                        continue
+                    suite_test = breakdown.get("suite_test")
+                    perfdata[-1]["subscores"][suite_test.get("name")] = breakdown.get("score")
 
         data = self.transform(perfdata)
 
         self.submit(revision, data, mode_info, log = {
-            "run": build.get("run_id"),
-            "machine": machine_id,
-            "mode_symbol": mode_symbol
+            "run_id": build.get("run_id"),
+            "machine_id": machine_id,
+            "mode_symbol": mode_symbol,
+            "mode_id": build.get("mode_id")
         })
 
       
@@ -109,8 +115,9 @@ class Submitter(object):
     """
     def submitRun(self, run):
         # Annonate run that it was forwared to treeherder.
-        run.update({"treeherder": 1})
-        awfy.db.commit()
+        if awfy.th_host != "mock":
+            run.update({"treeherder": 1})
+            awfy.db.commit()
 
         # Treeherder can't handle inter-push commits
         if run.get("out_of_order") == 1:
@@ -154,6 +161,7 @@ class Submitter(object):
             for subtest in test["subscores"]:
                 subtestdata = {
                     "lowerIsBetter": bool(test["lowerIsBetter"]),
+                    "shouldAlert": True,
                     "name": subtest,
                     "value": float(test["subscores"][subtest])
                 }
