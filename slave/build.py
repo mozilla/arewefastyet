@@ -26,6 +26,9 @@ class Environment(object):
     def add(self, name, data):
         self.env_[name] = data
 
+    def remove(self, name):
+        del self.env_[name]
+
     def addCCOption(self, option):
         self.ccoption.append(option)
 
@@ -43,27 +46,28 @@ class Builder(object):
         self.config = config
         self.folder = folder
 
-        #if platform.system() == "Darwin":
-        #    self.installClang()
-        #    self.env.add("CC", os.path.abspath("clang-3.3/bin/clang"))
-        #    self.env.add("CXX", os.path.abspath("clang-3.3/bin/clang++"))
-        #    self.env.add("LINK", os.path.abspath("clang-3.3/bin/clang++"))
+        if platform.system() == "Darwin":
+            #self.installClang()
+            # assume clang has been upgraded using port or bootstrap mozilla
+            self.env.add("CC", "clang")
+            self.env.add("CXX", "clang++")
+            self.env.add("LINK", "clang++")
 
     def installClang(self):
         # The standard clang version on mac is outdated.
         # Retrieve a better one.
 
-        if os.path.exists("clang-3.3"):
+        if os.path.exists("clang-3.6.2"):
             return
 
-        urllib.urlretrieve("http://llvm.org/releases/3.3/clang+llvm-3.3-x86_64-apple-darwin12.tar.gz",                           "./clang-3.3.tar.gz")
-        tar = tarfile.open("clang-3.3.tar.gz")
+        urllib.urlretrieve("http://llvm.org/releases/3.6.2/clang+llvm-3.6.2-x86_64-apple-darwin.tar.xz", "./clang-3.6.2.tar.xz")
+        tar = tarfile.open("clang-3.6.2.tar.xz", "r:xz")
         tar.extractall(".")
         tar.close()
 
-        shutil.move("clang+llvm-3.3-x86_64-apple-darwin12", "clang-3.3")
+        shutil.move("clang+llvm-3.6.2-x86_64-apple-darwin", "clang-3.6.2")
 
-        os.unlink("clang-3.3.tar.gz")
+        os.unlink("clang-3.6.2.tar.xz")
 
     def unlinkBinary(self):
         try:
@@ -214,7 +218,11 @@ class V8Builder(Builder):
     def __init__(self, config, folder):
         super(V8Builder, self).__init__(config, folder)
 
-        self.env.add("GYP_DEFINES", "clang=1")
+        #self.env.add("GYP_DEFINES", "clang=1")
+        self.env.add("PATH", os.path.join(self.folder, 'depot_tools')+":"+self.env.get()["PATH"])
+	self.env.remove("CC")
+	self.env.remove("CXX")
+	self.env.remove("LINK")
 
     def retrieveInfo(self):
         info = {}
@@ -223,7 +231,7 @@ class V8Builder(Builder):
         return info
 
     def make(self):
-        args = ['make', '-j6', '-C', os.path.join(self.folder, 'v8')]
+        args = ['make', '-j6']
         if self.config == '32bit':
             args += ['ia32.release']
         elif self.config == '64bit':
@@ -231,7 +239,8 @@ class V8Builder(Builder):
         else:
             assert True
 
-        Run(args, self.env.get())
+        with utils.FolderChanger(os.path.join(self.folder, 'v8')):
+            Run(args, self.env.get())
 
     def objdir(self):
         if self.config == '64bit':
