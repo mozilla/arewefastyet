@@ -78,6 +78,14 @@ class NoAsmjs(Default):
             self.args_.append("--no-asmjs");
         else:
             self.omit_ = True
+
+class FlowAA(Default):
+    def __init__(self, engine, shell):
+        super(FlowAA, self).__init__(engine, shell)
+        if engine == "firefox" and shell:
+            self.args_.append("--ion-aa=flow-sensitive");
+        else:
+            self.omit_ = True
             
 class NonWritableJitcode(Default):
     def __init__(self, engine, shell):
@@ -128,4 +136,6 @@ def getConfig(name, info):
         return NoE10S(info["engine_type"], info["shell"])
     if name == "e10s":
         return E10S(info["engine_type"], info["shell"])
+    if name == "flowaa":
+        return FlowAA(info["engine_type"], info["shell"])
     raise Exception("Unknown config")
