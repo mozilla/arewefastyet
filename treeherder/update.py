@@ -100,7 +100,7 @@ class Submitter(object):
                     suite_test = breakdown.get("suite_test")
                     perfdata[-1]["subscores"][suite_test.get("name")] = breakdown.get("score")
 
-        data = self.transform(perfdata)
+        data = self.transform(perfdata, mode_info["extra_config"])
 
         self.submit(revision, data, mode_info, log = {
             "run_id": build.get("run_id"),
@@ -141,7 +141,7 @@ class Submitter(object):
     transforms the intermediate representation of benchmark results pulled from the DB
     into the canonical format needed by treeherder/perfherder
     """
-    def transform(self, tests):
+    def transform(self, tests, extra_config=None):
         data = {
             "framework": {
                 "name": "awfy"
@@ -154,6 +154,8 @@ class Submitter(object):
                 "subtests": [],
                 "lowerIsBetter": bool(test["lowerIsBetter"])
             }
+            if extra_config:
+                testdata["extraOptions"] = extra_config
             if "score" in test:
                 testdata["value"] = float(test["score"])
             if "subscores" not in test:
@@ -202,6 +204,8 @@ class Config(object):
         for mode in machine_data["modes"]:
             if mode["mode"] != mode_symbol:
                 continue
+            if "extra_config" not in mode:
+                mode["extra_config"] = None
             return mode 
     return None
   def validate(self, schema):

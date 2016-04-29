@@ -4,6 +4,7 @@
         "mode": "jmim",
         "repo": "mozilla-inbound",
         "platform": ["linux", "linux32", "x86"],
+        "extra_config": ["shell"],
         "tier": 3,
         "job_symbol": "s",
         "job_name": "shell",
@@ -15,6 +16,7 @@
         "mode": "jmim",
         "repo": "mozilla-inbound",
         "platform": ["linux", "linux64", "x86_64"],
+        "extra_config": ["shell"],
         "tier": 3,
         "job_symbol": "s",
         "job_name": "shell",
@@ -30,7 +32,7 @@
         "job_symbol": "b",
         "job_name": "browser",
         "enabled": true
-	},{
+    },{
         "mode": "firefox_osx",
         "repo": "mozilla-inbound",
         "platform": ["mac", "osx-10-10", "x86_64"],
@@ -38,7 +40,7 @@
         "job_symbol": "b",
         "job_name": "browser",
         "enabled": true 
-	},{
+    },{
         "mode": "firefox_win10",
         "repo": "mozilla-inbound",
         "platform": ["win", "windows10-64", "x86_64"],
