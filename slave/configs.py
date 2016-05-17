@@ -86,7 +86,15 @@ class FlowAA(Default):
             self.args_.append("--ion-aa=flow-sensitive");
         else:
             self.omit_ = True
-            
+
+class BranchPruning(Default):
+    def __init__(self, engine, shell):
+        super(BranchPruning, self).__init__(engine, shell)
+        if engine == "firefox":
+            self.env_["JIT_OPTION_disablePgo"] = 'false'
+        else:
+            self.omit_ = True
+
 class NonWritableJitcode(Default):
     def __init__(self, engine, shell):
         super(NonWritableJitcode, self).__init__(engine, shell)
@@ -138,4 +146,6 @@ def getConfig(name, info):
         return E10S(info["engine_type"], info["shell"])
     if name == "flowaa":
         return FlowAA(info["engine_type"], info["shell"])
+    if name == "branchpruning":
+        return BranchPruning(info["engine_type"], info["shell"])
     raise Exception("Unknown config")
