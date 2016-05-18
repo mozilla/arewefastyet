@@ -52,6 +52,7 @@ if options.mode_rules is None:
         "firefox,testbedregalloc:testbed",
         "firefox,nonwritablejitcode:nonwritablejitcode",
         "firefox,flowaa:flowaa",
+        "firefox,branchpruning:branchpruning",
         "firefox,e10s:e10s",
         "firefox,noe10s:noe10s",
         "chrome,default:v8",
