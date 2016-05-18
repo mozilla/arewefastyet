@@ -34,7 +34,8 @@ class Task {
         );
     }
 
-    public function __construct($task, $available_at = 0) {
+    public function __construct($control_tasks_id, $task, $available_at = 0) {
+        $this->control_tasks_id = $control_tasks_id;
         $this->task = $task;
 		$this->available_at = $available_at;
     }
@@ -45,6 +46,10 @@ class Task {
 
     public function available_at() {
 		return $this->available_at;
+	}
+
+    public function control_tasks_id() {
+		return $this->control_tasks_id;
 	}
 
 /*

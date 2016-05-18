@@ -6,6 +6,8 @@ include_once "Task.php";
 class ManipulateTask extends Task {
 
     public function update_benchmarks($new_benchmarks) {
+        $this->control_tasks_id = 0;
+
         //Note: Impossible to add new benchmarks using this command. Only possible to prune ones.
         $old_benchmarks = $this->benchmarks();
         $removed_benchmarks = array_diff($old_benchmarks, $new_benchmarks);
@@ -29,6 +31,8 @@ class ManipulateTask extends Task {
     }
 
     public function update_engines($new_engines) {
+        $this->control_tasks_id = 0;
+
         //Note: Impossible to add new engines using this command. Only possible to prune ones.
         $old_engines = $this->engines();
         $removed_engines = array_diff($old_engines, $new_engines);
@@ -67,6 +71,8 @@ class ManipulateTask extends Task {
     }
 
     public function update_modes($modes) {
+        $this->control_tasks_id = 0;
+
         $engines = Array();
 
         $commands = BashInterpreter::matchCommand($this->task, "python execute.py");
@@ -91,10 +97,14 @@ class ManipulateTask extends Task {
     }
 
     public function setBuildRevisionToTip() {
+        $this->control_tasks_id = 0;
+
         $this->removeBuildRevisionInfo();
     }
 
     public function setBuildRevision($new_revision) {
+        $this->control_tasks_id = 0;
+
         $this->removeBuildRevisionInfo();
         $this->task = BashInterpreter::addFlagToCommands($this->task, "python build.py", "-r ".$new_revision);
         $this->task = BashInterpreter::addFlagToCommands($this->task, "python download.py", "-r ".$new_revision);
