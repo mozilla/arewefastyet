@@ -77,15 +77,14 @@ class RetriggerController {
 
         // Remove all tasks that still have a task left in the queue.
         $tasks = $retrigger->tasks;
-        $retrigger->tasks = [];
+        $retrigger->tasks = Array();
         foreach ($tasks as $task) {
             $qTask = mysql_query("SELECT id
                                   FROM control_task_queue
                                   WHERE control_tasks_id = {$task->control_tasks_id} AND
-                                        start > 0 AND
-                                        finish = 0
+										finish = 0
                                   ORDER BY id LIMIT 1") or die(mysql_error());
-            if (mysql_num_rows($qTask) != 0)
+            if (mysql_num_rows($qTask) == 0)
                 $retrigger->tasks[] = $task;
         }
 
@@ -184,9 +183,10 @@ class RetriggerController {
                                  '".mysql_escape_string($task->task())."')") or throw_exception(mysql_error());
             if ($this->control_tasks_id != 0) {
                 $available_at = $task->available_at();
-                $last_scheduled = ($available_at < time()) ? "UNIX_TIMESTAMP()" : $available_at;
+				if ($available_at < time()) 
+					$available_at = "UNIX_TIMESTAMP()";
                 mysql_query("UPDATE control_tasks
-                             SET last_scheduled = ".$last_scheduled."
+                             SET last_scheduled = ".$available_at."
                              WHERE id = $task->control_tasks_id()") or die(mysql_error());
             }
         }
@@ -198,16 +198,17 @@ class RetriggerController {
 
         foreach ($this->tasks as $task) {
             $available_at = $task->available_at();
+			if ($available_at < time()) 
+				$available_at = "UNIX_TIMESTAMP()";
             mysql_query("INSERT INTO control_task_queue
-                         (control_unit_id, control_tasks_id, available_at)
+                         (control_unit_id, control_tasks_id, task, available_at)
                          VALUES ({$this->unit_id}, ".$task->control_tasks_id().",
                                  '".mysql_escape_string($task->task())."',".
                                  $available_at.")") or throw_exception(mysql_error());
-            if ($this->control_tasks_id != 0) {
-                $last_scheduled = ($available_at < time()) ? "UNIX_TIMESTAMP()" : $available_at;
+            if ($task->control_tasks_id != 0) {
                 mysql_query("UPDATE control_tasks
-                             SET last_scheduled = ".$last_scheduled."
-                             WHERE id = $task->control_tasks_id()") or die(mysql_error());
+                             SET last_scheduled = ".$available_at."
+                             WHERE id = ".$task->control_tasks_id()) or die(mysql_error());
             }
         }
     }
