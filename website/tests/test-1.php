@@ -15,7 +15,7 @@ python submitter.py -f -s /tmp/submitter_id
 
 ';
 
-$task = new ManipulateTask($task_text);
+$task = new ManipulateTask(0, $task_text);
 
 assert($task->engines() == Array("firefox", "edge"));
 assert($task->modes() == Array("browser_win10", "edge", "jmim"));
@@ -28,7 +28,7 @@ $task->update_modes(["jmim"]);
 assert($task->engines() == Array("firefox"));
 assert($task->modes() == Array("jmim"));
 
-$task = new ManipulateTask($task_text);
+$task = new ManipulateTask(0, $task_text);
 $task->update_modes(["browser_win10"]);
 assert($task->engines() == Array("firefox"));
 assert($task->modes() == Array("browser_win10"));
@@ -45,7 +45,7 @@ python submitter.py -f -s /tmp/submitter_id
 
 ';
 
-$task = new ManipulateTask($task_text);
+$task = new ManipulateTask(0, $task_text);
 $task->update_engines(["firefox"]);
 $task->update_modes(["jmim"]);
 $task->update_benchmarks(["shell.asmjsapps"]);

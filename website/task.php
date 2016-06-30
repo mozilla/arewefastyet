@@ -21,10 +21,7 @@ if ($unit = GET_int("unit")) {
         $task->reportError("Requested new task, while this task was still running.");
     }
 
-    if (!$queue->has_queued_tasks()) {
-        if (!RetriggerController::fillQueue($unit))
-			die("No tasks to schedule");
-    }
+    RetriggerController::fillQueue($unit);
 
     $task = $queue->get_oldest_available_queued_task();
 	if (!$task) {
@@ -32,6 +29,7 @@ if ($unit = GET_int("unit")) {
 			"task" => "sleep 60",
 			"id" => 0
 		));
+        sleep(5);
 		die();
 	}
 
