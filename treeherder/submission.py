@@ -189,7 +189,7 @@ class Submission(object):
                                 'title': 'retrigger revision on AWFY'})
 
         if loglink:
-            job.add_log_reference('buildbot_text', loglink)
+            job.add_log_reference('buildbot_text', loglink, parse_status='parsed')
 
         job.add_end_timestamp(int(time.time()))
 
