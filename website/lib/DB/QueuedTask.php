@@ -47,6 +47,10 @@ class QueuedTask extends DB {
         return $this->select("control_unit_id");
 	}
 
+	function control_tasks_id() {
+        return $this->select("control_tasks_id");
+	}
+
 	function hasError() {
 		return $this->select("error") != "";
 	}

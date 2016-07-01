@@ -5,7 +5,7 @@
 "use strict";
 var AWFY = { };
 
-AWFY.DEFAULT_MACHINE_ID = 28;
+AWFY.DEFAULT_MACHINE_ID = 29;
 AWFY.refreshTime = 60 * 5;
 AWFY.machineId = 0;
 AWFY.hasLegend = false;
