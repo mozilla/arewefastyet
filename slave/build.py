@@ -163,12 +163,8 @@ class MozillaBuilder(Builder):
 
 class WebkitBuilder(Builder):
     def retrieveInfo(self):
-        with utils.chdir(os.path.join(self.folder)):
-            objdir = os.path.abspath(os.path.join('WebKitBuild', 'Release'))
-
         info = {}
         info["engine_type"] = "webkit"
-        info["env"] = {'DYLD_FRAMEWORK_PATH': objdir}
         return info
 
     def patch(self):
@@ -207,6 +203,7 @@ class WebkitBuilder(Builder):
                 Run(args, self.env.get())
         finally:
             self.clean()
+        Run(["install_name_tool", "-change", "System/Library/Frameworks/JavaScriptCore.framework/Versions/A/JavaScriptCore", self.objdir()+"/JavaScriptCore.framework/JavaScriptCore", self.objdir() + "/jsc"])
 
     def objdir(self):
         return os.path.join(self.folder, 'WebKitBuild', 'Release')
