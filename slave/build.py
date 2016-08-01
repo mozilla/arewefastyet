@@ -203,7 +203,7 @@ class WebkitBuilder(Builder):
                 Run(args, self.env.get())
         finally:
             self.clean()
-        Run(["install_name_tool", "-change", "System/Library/Frameworks/JavaScriptCore.framework/Versions/A/JavaScriptCore", self.objdir()+"/JavaScriptCore.framework/JavaScriptCore", self.objdir() + "/jsc"])
+        Run(["install_name_tool", "-change", "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/JavaScriptCore", self.objdir()+"/JavaScriptCore.framework/JavaScriptCore", self.objdir() + "/jsc"])
 
     def objdir(self):
         return os.path.join(self.folder, 'WebKitBuild', 'Release')
