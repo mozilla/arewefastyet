@@ -71,6 +71,15 @@ class TurboFan(Default):
         else:
             self.omit_ = True
 
+class Ignition(Default):
+    def __init__(self, engine, shell):
+        super(TurboFan, self).__init__(engine, shell)
+        if engine == "chrome"and shell:
+            self.args_.append("--turbo");
+            self.args_.append("--ignition-staging");
+        else:
+            self.omit_ = True
+
 class NoAsmjs(Default):
     def __init__(self, engine, shell):
         super(NoAsmjs, self).__init__(engine, shell)
@@ -136,6 +145,8 @@ def getConfig(name, info):
         return TestbedRegalloc(info["engine_type"], info["shell"])
     if name == "turbofan":
         return TurboFan(info["engine_type"], info["shell"])
+    if name == "ignition":
+        return Ignition(info["engine_type"], info["shell"])
     if name == "noasmjs":
         return NoAsmjs(info["engine_type"], info["shell"])
     if name == "nonwritablejitcode":

@@ -57,6 +57,7 @@ if options.mode_rules is None:
         "firefox,noe10s:noe10s",
         "chrome,default:v8",
         "chrome,turbofan:v8-turbofan",
+        "chrome,ignition:v8-ignition",
         "webkit,default:jsc",
         "native,default:clang",
         "servo,default:servo"
