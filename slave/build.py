@@ -168,8 +168,6 @@ class WebkitBuilder(Builder):
         return info
 
     def patch(self):
-        patch = os.path.join(os.path.dirname(os.path.realpath(__file__)), "jsc.patch")
-
         with utils.FolderChanger(self.folder):
             # Hack 1: Remove reporting errors for warnings that currently are present.
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/JavaScriptCore/Configurations/Base.xcconfig"])
@@ -177,7 +175,6 @@ class WebkitBuilder(Builder):
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/WTF/Configurations/Base.xcconfig"])
             Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/SmallLine.h"])
             Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/SmallRun.h"])
-            Run(["patch","Source/JavaScriptCore/jsc.cpp", patch])
 
             # Hack 2: This check fails currently. Disable checking to still have a build.
             os.remove("Tools/Scripts/check-for-weak-vtables-and-externals")
@@ -191,7 +188,6 @@ class WebkitBuilder(Builder):
             Run(["svn","revert","Source/WTF/Configurations/Base.xcconfig"])
             Run(["svn","revert","Source/bmalloc/bmalloc/SmallLine.h"])
             Run(["svn","revert","Source/bmalloc/bmalloc/SmallPage.h"])
-            Run(["svn","revert","Source/JavaScriptCore/jsc.cpp"])
 
     def make(self):
         try:
