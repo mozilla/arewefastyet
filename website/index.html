@@ -36,8 +36,8 @@
     <div class='rightSide'>
 	  <div><a href="http://h4writer.com"><span>Blog</span></a></div>
 	  <div><a href="/overview"><span>Overview</span></a></div>
-	  <div><a href="/regressions"><span>Regressions</span></a></div>
 <!--
+	  <div><a href="/regressions"><span>Regressions</span></a></div>
       <div class='userMenu'>
         <a href="javascript:doPersonaLogin()" ng-if="!currentUser"><span>Login</span></a>
         <a href="javascript:doPersonaLogout()" ng-if='currentUser'><span>Logout</span></a>
@@ -48,8 +48,6 @@
 </header>
 
 <div class='content'>
- <div class="graph-row">
-  <div id="message"></div>
   <div id="navcontainer">
     <ul id="legend"></ul>
     <br><br>
@@ -63,6 +61,8 @@
       <li><a href='#' id="aboutdrop">About</a> &#187;</li>
     </ul>
   </div>
+ <div class="graph-row">
+  <div id="message"></div>
   <div class="graph-container">
     <div id="kraken-label">kraken time</div>
     <div class="graph" id="kraken-graph"><h2>Loading...</h2></div>
@@ -72,7 +72,6 @@
     <div class="graph" id="ss-graph"><h2>Loading...</h2></div>
   </div>
  </div>
- <br><br><br>
  <div>
   <div class="graph-row">
    <div class="graph-container">
@@ -80,15 +79,6 @@
      <div class="graph" id="octane-graph"><h2>Loading...</h2></div>
    </div>
   </div>
-  <br><br><br>
-  <!--
-  <div class="graph-row">
-   <div class="graph-container">
-     <div id="v8-label">v8bench score</div>
-     <div class="graph" id="v8real-graph"><h2>Loading...</h2></div>
-   </div>
-  </div>
-  -->
  </div>
  <div id="breakdown">
  </div>
