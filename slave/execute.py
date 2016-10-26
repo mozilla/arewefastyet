@@ -59,6 +59,7 @@ if options.mode_rules is None:
         "chrome,default:v8",
         "chrome,turbofan:v8-turbofan",
         "chrome,ignition:v8-ignition",
+        "chrome,turboignition:v8-turbo-ignition",
         "webkit,default:jsc",
         "native,default:clang",
         "servo,default:servo"
