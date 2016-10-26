@@ -4,6 +4,7 @@ import executors
 import engineInfo
 import submitter
 import json
+import traceback
 
 import sys
 import utils
@@ -94,6 +95,7 @@ for engine_path in options.engines:
     except Exception as e:
         print('Failed to get info about ' + engine_path + '!')
         print('Exception: ' +  repr(e))
+        traceback.print_exc(file=sys.stdout)
 
 # Run every benchmark for every build and config
 benchmarks = [benchmarks.getBenchmark(i) for i in options.benchmarks]
