@@ -73,7 +73,7 @@ class TurboFan(Default):
             
 class TurboIgnition(Default):
     def __init__(self, engine, shell):
-        super(Ignition, self).__init__(engine, shell)
+        super(TurboIgnition, self).__init__(engine, shell)
         if engine == "chrome"and shell:
             self.args_.append("--turbo");
             self.args_.append("--ignition-staging");
