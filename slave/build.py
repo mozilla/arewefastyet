@@ -213,9 +213,9 @@ class V8Builder(Builder):
 
         #self.env.add("GYP_DEFINES", "clang=1")
         self.env.add("PATH", os.path.join(self.folder, 'depot_tools')+":"+self.env.get()["PATH"])
-	self.env.remove("CC")
-	self.env.remove("CXX")
-	self.env.remove("LINK")
+        self.env.remove("CC")
+        self.env.remove("CXX")
+        self.env.remove("LINK")
 
     def retrieveInfo(self):
         info = {}
