@@ -9,6 +9,8 @@ import socket
 import utils
 import puller
 import platform
+import subprocess
+import stat
 from utils import Run
 
 import tarfile
@@ -68,6 +70,21 @@ class Builder(object):
         shutil.move("clang+llvm-3.6.2-x86_64-apple-darwin", "clang-3.6.2")
 
         os.unlink("clang-3.6.2.tar.xz")
+
+    def installNdk(self):
+        # Retrieve the ndk needed to build an android app.
+        # Using version 12, since that still supports gcc (Couldn't get clang working).
+        assert platform.system() == "Linux"
+        assert platform.architecture()[0] == "64bit"
+
+        with utils.FolderChanger(self.folder):
+            if os.path.exists("android-ndk-r12"):
+                print "already installed: ", os.path.join(self.folder, "android-ndk-r12")
+                return
+
+            print "installing"
+            urllib.urlretrieve("https://dl.google.com/android/repository/android-ndk-r12-linux-x86_64.zip", "./android-ndk.zip")
+            Run(["unzip", "android-ndk.zip"])
 
     def unlinkBinary(self):
         try:
@@ -130,6 +147,13 @@ class MozillaBuilder(Builder):
         return os.path.join(self.objdir(), 'dist', 'bin', 'js')
 
     def reconf(self):
+        # Step 0. install ndk if needed.
+        if self.config == "android":
+            self.env.remove("CC")
+            self.env.remove("CXX")
+            self.env.remove("LINK")
+            self.installNdk()
+
         # Step 1. autoconf.
         with utils.FolderChanger(os.path.join(self.folder, 'js', 'src')):
             if platform.system() == "Darwin":
@@ -143,16 +167,21 @@ class MozillaBuilder(Builder):
         if os.path.exists(os.path.join(self.folder, 'js', 'src', 'Opt')):
             shutil.rmtree(os.path.join(self.folder, 'js', 'src', 'Opt'))
         os.mkdir(os.path.join(self.folder, 'js', 'src', 'Opt'))
-        with utils.FolderChanger(os.path.join(self.folder, 'js', 'src', 'Opt')):
-            args = ['--enable-optimize', '--disable-debug']
-            if platform.architecture()[0] == "64bit" and self.config == "32bit":
-                if platform.system() == "Darwin":
-                    args.append("--target=i686-apple-darwin10.0.0")
-                elif platform.system() == "Linux":
-                    args.append("--target=i686-pc-linux-gnu")
-                else:
-                    assert False
+        args = ['--enable-optimize', '--disable-debug']
+        if self.config == "android":
+            args.append("--target=arm-linux-androideabi")
+            args.append("--with-android-ndk="+os.path.abspath(self.folder)+"/android-ndk-r12/")
+            args.append("--with-android-version=24")
+            args.append("--enable-pie")
+        if platform.architecture()[0] == "64bit" and self.config == "32bit":
+            if platform.system() == "Darwin":
+                args.append("--target=i686-apple-darwin10.0.0")
+            elif platform.system() == "Linux":
+                args.append("--target=i686-pc-linux-gnu")
+            else:
+                assert False
 
+        with utils.FolderChanger(os.path.join(self.folder, 'js', 'src', 'Opt')):
             Run(['../configure'] + args, self.env.get())
         return True
 
@@ -295,7 +324,7 @@ if __name__ == "__main__":
                       help="download to DIR, default=output/", metavar="DIR", default='output')
 
     parser.add_option("-c", "--config", dest="config",
-                      help="default, 32bit, 64bit", default='default')
+                      help="auto, 32bit, 64bit, android", default='auto')
 
     parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
                       help="Force runs even without source changes")
@@ -309,11 +338,11 @@ if __name__ == "__main__":
     if not options.output.endswith("/"):
         options.output += "/"
 
-    if options.config not in ["default", "32bit", "64bit"]:
+    if options.config not in ["auto", "32bit", "64bit", "android"]:
         print "Please provide a valid config"
         exit()
 
-    if options.config == "default":
+    if options.config == "auto":
         options.config, _ = platform.architecture()
 
     if options.config == "64bit" and platform.architecture()[0] == "32bit":
