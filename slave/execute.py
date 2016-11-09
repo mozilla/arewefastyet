@@ -103,7 +103,7 @@ benchmarks = [benchmarks.getBenchmark(i) for i in options.benchmarks]
 for benchmark in benchmarks:
     for engine_path in engines:
         info = engineInfo.getInfo(engine_path)
-        executor = executors.getExecutor(info)  
+        executor = executors.getExecutor(info)
 
         for config_name in options.configs:
             config = configs.getConfig(config_name, info)

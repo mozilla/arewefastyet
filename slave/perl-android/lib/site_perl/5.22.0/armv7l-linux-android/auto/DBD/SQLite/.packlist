@@ -1,0 +1,11 @@
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/DBD/SQLite.pm relocate_as=../../../DBD/SQLite.pm
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/DBD/SQLite/Constants.pm relocate_as=../../../DBD/SQLite/Constants.pm
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/DBD/SQLite/Cookbook.pod relocate_as=../../../DBD/SQLite/Cookbook.pod
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/DBD/SQLite/Fulltext_search.pod relocate_as=../../../DBD/SQLite/Fulltext_search.pod
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/DBD/SQLite/VirtualTable.pm relocate_as=../../../DBD/SQLite/VirtualTable.pm
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/DBD/SQLite/VirtualTable/FileContent.pm relocate_as=../../../DBD/SQLite/VirtualTable/FileContent.pm
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/DBD/SQLite/VirtualTable/PerlData.pm relocate_as=../../../DBD/SQLite/VirtualTable/PerlData.pm
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/auto/DBD/SQLite/PL_DBD__SQLite.so relocate_as=PL_DBD__SQLite.so
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/auto/share/dist/DBD-SQLite/sqlite3.c relocate_as=../../share/dist/DBD-SQLite/sqlite3.c
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/auto/share/dist/DBD-SQLite/sqlite3.h relocate_as=../../share/dist/DBD-SQLite/sqlite3.h
+/data/local/perl/lib/site_perl/5.22.0/armv7l-linux-android/auto/share/dist/DBD-SQLite/sqlite3ext.h relocate_as=../../share/dist/DBD-SQLite/sqlite3ext.h

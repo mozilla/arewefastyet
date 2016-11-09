@@ -16,44 +16,29 @@ class Benchmark(object):
             folder = folder[:-1]
 
         self.suite = suite
-        self.folder = folder
+        self.folder_ = folder
 
-        with utils.chdir(os.path.join(utils.config.BenchmarkPath, self.folder)):
+        with utils.chdir(os.path.join(utils.config.BenchmarkPath, self.folder_)):
             fp = open("VERSION", 'r')
             self.version = suite + " " + fp.read().strip("\r\n\r\n \t")
             fp.close()
 
-    def run(self, engine, submit):
-        with utils.chdir(os.path.join(utils.config.BenchmarkPath, self.folder)):
-            return self._run(engine, submit)
-
-    def _run(self, engine, submit):
-
-        for modInfo in engine.modes:
-            try:
-                tests = None
-                print('Running ' + self.version + ' under ' + engine.shell() + ' ' + ' '.join(modInfo["args"]))
-                tests = self.benchmark(engine.shell(), engine.env(), modInfo["args"])
-            except Exception as e:
-                print('Failed to run ' + self.version + '!')
-                print("Exception: " +  repr(e))
-                pass
-            if tests:
-                submit.AddTests(tests, self.suite, self.version, modInfo["name"])
+    def folder(self):
+        return self.folder_
 
 class Octane(Benchmark):
     def __init__(self):
         super(Octane, self).__init__('octane', 'octane/')
 
-    def benchmark(self, shell, env, args):
+    def getCommand(self, shell, args):
         full_args = [shell]
         if args:
             full_args.extend(args)
         full_args.append('run.js')
 
-        print(os.getcwd())
-        output = utils.RunTimedCheckOutput(full_args, env=env)
+        return full_args
 
+    def processResults(self, output):
         tests = []
         lines = output.splitlines()
 
@@ -75,17 +60,15 @@ class SunSpiderBased(Benchmark):
         super(SunSpiderBased, self).__init__(suite, folder)
         self.runs = runs
 
-    def benchmark(self, shell, env, args):
+    def getCommand(self, shell, args):
         if args != None:
             args = '--args=' + ' '.join(args)
         else:
             args = ''
 
-        output = utils.RunTimedCheckOutput(["./sunspider",
-                                            "--shell=" + shell,
-                                            "--runs=" + str(self.runs),
-                                            args],
-                                           env=env)
+        return ["sunspider", "--shell=" + shell, "--runs=" + str(self.runs), args]
+
+    def processResults(self, output):
         tests = []
 
         lines = output.splitlines()
@@ -126,30 +109,11 @@ class AsmJSBased(Benchmark):
     def __init__(self, suite, folder):
         super(AsmJSBased, self).__init__(suite, folder)
 
-    """
-    def _run(self, submit, native, modes):
-        # Run the C++ mode.
-        full_args = [utils.config.PythonName, 'harness.py', '--native']
-        full_args += ['--cc="' + native.cc + '"']
-        full_args += ['--cxx="' + native.cxx + '"']
-        full_args += ['--'] + native.args
-        output = utils.RunTimedCheckOutput(full_args)
+    def getCommand(self, shell, args):
+        full_args = ['./harness.sh', shell + " " + " ".join(args)]
+        return full_args
 
-        tests = self.parse(output)
-        submit.AddTests(tests, self.suite, self.version, native.mode)
-
-        # Run normal benchmarks.
-        super(AsmJS, self)._run(submit, native, modes)
-    """
-
-    def benchmark(self, shell, env, args):
-        full_args = [utils.config.PythonName, 'harness.py', shell, '--'] + args
-        print(' '.join(full_args))
-
-        output = utils.RunTimedCheckOutput(full_args, env=env)
-        return self.parse(output)
-
-    def parse(self, output):
+    def processResults(self, output):
         total = 0.0
         tests = []
         for line in output.splitlines():
@@ -175,15 +139,15 @@ class Dart(Benchmark):
     def __init__(self):
         super(Dart, self).__init__('dart', 'dart/')
 
-    def benchmark(self, shell, env, args):
+    def getCommand(self, shell, args):
         full_args = [shell]
         if args:
             full_args.extend(args)
         full_args.append('run.js')
 
-        print(os.getcwd())
-        output = utils.RunTimedCheckOutput(full_args, env=env)
+        return full_args
 
+    def processResults(self, output):
         tests = []
         lines = output.splitlines()
 
@@ -217,11 +181,3 @@ def getBenchmark(name):
     if name == "dart":
         return Dart()
     raise Exception("Unknown benchmark")
-
-def run(submit, native, modes):
-    for benchmark in Benchmarks:
-        benchmark.run(submit, native, modes)
-    submit.Finish(1)
-
-if __name__ == "__main__":
-    remote.takerpc()

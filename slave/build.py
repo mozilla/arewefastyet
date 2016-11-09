@@ -138,6 +138,8 @@ class MozillaBuilder(Builder):
     def retrieveInfo(self):
         info = {}
         info["engine_type"] = "firefox"
+        if self.config == "android":
+            info["platform"] = "android"
         return info
 
     def objdir(self):

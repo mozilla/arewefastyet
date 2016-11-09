@@ -1,0 +1,251 @@
+
+=encoding utf8
+
+=head1 NAME
+
+Mojolicious::Guides::FAQ - Frequently Asked Questions
+
+=head1 OVERVIEW
+
+This document contains answers for the most frequently asked questions about
+L<Mojolicious>.
+
+=head1 QUESTIONS
+
+We hope these answers are to your satisfaction.
+
+=head2 How does Mojolicious compare to other Perl web frameworks?
+
+The short answer is "it doesn't", because we interpret the term "web framework"
+much more literally than others. With the emergence of the real-time web and
+new technologies such as WebSockets, we are facing new challenges that go way
+beyond what commonly used modules like L<LWP> were designed for. Because of
+this, L<Mojolicious> contains a whole new HTTP client/server stack called
+L<Mojo>, which was heavily inspired by the original LWPng effort and carefully
+designed with these new requirements in mind. So while some of the higher
+abstraction layers might look similar to other web frameworks, it is more of a
+web toolkit and can even be used as the foundation for more advanced web
+frameworks.
+
+=head2 Why doesn't Mojolicious have any dependencies?
+
+We are optimizing L<Mojolicious> for user-friendliness and development speed,
+without compromises. While there are no rules in
+L<Mojolicious::Guides::Contributing> that forbid dependencies, we do currently
+discourage adding non-optional ones in favor of a faster and more painless
+installation process. And we do in fact already use several optional CPAN
+modules such as L<EV>, L<IO::Socket::Socks>, L<IO::Socket::SSL>,
+L<Net::DNS::Native> and L<Plack> to provide advanced functionality if possible.
+
+=head2 Why reinvent wheels?
+
+Because we can make them rounder. Components specifically designed for
+user-friendliness and development speed are not easy to come by. We are strong
+believers of the Perl mantra "There is more than one way to do it", and our
+quest is to develop the best possible solutions for these two criteria.
+
+=head2 What about backwards compatibility?
+
+In conformance with L<Mojolicious::Guides::Contributing>, we will always
+deprecate a feature for 3 months, before removing or changing it in
+incompatible ways between major releases. New features can however be marked as
+experimental to explicitly exclude them from these rules. This gives us the
+necessary freedom to ensure a healthy future for L<Mojolicious>. So, as long as
+you are not using anything marked experimental, untested or undocumented, you
+can always count on backwards compatibility, everything else would be
+considered a bug.
+
+=head2 Why not split up Mojolicious into many smaller distributions?
+
+Because there are no advantages, it drastically increases maintenance costs and
+installation times without giving us anything in return. It would only make
+sense if we wanted to pass ownership of a module to a new maintainer, which we
+already have done in the past.
+
+=head2 Which versions of Perl are supported by Mojolicious?
+
+First of all, you need to be aware that according to the L<perlpolicy>, only
+the two most recent stable release series of Perl are supported by the
+community and receive bug fixes, which are currently 5.22.x and 5.20.x.
+L<Mojolicious> follows this model and fully supports these two release series.
+In addition we will also keep the distribution installable up to a certain
+legacy version that we deem worthy of supporting, but not specifically optimize
+for it, this is currently 5.10.1.
+
+=head2 Do I need to clean my environment before testing Mojolicious?
+
+Mojolicious uses many environment variables both internally and externally,
+notably (but not exclusively) those starting with the prefix C<MOJO_*>. The
+test suite expects a clean environment; testing with a non-standard environment
+is unsupported and is unlikely to succeed. Therefore when installing or
+upgrading L<Mojolicious> and when running its tests, we highly recommend using
+an environment which does not set these variables.
+
+=head2 What is the difference between blocking and non-blocking operations?
+
+A I<blocking> operation is a subroutine that blocks the execution of the
+calling subroutine until the subroutine is finished.
+
+  sub foo {
+    my $result = blocking_subroutine();
+    ...
+  }
+
+A I<non-blocking> operation on the other hand lets the calling subroutine
+continue execution even though the subroutine is not yet finished. Instead of
+waiting, the calling subroutine passes along a callback to be executed once the
+subroutine is finished, this is called continuation-passing style.
+
+  sub foo {
+    non_blocking_subroutine(sub {
+      my $result = shift;
+      ...
+    });
+    ...
+  }
+
+=head2 Will my code magically become non-blocking with Mojolicious?
+
+No, it is not possible to magically make Perl code non-blocking. While
+L<Mojolicious> has been designed from the ground up for non-blocking I/O and
+event loops, taking advantage of this requires specialized code available
+through modules like L<Mojo::IOLoop> and L<Mojo::UserAgent>, or third-party
+event loops. In the documentation we often refer to this as real-time web, for
+more information see also L<Mojolicious::Guides::Cookbook/"REAL-TIME WEB">.
+
+=head2 What is an event loop?
+
+An event loop is basically a loop that continually tests for external events
+and executes the appropriate callbacks to handle them, it is often the main
+loop in a program. Non-blocking tests for readability/writability of file
+descriptors and timers are commonly used events for highly scalable network
+servers, because they allow a single process to handle thousands of client
+connections concurrently.
+
+  while (1) {
+    my @readable = test_fds_for_readability();
+    handle_readable_fds(@readable);
+
+    my @writable = test_fds_for_writability();
+    handle_writable_fds(@writable);
+
+    my @expired = test_timers();
+    handle_timers(@expired);
+  }
+
+In L<Mojolicious> this event loop is L<Mojo::IOLoop>.
+
+=head2 Where did my file extension go?
+
+Standard route placeholders will not match the C<.> character, however
+L<Mojolicious> routes automatically take file extensions like C<.html>, remove
+the leading C<.>, and store the result in the C<format> stash value. This can
+be useful for URL-based content negotiation, such as automatically rendering
+different templates based on the file extension. See
+L<Mojolicious::Guides::Routing/"Formats"> for information on customizing format
+detection, or consider using
+L<relaxed placeholders|Mojolicious::Guides::Routing/"Relaxed placeholders"> to
+allow matching of the C<.> character.
+
+=head2 What does the error "Maximum message size exceeded" mean?
+
+To protect your applications from excessively large requests and responses, our
+HTTP parser has a cap after which it will automatically stop accepting new
+data, and in most cases force the connection to be closed. The limit is 16MB by
+default, you can use the attribute L<Mojo::Message/"max_message_size"> or
+C<MOJO_MAX_MESSAGE_SIZE> environment variable to change this value.
+
+=head2 What does the error "Maximum start-line size exceeded" mean?
+
+This is a very similar protection mechanism to the one described in the
+previous answer, but a little more specific. It limits the maximum length of
+the start-line for HTTP requests and responses. The limit is 8KB by default,
+you can use the attribute L<Mojo::Message/"max_line_size"> or
+C<MOJO_MAX_LINE_SIZE> environment variable to change this value.
+
+=head2 What does the error "Maximum header size exceeded" mean?
+
+Almost the same as the previous answer, but this protection mechanism limits
+the number and maximum length of HTTP request and response headers. The limits
+are 100 headers with 8KB each by default, you can use the attributes
+L<Mojo::Headers/"max_lines"> and L<Mojo::Headers/"max_line_size"> or the
+C<MOJO_MAX_LINES> and C<MOJO_MAX_LINE_SIZE> environment variables to change
+these values.
+
+=head2 What does the error "Maximum buffer size exceeded" mean?
+
+This protection mechanism limits how much content the HTTP parser is allowed to
+buffer when parsing chunked, compressed and multipart messages. The limit is
+around 256KB by default, you can use the attribute
+L<Mojo::Content/"max_buffer_size"> or C<MOJO_MAX_BUFFER_SIZE> environment
+variable to change this value.
+
+=head2 What does the error "EV does not work with ithreads" mean?
+
+The L<Mojolicious> user agent and web servers are based on an event loop that
+supports multiple reactor backends. One of these backends is L<EV>, it is very
+fast and will be automatically used if possible. On Windows however, the
+C<ithreads> based C<fork()> emulation can interfere with it, and you may have
+to use the C<MOJO_REACTOR> environment variable to enforce a more portable one.
+
+  MOJO_REACTOR=Mojo::Reactor::Poll
+
+=head2 What does "Your secret passphrase needs to be changed" mean?
+
+L<Mojolicious> uses secret passphrases for security features such as signed
+cookies. It defaults to using L<Mojolicious/"moniker">, which is not very
+secure, so we added this log message as a reminder. You can change the
+passphrase with the attribute L<Mojolicious/"secrets">.
+
+  $app->secrets(['My very secret passphrase.']);
+
+=head2 What does "Nothing has been rendered, expecting delayed response" mean?
+
+L<Mojolicious> has been designed from the ground up for non-blocking I/O and
+event loops. So when a new request comes in and no response is generated right
+away, it will assume that this was intentional and return control to the web
+server, which can then handle other requests while waiting for events such as
+timers to finally generate a response.
+
+=head2 What does "Inactivity timeout" mean?
+
+To protect your applications from denial-of-service attacks, all connections
+have an inactivity timeout which limits how long a connection may be inactive
+before being closed automatically. It defaults to C<20> seconds for the user
+agent and C<15> seconds for all built-in web servers, and can be changed with
+the attributes L<Mojo::UserAgent/"inactivity_timeout"> and
+L<Mojo::Server::Daemon/"inactivity_timeout"> or the C<MOJO_INACTIVITY_TIMEOUT>
+environment variable. This timeout always applies, so you might have to tweak
+it for applications that take a long time to process a request.
+
+=head2 What does "Premature connection close" mean?
+
+This error message is often related to the one above, and means that the web
+server closed the connection before the user agent could receive the whole
+response or that the user agent got destroyed, which forces all connections to
+be closed immediately.
+
+=head2 What does "Worker 31842 has no heartbeat, restarting" mean?
+
+As long as they are accepting new connections, worker processes of all built-in
+preforking web servers send heartbeat messages to the manager process at
+regular intervals, to signal that they are still responsive. A blocking
+operation such as an infinite loop in your application can prevent this, and
+will force the affected worker to be restarted after a timeout. This timeout
+defaults to C<20> seconds and can be extended with the attribute
+L<Mojo::Server::Prefork/"heartbeat_timeout"> if your application requires it.
+
+=head1 MORE
+
+You can continue with L<Mojolicious::Guides> now or take a look at the
+L<Mojolicious wiki|http://github.com/kraih/mojo/wiki>, which contains a lot
+more documentation and examples by many different authors.
+
+=head1 SUPPORT
+
+If you have any questions the documentation might not yet answer, don't
+hesitate to ask on the
+L<mailing-list|http://groups.google.com/group/mojolicious> or the official IRC
+channel C<#mojo> on C<irc.perl.org>.
+
+=cut

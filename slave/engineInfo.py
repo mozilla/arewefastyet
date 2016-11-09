@@ -9,14 +9,15 @@ def getInfo(path):
     fp.close();
 
     # which platform to execute:
-    if info["binary"].endswith(".apk"):
-        info["platform"] = "android"
-    elif info["binary"].endswith(".dmg") or "mac" in info["binary"]:
-        info["platform"] = "osx"
-    elif info["binary"].endswith(".exe"):
-        info["platform"] = "windows"
-    else:
-        info["platform"] = "linux"
+    if "platform" not in info:
+        if info["binary"].endswith(".apk"):
+            info["platform"] = "android"
+        elif info["binary"].endswith(".dmg") or "mac" in info["binary"]:
+            info["platform"] = "osx"
+        elif info["binary"].endswith(".exe"):
+            info["platform"] = "windows"
+        else:
+            info["platform"] = "linux"
 
     # default args and env
     if "args" not in info:
