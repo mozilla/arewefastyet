@@ -36,7 +36,6 @@ class ShellExecutor(object):
         env["LD_LIBRARY_PATH"] = path
         command = benchmark.getCommand(binary, args)
         output = runner.execute(command, env, benchmarkDir)
-        print output
 
         return benchmark.processResults(output)
 

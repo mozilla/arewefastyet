@@ -176,6 +176,18 @@ def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenar
     print (output)
     return output
 
+def run_realtime(cmd, shell=False, env=None):
+    """from http://blog.kagesenshi.org/2008/02/teeing-python-subprocesspopen-output.html
+    """
+    p = subprocess.Popen(cmd, shell=shell, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout = []
+    while True:
+        line = p.stdout.readline()
+        stdout.append(line)
+        print line,
+        if line == '' and p.poll() != None:
+            break
+    return ''.join(stdout)
 
 def unzip(directory, name):
     if "tar.bz2" in name:

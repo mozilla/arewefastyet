@@ -159,11 +159,11 @@ class MozillaBuilder(Builder):
         # Step 1. autoconf.
         with utils.FolderChanger(os.path.join(self.folder, 'js', 'src')):
             if platform.system() == "Darwin":
-                utils.Shell("autoconf213")
+                utils.run_realtime("autoconf213", shell=True)
             elif platform.system() == "Linux":
-                utils.Shell("autoconf2.13")
+                utils.run_realtime("autoconf2.13", shell=True)
             elif platform.system() == "Windows":
-                utils.Shell("autoconf-2.13")
+                utils.run_realtime("autoconf-2.13", shell=True)
 
         # Step 2. configure
         if os.path.exists(os.path.join(self.folder, 'js', 'src', 'Opt')):
@@ -190,7 +190,7 @@ class MozillaBuilder(Builder):
     def make(self):
         if not os.path.exists(os.path.join(self.folder, 'js', 'src', 'Opt')):
             return
-        utils.Shell("make -j6 -C " + os.path.join(self.folder, 'js', 'src', 'Opt'))
+        utils.run_realtime("make -j6 -C " + os.path.join(self.folder, 'js', 'src', 'Opt'), shell=True)
 
 class WebkitBuilder(Builder):
     def retrieveInfo(self):

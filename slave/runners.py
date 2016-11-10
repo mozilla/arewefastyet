@@ -93,7 +93,7 @@ class Runner(object):
         print os.getcwd()
         print path
         with utils.chdir(path):
-            return subprocess.check_output(command, env=env)
+            return utils.run_realtime(command, env=env)
 
 class LinuxRunner(Runner):
     def killall(self, name):
@@ -268,7 +268,7 @@ class AndroidRunner(Runner):
 
         print env_flags
         print "adb shell ... " + " ".join(command) + " ..."
-        return subprocess.check_output(["adb", "shell", "cd "+path+";"+env_flags+" " + " ".join(command) + "; exit"])
+        return utils.run_realtime(["adb", "shell", "cd "+path+";"+env_flags+" " + " ".join(command) + "; exit"])
 
 def getRunner(platform, info = {}):
     if platform == "linux":
