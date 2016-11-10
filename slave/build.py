@@ -49,27 +49,24 @@ class Builder(object):
         self.folder = folder
 
         if platform.system() == "Darwin":
-            #self.installClang()
-            # assume clang has been upgraded using port or bootstrap mozilla
-            self.env.add("CC", "clang")
-            self.env.add("CXX", "clang++")
-            self.env.add("LINK", "clang++")
+            self.installClang()
+            self.env.add("CC", os.path.abspath("clang-3.8.0/bin/clang"))
+            self.env.add("CXX", os.path.abspath("clang-3.8.0/bin/clang++"))
+            self.env.add("LINK", os.path.abspath("clang-3.8.0/bin/clang++"))
 
     def installClang(self):
         # The standard clang version on mac is outdated.
         # Retrieve a better one.
 
-        if os.path.exists("clang-3.6.2"):
+        if os.path.exists("clang-3.8.0"):
             return
 
-        urllib.urlretrieve("http://llvm.org/releases/3.6.2/clang+llvm-3.6.2-x86_64-apple-darwin.tar.xz", "./clang-3.6.2.tar.xz")
-        tar = tarfile.open("clang-3.6.2.tar.xz", "r:xz")
-        tar.extractall(".")
-        tar.close()
+        urllib.urlretrieve("http://llvm.org/releases/3.8.0/clang+llvm-3.8.0-x86_64-apple-darwin.tar.xz", "./clang-3.8.0.tar.xz")
+        utils.run_realtime(["tar", "xf", "clang-3.8.0.tar.xz"])
 
-        shutil.move("clang+llvm-3.6.2-x86_64-apple-darwin", "clang-3.6.2")
+        shutil.move("clang+llvm-3.8.0-x86_64-apple-darwin", "clang-3.8.0")
 
-        os.unlink("clang-3.6.2.tar.xz")
+        os.unlink("clang-3.8.0.tar.xz")
 
     def installNdk(self):
         # Retrieve the ndk needed to build an android app.
