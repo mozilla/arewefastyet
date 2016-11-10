@@ -248,14 +248,24 @@ class V8Builder(Builder):
         self.env.remove("CXX")
         self.env.remove("LINK")
 
+        if self.config == "android":
+            if "target_os = ['android']" not in open(folder + '/.gclient').read():
+                with open(folder + "/.gclient", "a") as myfile:
+                    myfile.write("target_os = ['android']")
+
     def retrieveInfo(self):
         info = {}
         info["engine_type"] = "chrome"
         info["args"] = ['--expose-gc']
+        if self.config == "android":
+            info["platform"] = "android"
         return info
 
     def make(self):
         args = ['make', '-j6']
+        if self.config == "android":
+            self.installNdk()
+            args += ['android_arm.release']
         if self.config == '32bit':
             args += ['ia32.release']
         elif self.config == '64bit':
@@ -267,6 +277,8 @@ class V8Builder(Builder):
             Run(args, self.env.get())
 
     def objdir(self):
+        if self.config == 'android':
+            return os.path.join(self.folder, 'v8', 'out', 'android_arm.release')
         if self.config == '64bit':
             return os.path.join(self.folder, 'v8', 'out', 'x64.release')
         elif self.config == '32bit':
