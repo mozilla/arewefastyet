@@ -1,5 +1,6 @@
 import os
 import urllib2
+import urllib
 from optparse import OptionParser
 import json
 import utils
@@ -16,8 +17,8 @@ if __name__ == "__main__":
     data = json.loads(data)
 
     task = data["task"].replace("\r\n", "\n").replace("\r", "\n")
-    output = utils.run_realtime(task)
+    output = utils.run_realtime(task, shell=True)
 
     url = "http://www.arewefastyet.com/task.php?finish="+str(data["id"])
-    req = urllib2.Request(url=url, data=urllib.urlencode({"output",output}));
+    req = urllib2.Request(url=url, data=urllib.urlencode({"output": output}));
     urllib2.urlopen(req)

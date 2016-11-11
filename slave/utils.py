@@ -179,6 +179,7 @@ def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenar
 def run_realtime(cmd, shell=False, env=None):
     """from http://blog.kagesenshi.org/2008/02/teeing-python-subprocesspopen-output.html
     """
+    print cmd
     p = subprocess.Popen(cmd, shell=shell, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout = []
     while True:
@@ -186,6 +187,10 @@ def run_realtime(cmd, shell=False, env=None):
         stdout.append(line)
         print line,
         if line == '' and p.poll() != None:
+            p.stdout.close()
+            return_code = p.wait()
+            if return_code:
+                raise subprocess.CalledProcessError(return_code, cmd)
             break
     return ''.join(stdout)
 
