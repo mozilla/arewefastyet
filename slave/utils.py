@@ -25,7 +25,6 @@ class ConfigState:
         self.DriverPath = None
         self.Timeout = 15*60
         self.PythonName = None
-        self.SlaveType = None
 
     def init(self, name):
         self.rawConfig = ConfigParser.RawConfigParser()
@@ -40,7 +39,6 @@ class ConfigState:
         self.Timeout = self.getDefault('main', 'timeout', str(15*60))
         self.Timeout = eval(self.Timeout, {}, {}) # silly hack to allow 30*60 in the config file.
         self.PythonName = self.getDefault(name, 'python', sys.executable)
-        self.SlaveType = self.getDefault("main", 'slaveType', "")
 
     def get(self, section, name):
         assert self.inited
@@ -51,55 +49,6 @@ class ConfigState:
         if self.rawConfig.has_option(section, name):
             return self.rawConfig.get(section, name)
         return default
-
-    @staticmethod
-    def parseBenchmarks(li):
-        benchmarks = []
-        for benchmark in li.split(","):
-            benchmark = benchmark.strip()
-            _, section, name = benchmark.split(".")
-            if section == "local":
-                import benchmarks_local
-                benchmarks.append(benchmarks_local.getBenchmark(name))
-            elif section == "remote":
-                import benchmarks_remote
-                benchmarks.append(benchmarks_remote.getBenchmark(name))
-            elif section == "shell":
-                import benchmarks_shell
-                benchmarks.append(benchmarks_shell.getBenchmark(name))
-            else:
-                raise Exception("Unknown benchmark type")
-        return benchmarks
-
-    def browserbenchmarks(self):
-        assert self.inited
-
-        browserList = self.getDefault("benchmarks", "browserList", None)
-        if not browserList:
-            return []
-        return ConfigState.parseBenchmarks(browserList)
-
-    def shellbenchmarks(self):
-        assert self.inited
-
-        shellList = self.getDefault("benchmarks", "shellList", None)
-        if not shellList:
-            return []
-        return ConfigState.parseBenchmarks(shellList)
-
-    def engines(self):
-        assert self.inited
-
-        engineList = self.getDefault("engines", "list", None)
-        if not engineList:
-            return []
-
-        import engine
-        engines = []
-        for engineName in engineList.split(","):
-            engineName = engineName.strip()
-            engines.append(engine.getEngine(engineName))
-        return engines
 
 config = ConfigState()
 
