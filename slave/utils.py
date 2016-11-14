@@ -132,9 +132,15 @@ def run_realtime(cmd, shell=False, env=None):
     p = subprocess.Popen(cmd, shell=shell, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout = []
     while True:
-        line = p.stdout.readline()
-        stdout.append(line)
-        print line,
+        with Handler(signal.SIGALRM, timeout_handler):
+            try:
+                signal.alarm(60)
+                line = p.stdout.readline()
+                signal.alarm(0)
+                stdout.append(line)
+                print line,
+            except TimeException:
+                line = ''
         if line == '' and p.poll() != None:
             p.stdout.close()
             return_code = p.wait()
