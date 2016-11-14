@@ -1,0 +1,36 @@
+(lp0
+I200
+a(lp1
+(S'content-length'
+p2
+S'4226'
+p3
+tp4
+a(S'x-powered-by'
+p5
+S'PHP/5.3.3'
+p6
+tp7
+a(S'server'
+p8
+S'Apache/2.2'
+p9
+tp10
+a(S'connection'
+p11
+S'close'
+p12
+tp13
+a(S'date'
+p14
+S'Thu, 26 Nov 2015 21:07:24 GMT'
+p15
+tp16
+a(S'content-type'
+p17
+S'text/html; charset=UTF-8'
+p18
+tp19
+aaS'<!DOCTYPE html>\n<html>\n<head>\n\n<meta charset=utf8>\n\n<!--\n Copyright (C) 2007 Apple Inc.  All rights reserved.\n\n Redistribution and use in source and binary forms, with or without\n modification, are permitted provided that the following conditions\n are met:\n 1. Redistributions of source code must retain the above copyright\n    notice, this list of conditions and the following disclaimer.\n 2. Redistributions in binary form must reproduce the above copyright\n    notice, this list of conditions and the following disclaimer in the\n    documentation and/or other materials provided with the distribution.\n\n THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS\'\' AND ANY\n EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR\n PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR\n CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,\n EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,\n PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR\n PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY\n OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. \n-->\n\n<title>SunSpider 1.0.2 JavaScript Benchmark (sunspider-1.0.2 test suite - In Progress...)</title>\n<link rel="stylesheet" href="../sunspider.css">\n</head>\n\n<body onload="start()">\n\n<h2><span id="logo">&#x2600;</span>SunSpider JavaScript Benchmark <small>(In Progress...)</small></h2>\n<h3>Content Version: sunspider-1.0.2</h3>\n\n<script src="sunspider-test-prefix.js"></script>\n<script src="sunspider-test-contents.js"></script>\n<script>\nvar testIndex = -1;\nvar currentRepeat = -1;\nvar repeatCount = 10;\nvar warmupMS = 8;\n\nvar output = [];\noutput.length = repeatCount;\nfor (var i = 0; i < output.length; i++) {\n    output[i] = {};\n}\n\nfunction warmup()\n{\n    for (var start = new Date; new Date - start < warmupMS; ) {\n        for (var i = 0; i < 100; ++i) {\n            if (Math.atan(Math.acos(Math.asin(Math.random()))) > 4) // Always false.\n                return;\n        }\n    }\n}\n\nfunction start() \n{\n    window.setTimeout(next, 128);\n}\n\nfunction next()\n{\n    document.getElementById("frameparent").innerHTML = "";\n    document.getElementById("frameparent").innerHTML = "<iframe id=\'testframe\'>";\n    var testFrame = document.getElementById("testframe");\n    if (++testIndex < tests.length) {\n        // Warm up the CPU a little bit, in case power management clocked it down\n        // or put it to sleep. We\'re trying to strike a balance here: do enough\n        // work so that all browsers see the CPU at an equal clock rate, but\n        // not so much work that we hide performance problems caused by overly\n        // aggressive power management.\n        warmup();\n\n        testFrame.contentDocument.open();\n        testFrame.contentDocument.write(testContents[testIndex]);\n        testFrame.contentDocument.close();\n\n        window.setTimeout(next, 0);\n    } else if (++currentRepeat < repeatCount) { \n        document.getElementById("countdown").innerHTML = repeatCount - currentRepeat;\n        testIndex = -1;\n\n        window.setTimeout(next, 128);\n    } else {\n        finish();\n    }\n}\n\nfunction recordResult(time)\n{\n    if (currentRepeat >= 0) // negative repeats are warmups\n        output[currentRepeat][tests[testIndex]] = time;\n}\n\nfunction finish()\n{\n    var outputString = "{";\n    outputString += \'"v": "sunspider-1.0.2", \';\n    for (var test in output[0]) {\n        outputString += \'"\' + test + \'":[\';\n        for (var i = 0; i < output.length; i++) {\n            var time = output[i][test];\n            if (time != time)\n                time = "\\"NaN\\"";\n            outputString += time + ",";\n        }\n        outputString = outputString.substring(0, outputString.length - 1);\n        outputString += "],";\n    }\n    outputString = outputString.substring(0, outputString.length - 1);\n    outputString += "}";\n\n    location = "results.html?" + encodeURI(outputString);\n}\n\n</script>\n\n<h3 id="countdown">warmup</h3>\n<div id="frameparent"></div>\n\n</body>\n</html>\n'
+p20
+a.

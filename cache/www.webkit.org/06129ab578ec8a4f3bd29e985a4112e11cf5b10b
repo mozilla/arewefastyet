@@ -1,0 +1,46 @@
+(lp0
+I200
+a(lp1
+(S'content-length'
+p2
+S'1006'
+p3
+tp4
+a(S'accept-ranges'
+p5
+S'bytes'
+p6
+tp7
+a(S'server'
+p8
+S'Apache/2.2'
+p9
+tp10
+a(S'last-modified'
+p11
+S'Tue, 08 Oct 2013 22:38:52 GMT'
+p12
+tp13
+a(S'connection'
+p14
+S'close'
+p15
+tp16
+a(S'etag'
+p17
+S'"3200bf-3ee-4e8426ee472db"'
+p18
+tp19
+a(S'date'
+p20
+S'Thu, 26 Nov 2015 21:07:24 GMT'
+p21
+tp22
+a(S'content-type'
+p23
+S'text/css'
+p24
+tp25
+aaS'\nbody { font-family: sans-serif;\n       margin: 20px; \n       background-color: #D9D5A1; \n       color: #1B0636 }\n\nh2 { background-color: #4E8AB9; \n     margin: -20px -20px 0px -20px; \n     padding: 30px 20px 30px 20px; \n     color: yellow;\n     border-bottom: 2px solid #360D6B;\n     zoom: 1.0 /* I CAN HAS LAYOUT? (ie hack) */ }\n\ndt { font-weight: bold }\n\ndd { margin-bottom: 1em; margin-top: 0.5em }\n\n:link { color: #1363A1 }\n:visited { color: #5113A1 }\n\n#testframe { margin-top: 20px;\n             width: 80%;\n             height: 500px;\n             border: 2px solid #360D6B }\n\n#logo { float: left;\n        position: relative; \n        bottom: 0.33em;\n        padding-right: 20px;\n        margin-bottom: -40px; \n        font-size: 3em }\n\n#frameparent { visibility: hidden; }\n\n#countdown { margin-top: 20px;\n             padding-top: 150px;\n             width: 80%;\n             height: 350px;\n             border: 2px solid #360D6B;\n             font-size: 128px; \n             text-align: center; }\n'
+p26
+a.
