@@ -362,6 +362,13 @@ header {
 .graph-container {
 	margin: auto;
 }
-@media (max-width: 1600px) .graph-row .graph-container {
-	display: block;
+
+.task_content {
+	padding: 15px;
+	width: 1200px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.task_content pre {
+	overflow: auto;
 }

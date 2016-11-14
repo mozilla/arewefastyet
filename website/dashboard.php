@@ -1,4 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+ <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+ <meta http-equiv="content-language" content="en">
+ <title>ARE WE FAST YET?</title>
+ <link rel="stylesheet" title="Default Stylesheet" type="text/css" href="style.css">
+ <link rel="shortcut icon" href="//www.arewefastyet.com/awfy_favicon.png">
+<link href='//fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+ <script type="text/javascript" src="jquery/jquery-1.8.3.min.js"></script>
+ <script type="text/javascript" src="jquery/jquery.ba-hashchange.min.js"></script>
+ <script type="text/javascript" src="flot/jquery.flot.js"></script>
+ <script type="text/javascript" src="flot/jquery.flot.selection.js"></script>
+ <script type="text/javascript" src="data.php?file=master.js"></script>
+ <script type="text/javascript" src="awfy.js"></script>
+ <script type="text/javascript" src="frontpage.js"></script>
+ <script type="text/javascript" src="tooltip.js"></script>
+</head>
+<body>
+
+<header>
+  <div class='container'>
+    <h1><a href='#'>AreWeFastYet</a></h1>
+    <div class='rightSide'>
+	  <div><a href="http://h4writer.com"><span>Blog</span></a></div>
+	  <div><a href="/overview"><span>Overview</span></a></div>
+    </div>
+  </div>
+</header>
+
+<div class='dashboard_content'>
 <?php
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 require_once("internals.php");
 require_once("lib/DB/Mode.php");
@@ -95,6 +129,15 @@ while($unit = mysql_fetch_object($qUnits)) {
 
 	$queue = new TaskQueue($unit->id);
 	echo "<td>";
+	if ($task = $queue->last_finished_task()) {
+		if (time() - $task->finish_time() > 60*60*24)
+			echo "<span style='color:red'>";
+		else
+			echo "<span>";
+	} else {
+		echo "<span>";
+	}
+
 	if ($queue->has_active_task()) {
 		$active = $queue->get_active_task();
 		echo "Running";
@@ -104,6 +147,7 @@ while($unit = mysql_fetch_object($qUnits)) {
 	} else {
 		echo "Not running";
 	}
+	echo "</span>";
 
 	echo "<td>";
 	if ($queue->has_queued_tasks()) {
@@ -135,12 +179,22 @@ while($unit = mysql_fetch_object($qUnits)) {
 	}
 
 	echo "<td>";
-	if ($last = $queue->last_finished_task()) {
-		echo "Finished ";
-		echo "<span title='".date("G:i d/m/Y", $last->finish_time())."'>".time_ago($last->finish_time())." ago, </span>";
-		echo "(took ".time_diff($last->start_time(), $last->finish_time()).")";
-		if ($last->hasError()) {
-			echo "<br />unsuccesfull (error: ".htmlspecialchars($last->error()).")";
+	if ($tasks = $queue->last_tasks()) {
+		$tasks = array_reverse($tasks);
+		foreach ($tasks as $task) {
+			$color = "grey";
+			if ($task->hasError()) {
+				$color = "red";
+			} elseif ($task->finish_time() > 0) {
+				if ($task->finish_time() - $task->start_time() < 5*60)
+					$color = "red";
+				else
+					$color = "green";
+			} elseif ($task->start_time() > 0) {
+				$color = "black";
+			}
+			echo "<a href='task_info.php?id={$task->id}' style='color:{$color}'>({$task->control_tasks_id()})</a> ";
+			echo "</font>";
 		}
 	} else {
 		echo "/";
@@ -149,3 +203,7 @@ while($unit = mysql_fetch_object($qUnits)) {
 	
 }
 echo "</table>";
+?>
+</div>
+</body>
+</html>
