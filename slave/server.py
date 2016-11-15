@@ -113,8 +113,8 @@ class FakeHandler(SimpleHTTPRequestHandler):
             return "kripken.github.io", path
         elif host.startswith("octane."):
             if path == "" or path == "/":
-                path = "/svn/latest/index.html"
-            return "octane-benchmark.googlecode.com", path
+                path = "/octane/index.html"
+            return "chromium.github.io", path
         elif host.startswith("jetstream."):
             if path == "" or path == "/":
                 path = "/JetStream/"
@@ -224,7 +224,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
             if path == "/Massive/driver.js":
                 return data.replace("job.calculate().toFixed(3)","normalize(job)")
         if host.startswith("octane."):
-            if path == "/svn/latest/index.html":
+            if path == "/octane/index.html":
                 return data.replace("</body>",
                                     "<script>"
                                     "   window.setTimeout(Run, 10000);"

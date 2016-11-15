@@ -4,6 +4,7 @@ import executors
 import engineInfo
 import submitter
 import json
+import traceback
 
 import sys
 import utils
@@ -58,6 +59,7 @@ if options.mode_rules is None:
         "chrome,default:v8",
         "chrome,turbofan:v8-turbofan",
         "chrome,ignition:v8-ignition",
+        "chrome,turboignition:v8-turbo-ignition",
         "webkit,default:jsc",
         "native,default:clang",
         "servo,default:servo"
@@ -94,13 +96,14 @@ for engine_path in options.engines:
     except Exception as e:
         print('Failed to get info about ' + engine_path + '!')
         print('Exception: ' +  repr(e))
+        traceback.print_exc(file=sys.stdout)
 
 # Run every benchmark for every build and config
 benchmarks = [benchmarks.getBenchmark(i) for i in options.benchmarks]
 for benchmark in benchmarks:
     for engine_path in engines:
         info = engineInfo.getInfo(engine_path)
-        executor = executors.getExecutor(info)  
+        executor = executors.getExecutor(info)
 
         for config_name in options.configs:
             config = configs.getConfig(config_name, info)

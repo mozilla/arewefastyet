@@ -7,6 +7,7 @@ import shutil
 import socket
 import utils
 import platform
+import url_creator
 
 import tarfile
 import zipfile
@@ -27,169 +28,23 @@ class DownloadTools(object):
             return ArchiveMozillaDownloader(url)
         if url.startswith("http://commondatastorage.googleapis.com"):
             return GoogleAPISDownloader(url)
-        if url.startswith("http://builds.nightly.webkit.org"):
+        if (url.startswith("http://builds.nightly.webkit.org") or
+            url.startswith("https://builds.nightly.webkit.org") or
+            url.startswith("http://builds-nightly.webkit.org") or
+            url.startswith("https://builds-nightly.webkit.org")):
             return BuildsWebkitDownloader(url)
         raise Exception("Unknown retriever")
 
     @classmethod
-    def getRevisionFinder(cls, repo):
-        if "mozilla" in repo:
-            return MozillaRevisionFinder(repo)
-        if "chrome" in repo:
-            return ChromeRevisionFinder(repo)
-        if "webkit" in repo:
-            return WebKitRevisionFinder(repo)
-        raise Exception("Unknown repo")
-
-    @classmethod
     def forRepo(cls, repo, cset="latest"):
-        revisionFinder = cls.getRevisionFinder(repo)
-        return revisionFinder.find(cset)
-
-class RevisionFinder(object):
-    def __init__(self, repo):
-        self.repo = repo
-
-    def find(self, cset):
-        if cset == 'latest':
-            urls = self.latest()[0:5]
-        else:
-            urls = self.urlForRevision(cset)
-
+        urlCreator = url_creator.getUrlCreator(repo)
+        urls = urlCreator.find(cset)
         for url in urls:
             print "trying: " + url
             downloader = DownloadTools.forSpecificUrl(url)
             if downloader.valid():
                 return downloader
         raise Exception("couldn't find the revision.")
-
-class ChromeRevisionFinder(RevisionFinder):
-
-    def _url_base(self):
-        platform = self._platform()
-        return "http://commondatastorage.googleapis.com/chromium-browser-continuous/"+platform+"/"
-
-    def _platform(self):
-        arch, _ = platform.architecture()
-        arch = arch[0:2]
-        if platform.system() == "Linux":
-            return "Linux"
-        if platform.system() == "Darwin":
-            return "Mac"
-        if platform.system() == "Windows" or platform.system().startswith("CYGWIN"):
-            if arch == '32':
-                return "Win"
-            elif arch == '64':
-                return "Win_x64"
-        raise Exception("Unknown platform: " + platform.system())
-
-    def latest(self):
-        response = urllib2.urlopen(self._url_base() + "LAST_CHANGE")
-        chromium_rev = response.read()
-
-        response = urllib2.urlopen(self._url_base() + chromium_rev + "/REVISIONS")
-        cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
-
-        return [self._url_base() + chromium_rev + "/"]
-
-class WebKitRevisionFinder(RevisionFinder):
-
-    def latest(self):
-        response = urllib2.urlopen("http://nightly.webkit.org/")
-        cset = re.findall('WebKit r([0-9]*)<', response.read())[0]
-
-        return ["http://builds.nightly.webkit.org/files/trunk/mac/WebKit-SVN-r" + cset + ".dmg"]
-
-class MozillaRevisionFinder(RevisionFinder):
-
-    def __init__(self, repo):
-        RevisionFinder.__init__(self, repo)
-        self.url = self._url()
-        if self.url[-1] != "/":
-            self.url += "/"
-
-    def _platform(self):
-        arch, _ = platform.architecture()
-        arch = arch[0:2]
-        if platform.system() == "Linux":
-            return "linux"+arch
-        if platform.system() == "Darwin":
-            return "macosx64"
-        if platform.system() == "Windows":
-            return "win"+arch
-        if platform.system().startswith("CYGWIN"):
-            return "win"+arch
-        raise Exception("Unknown platform: " + platform.system())
-
-    def _subdir(self):
-        platform = self._platform()
-        if self.repo == "mozilla-inbound":
-            return "mozilla-inbound-"+platform
-        if self.repo == "mozilla-central":
-            return "mozilla-central-"+platform
-        if self.repo == "mozilla-aurora":
-            return "mozilla-aurora-"+platform
-        if self.repo == "mozilla-beta":
-            return "mozilla-beta-"+platform
-        raise Exception("Unknown repo: " + self.repo)
-
-    def _url(self):
-        return "http://archive.mozilla.org/pub/firefox/tinderbox-builds/"+self._subdir()+"/"
-
-    def _archive_url(self):
-        return "http://inbound-archive.pub.build.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/"+self._subdir()+"/"
-
-    def treeherder_platform(self):
-        platform = self._platform()
-        if platform == "linux32":
-            return platform
-        if platform == "linux64":
-            return platform
-        if platform == "win32":
-            return "windowsxp"
-        if platform == "win64":
-            return "windows8-64" # LATER??
-        if platform == "macosx64":
-            return "osx-10-7"
-
-    def latest(self):
-        response = urllib2.urlopen(self.url+"?C=N;O=D")
-        html = response.read()
-        ids = list(set(re.findall("([0-9]{5,})/", html)))
-        ids = sorted(ids, reverse=True)
-        return [self.url + id for id in ids]
-
-    def _build_id(self, id):
-        url = "https://treeherder.mozilla.org/api/project/"+self.repo+"/jobs/?count=2000&result_set_id="+str(id)+"&return_type=list"
-        data = utils.fetch_json(url)
-        builds = [i for i in data["results"] if i[1] == "buildbot"] # Builds
-        builds = [i for i in builds if i[25] == "B" or i[25] == "Bo"] # Builds
-        builds = [i for i in builds if i[13] == self.treeherder_platform()] # platform
-        builds = [i for i in builds if i[5] == "opt"] # opt / debug / pgo
-
-        assert len(builds) == 1
-
-        url = "https://treeherder.mozilla.org/api/project/mozilla-inbound/job-log-url/?job_id="+str(builds[0][10])
-        data = utils.fetch_json(url)
-        return data[0]["url"].split("/")[-2]
-
-    def urlForRevision(self, cset):
-        # here we use a detour using treeherder to find the build_id,
-        # corresponding to a revision.
-        url = "https://treeherder.mozilla.org/api/project/"+self.repo+"/resultset/?full=false&revision="+cset
-        data = utils.fetch_json(url)
-
-        # No corresponding build found given revision
-        if len(data["results"]) != 1:
-            return None
-
-        # The revision is not pushed seperately. It is not the top commit
-        # of a list of pushes that were done at the same time.
-        if data["results"][0]["revision"] != cset:
-            return None
-
-        build_id = self._build_id(data["results"][0]["id"])
-        return [self._url()+str(build_id)+"/", self._archive_url()+str(build_id)+"/"]
 
 class Downloader(object):
 
@@ -246,6 +101,7 @@ class Downloader(object):
 
 class ArchiveMozillaDownloader(Downloader):
 
+
     def getfilename(self):
         try:
             response = urllib2.urlopen(self.url)
@@ -253,44 +109,18 @@ class ArchiveMozillaDownloader(Downloader):
         except:
             return None
 
-        possibles = re.findall(r'<a href=".*(firefox-[a-zA-Z0-9._-]*)">', html)
-        possibles = [possible for possible in possibles if "tests" not in possible]
-        possibles = [possible for possible in possibles if "checksum" not in possible]
-        possibles = [possible for possible in possibles if ".json" not in possible]
-        possibles = [possible for possible in possibles if "crashreporter" not in possible]
-        possibles = [possible for possible in possibles if "langpack" not in possible]
-        possibles = [possible for possible in possibles if ".txt" not in possible]
-        possibles = [possible for possible in possibles if ".installer." not in possible]
+        possibles = re.findall(r'<a href=".*((firefox|fennec)-[a-zA-Z0-9._-]*)">', html)
+        possibles = [possible[0] for possible in possibles]
 
-        assert len(possibles) <= 1
-        if len(possibles) == 0:
-            return None
-        return possibles[0]
+        filename = self.getUniqueFileName(possibles)
+        if filename:
+            return filename
 
-    def getinfoname(self):
-        response = urllib2.urlopen(self.url)
-        html = response.read()
+        filename = self.getPlatformFileName(possibles, platform.system(), platform.architecture()[0])
+        if filename:
+            return filename
 
-        possibles = re.findall(r'<a href=".*(firefox-[a-zA-Z0-9._-]*)">', html)
-        possibles = [possible for possible in possibles if ".json" in possible]
-        possibles = [possible for possible in possibles if "mozinfo" not in possible]
-        possibles = [possible for possible in possibles if "test_packages" not in possible]
-
-        assert len(possibles) == 1
-        return possibles[0]
-
-    def getbinary(self):
-        if os.path.exists(self.folder + "firefox/firefox.exe"):
-            return self.folder + "firefox/firefox.exe"
-        if os.path.exists(self.folder + "firefox/firefox"):
-            return self.folder + "firefox/firefox"
-        files = os.listdir(self.folder)
-        assert len(files) == 1
-        if files[0].endswith(".apk"):
-            return self.folder + files[0]
-        if files[0].endswith(".dmg"):
-            return self.folder + files[0]
-        assert False
+        return None
 
     def retrieveInfo(self):
         infoname = self.getinfoname()
@@ -306,6 +136,83 @@ class ArchiveMozillaDownloader(Downloader):
         info["folder"] = os.path.abspath(self.folder)
 
         return info
+
+    def _remove_extra_files(self, possibles):
+        possibles = [possible for possible in possibles if "tests" not in possible]
+        possibles = [possible for possible in possibles if "checksum" not in possible]
+        possibles = [possible for possible in possibles if ".json" not in possible]
+        possibles = [possible for possible in possibles if "crashreporter" not in possible]
+        possibles = [possible for possible in possibles if "langpack" not in possible]
+        possibles = [possible for possible in possibles if ".txt" not in possible]
+        possibles = [possible for possible in possibles if ".installer." not in possible]
+
+        extensions = [".exe", ".tar.bz2",".dmg", ".zip", ".apk"]
+        possibles2 = []
+        for possible in possibles:
+            endsWith = False;
+            for ext in extensions:
+                if possible.endswith(ext):
+                    endsWith = True
+                    break
+            if endsWith:
+                possibles2.append(possible)
+        return possibles2
+
+    def getUniqueFileName(self, possibles):
+        possibles = self._remove_extra_files(possibles)
+        if len(possibles) != 1:
+            return None
+        return possibles[0]
+
+    def getPlatformFileName(self, possibles, platform, arch):
+        possibles = self._remove_extra_files(possibles)
+        if platform == "Darwin":
+            possibles = [possible for possible in possibles if "mac" in possible]
+            possibles = [possible for possible in possibles if possible.endswith(".dmg")]
+            possibles = [possible for possible in possibles if "sdk" not in possible]
+        elif platform == "Linux" and arch == "64bit":
+            possibles = [possible for possible in possibles if "linux" in possible]
+            possibles = [possible for possible in possibles if "x86_64" in possible]
+            possibles = [possible for possible in possibles if "sdk" not in possible]
+        elif platform == "Linux" and arch == "32bit":
+            possibles = [possible for possible in possibles if "linux" in possible]
+            possibles = [possible for possible in possibles if "i686" in possible]
+            possibles = [possible for possible in possibles if "sdk" not in possible]
+        elif platform == "Windows" and arch == "64bit":
+            possibles = [possible for possible in possibles if "win64" in possible]
+        elif platform == "Windows" and arch == "32bit":
+            possibles = [possible for possible in possibles if "win32" in possible]
+
+        if len(possibles) != 1:
+            return None
+        return possibles[0]
+
+    def getinfoname(self):
+        filename = self.getfilename()
+        try:
+            filename = os.path.splitext(filename)[0]
+            response = urllib2.urlopen(self.url + filename + ".json")
+            html = response.read()
+        except:
+            filename = os.path.splitext(filename)[0]
+            response = urllib2.urlopen(self.url + filename + ".json")
+            html = response.read()
+
+        return filename + ".json"
+
+    def getbinary(self):
+        if os.path.exists(self.folder + "firefox/firefox.exe"):
+            return self.folder + "firefox/firefox.exe"
+        if os.path.exists(self.folder + "firefox/firefox"):
+            return self.folder + "firefox/firefox"
+        files = os.listdir(self.folder)
+        assert len(files) == 1
+        if files[0].endswith(".apk"):
+            return self.folder + files[0]
+        if files[0].endswith(".dmg"):
+            return self.folder + files[0]
+        assert False
+
 
 class GoogleAPISDownloader(Downloader):
 

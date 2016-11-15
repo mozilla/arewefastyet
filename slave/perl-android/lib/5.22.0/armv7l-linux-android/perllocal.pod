@@ -1,0 +1,132 @@
+=head2 Thu Aug 27 18:10:10 2015: C<Module> L<DBI|DBI>
+
+=over 4
+
+=item *
+
+C<installed into: /data/local/perl/lib/site_perl/5.22.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.634>
+
+=item *
+
+C<EXE_FILES: dbiproxy dbiprof dbilogstrip>
+
+=back
+
+=head2 Thu Aug 27 21:14:23 2015: C<Module> L<Mojolicious|Mojolicious>
+
+=over 4
+
+=item *
+
+C<installed into: /data/local/perl/lib/site_perl/5.22.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 6.17>
+
+=item *
+
+C<EXE_FILES: script/hypnotoad script/mojo script/morbo>
+
+=back
+
+=head2 Thu Aug 27 21:27:17 2015: C<Module> L<App::cpanminus|App::cpanminus>
+
+=over 4
+
+=item *
+
+C<installed into: /data/local/perl/lib/site_perl/5.22.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.7039>
+
+=item *
+
+C<EXE_FILES: bin/cpanm>
+
+=back
+
+=head2 Thu Aug 27 21:31:11 2015: C<Module> L<DBD::SQLite|DBD::SQLite>
+
+=over 4
+
+=item *
+
+C<installed into: /data/local/perl/lib/site_perl/5.22.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.48>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Aug 27 21:31:19 2015: C<Module> L<Querylet|Querylet>
+
+=over 4
+
+=item *
+
+C<installed into: /data/local/perl/lib/site_perl/5.22.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.401>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Aug 27 21:54:48 2015: C<Module> L<Querylet::Output::Text|Querylet::Output::Text>
+
+=over 4
+
+=item *
+
+C<installed into: /data/local/perl/bin/../lib/site_perl/5.22.0>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.113>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

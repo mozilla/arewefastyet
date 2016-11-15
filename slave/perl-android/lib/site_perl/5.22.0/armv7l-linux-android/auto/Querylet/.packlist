@@ -1,0 +1,4 @@
+/data/local/perl/lib/site_perl/5.22.0/Querylet.pm relocate_as=../../../Querylet.pm
+/data/local/perl/lib/site_perl/5.22.0/Querylet/Input.pm relocate_as=../../../Querylet/Input.pm
+/data/local/perl/lib/site_perl/5.22.0/Querylet/Output.pm relocate_as=../../../Querylet/Output.pm
+/data/local/perl/lib/site_perl/5.22.0/Querylet/Query.pm relocate_as=../../../Querylet/Query.pm

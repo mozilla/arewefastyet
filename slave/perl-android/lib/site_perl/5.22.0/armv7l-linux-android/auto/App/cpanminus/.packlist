@@ -1,0 +1,3 @@
+/data/local/perl/bin/cpanm relocate_as=../../../../../../../bin/cpanm
+/data/local/perl/lib/site_perl/5.22.0/App/cpanminus.pm relocate_as=../../../../App/cpanminus.pm
+/data/local/perl/lib/site_perl/5.22.0/App/cpanminus/fatscript.pm relocate_as=../../../../App/cpanminus/fatscript.pm
