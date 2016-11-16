@@ -65,6 +65,8 @@ class MozillaUrlCreator(UrlCreator):
         arch, _ = platform.architecture()
         arch = arch[0:2]
         if platform.system() == "Linux":
+            if arch == "32":
+                return "linux"
             return "linux"+arch
         if platform.system() == "Darwin":
             return "macosx64"
@@ -94,8 +96,8 @@ class MozillaUrlCreator(UrlCreator):
 
     def treeherder_platform(self):
         platform = self._platform()
-        if platform == "linux32":
-            return platform
+        if platform == "linux":
+            return "linux32"
         if platform == "linux64":
             return platform
         if platform == "win32":
