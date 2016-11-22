@@ -1,11 +1,12 @@
-import subprocess
-import socket
-import os
-import time
 import json
+import os
+import socket
+import subprocess
 import sys
+import time
 
 sys.path.insert(1, '../driver')
+
 import utils
 
 class Benchmark:
@@ -157,7 +158,7 @@ def getBenchmark(name):
     raise Exception("Unknown benchmark")
 
 # Test if server is running and start server if needed.
-s =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 result = s.connect_ex(("localhost", 8000))
 s.close()
 if result > 0:

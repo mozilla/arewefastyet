@@ -1,17 +1,18 @@
 import json
-import urllib2
-import urllib
-import re
 import os
+import platform
+import re
 import shutil
 import socket
-import utils
-import platform
-import url_creator
-
 import tarfile
+import urllib
+import urllib2
 import zipfile
+
 socket.setdefaulttimeout(120)
+
+import url_creator
+import utils
 
 DEBUG = True
 
@@ -58,13 +59,13 @@ class Downloader(object):
     def valid(self):
         return self.getfilename() != None
 
-    def setOutputFolder(self, folder):
+    def set_output_folder(self, folder):
         if not folder.endswith("/"):
             folder += "/"
         self.folder = folder
 
     def download(self):
-        self.createOutputFolder()
+        self.create_output_folder()
 
         filename = self.getfilename()
         assert filename
@@ -76,7 +77,7 @@ class Downloader(object):
         json.dump(info, fp)
         fp.close()
 
-    def createOutputFolder(self):
+    def create_output_folder(self):
         if os.path.isdir(self.folder):
             shutil.rmtree(self.folder)
         os.makedirs(self.folder)
@@ -295,7 +296,7 @@ if __name__ == "__main__":
     elif options.repo:
         downloader = DownloadTools.forRepo(options.repo, options.cset)
     else:
-        raise Exception("You'll need to specify atleast an url or repo")
+        raise Exception("You'll need to specify at least an url or repo")
 
-    downloader.setOutputFolder(options.output)
+    downloader.set_output_folder(options.output)
     downloader.download()

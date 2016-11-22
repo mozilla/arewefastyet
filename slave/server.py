@@ -1,16 +1,18 @@
-import sys
 import BaseHTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-import urlparse
-import os
-import json
-import urllib
-import httplib
-from SocketServer     import ThreadingMixIn
 import hashlib
+import httplib
+import json
+import os
 import pickle
-import utils
 import signal
+import sys
+import urllib
+import urlparse
+
+from SimpleHTTPServer import SimpleHTTPRequestHandler
+from SocketServer     import ThreadingMixIn
+
+import utils
 
 class FakeHandler(SimpleHTTPRequestHandler):
 
@@ -322,8 +324,6 @@ Protocol     = "HTTP/1.0"
 Port = 8000
 ServerAddress = ('', Port)
 
-import os
-import utils
 path = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
 with utils.FolderChanger(path):
     HandlerClass.protocol_version = Protocol

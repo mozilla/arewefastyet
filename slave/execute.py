@@ -1,15 +1,16 @@
-import benchmarks
-import configs
-import executors
-import engineInfo
-import submitter
 import json
+import sys
 import traceback
 
-import sys
+from optparse import OptionParser
+
+import benchmarks
+import configs
+import engineInfo
+import executors
+import submitter
 import utils
 
-from optparse import OptionParser
 parser = OptionParser(usage="usage: %prog url [options]")
 
 parser.add_option("-b", "--benchmark", action="append", dest="benchmarks",
