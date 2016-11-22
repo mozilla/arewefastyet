@@ -174,6 +174,15 @@ class Browsermark(Benchmark):
     def name():
         return "browsermark"
 
+class WasmMisc(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "0.1")
+        self.url = "http://wasm.local"
+
+    @staticmethod
+    def name():
+        return "wasm"
+
 KnownBenchmarks = [
     Octane,
     Dromaeo,
@@ -182,7 +191,8 @@ KnownBenchmarks = [
     Speedometer,
     Kraken,
     SunSpider,
-    Browsermark
+    Browsermark,
+    WasmMisc,
 ]
 
 # TODO use this when showing execute.py's help.

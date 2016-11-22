@@ -130,7 +130,7 @@ class FirefoxExecutor(BrowserExecutor):
         self.resetResults()
 
         # start browser
-        process = runner.start(binary, args + ["--profile", runner.getdir("profile")], env)
+        process = runner.start(binary, args + ["--no-remote", "--profile", runner.getdir("profile")], env)
 
         # wait for results
         self.waitForResults(benchmark.timeout)

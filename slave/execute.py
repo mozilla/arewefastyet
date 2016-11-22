@@ -14,7 +14,7 @@ import utils
 parser = OptionParser(usage="usage: %prog url [options]")
 
 parser.add_option("-b", "--benchmark", action="append", dest="benchmarks",
-                  help="Benchmark to run (the local ones are deprecated): remote.octane, remote.dromaeo, remote.massive, remote.jetstream, remote.speedometer, remote.kraken, remote.sunspider, remote.browsermark, shell.octane, shell.sunspider, shell.kraken, shell.assorted, shell.asmjsapps, shell.asmjsmicro, shell.shumway, shell.dart, local.octane, local.sunspider, local.kraken, local.weglsamples, local.assorteddom")
+                  help="Benchmark to run (the local ones are deprecated): remote.octane, remote.dromaeo, remote.massive, remote.jetstream, remote.speedometer, remote.kraken, remote.sunspider, remote.browsermark, remote.wasm, shell.octane, shell.sunspider, shell.kraken, shell.assorted, shell.asmjsapps, shell.asmjsmicro, shell.shumway, shell.dart, local.octane, local.sunspider, local.kraken, local.weglsamples, local.assorteddom")
 
 parser.add_option("-s", "--submitter", dest="submitter", type="string", default="print",
                   help="Submitter class ('remote' or 'print')")

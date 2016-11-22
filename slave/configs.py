@@ -19,6 +19,7 @@ class Default(object):
         if engine == "firefox":
             self.env_["JSGC_DISABLE_POISONING"] = "1"
             self.profile_ += "user_pref(\"dom.max_script_run_time\", 0);\n"
+            self.profile_ += "user_pref(\"javascript.options.wasm\", true);\n"
         elif engine == "chrome":
             pass
         elif engine == "webkit":
