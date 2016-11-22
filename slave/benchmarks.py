@@ -12,3 +12,4 @@ def getBenchmark(benchmark):
         return benchmarks_shell.getBenchmark(name)
     else:
         raise Exception("Unknown benchmark type")
+
