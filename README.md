@@ -1,3 +1,14 @@
+AreWeFastYet
+============
+
+AreWeFastYet is a set of tools used for benchmarking the major browser's
+JavaScript virtual machines against each other, as well as reporting the
+results on a website as insightful graphs showing the evolution of performance
+over time.
+
+A public instance is hosted by Mozilla and running at
+[https://arewefastyet.com](https://arewefastyet.com).
+
 Components
 ==========
 
