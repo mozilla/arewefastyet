@@ -104,7 +104,10 @@ class Builder(object):
     def build(self, puller):
         self.unlinkBinary()
 
-        self.make()
+        try:
+            self.make()
+        except:
+            pass
 
         if not self.successfullyBuild():
             self.reconf()
