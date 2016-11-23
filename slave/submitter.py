@@ -32,7 +32,7 @@ class Submitter(object):
     def mode(self, engine_type, config):
         name = engine_type + "," + config
         if name in self.rules:
-            return self.rules[engine_type + "," + config]
+            return self.rules[name]
         else:
             return name
 

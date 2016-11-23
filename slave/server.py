@@ -1,16 +1,18 @@
-import sys
 import BaseHTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-import urlparse
-import os
-import json
-import urllib
-import httplib
-from SocketServer     import ThreadingMixIn
 import hashlib
+import httplib
+import json
+import os
 import pickle
-import utils
 import signal
+import sys
+import urllib
+import urlparse
+
+from SimpleHTTPServer import SimpleHTTPRequestHandler
+from SocketServer     import ThreadingMixIn
+
+import utils
 
 class FakeHandler(SimpleHTTPRequestHandler):
 
@@ -282,7 +284,6 @@ class FakeHandler(SimpleHTTPRequestHandler):
             if path == "/benchmarks/misc-desktop/hosted/assorted/driver.html":
                 return data.replace('location = "results.html?" + encodeURI(outputString);',
                                     'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
-        if host == "localhost":
             if path == "/benchmarks/webaudio/webaudio-bench.js":
                 return data.replace('xhr.open("POST", "/results", true);',
                                     'xhr.open("POST", "/submit", true);');
@@ -322,8 +323,6 @@ Protocol     = "HTTP/1.0"
 Port = 8000
 ServerAddress = ('', Port)
 
-import os
-import utils
 path = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
 with utils.FolderChanger(path):
     HandlerClass.protocol_version = Protocol

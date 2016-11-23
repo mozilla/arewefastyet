@@ -1,27 +1,32 @@
-import subprocess
-import socket
-import os
-import time
 import json
+import os
+import socket
+import subprocess
 import sys
+import time
 
 sys.path.insert(1, '../driver')
+
 import utils
 
 class Benchmark:
     """ timeout is in minutes """
-    def __init__(self, suite, version, timeout=2):
-        self.suite = suite
-        self.version = suite+" "+version
+    def __init__(self, version, timeout=2, suite=None):
+        self.suite = suite if suite is not None else self.name()
+        self.version = self.suite + " " + version
         self.url = 'http://' + self.suite + ".localhost:8000"
         self.timeout = timeout
 
     def processResults(self, results):
         return results
 
+    @staticmethod
+    def name(self):
+        raise Exception("NYI")
+
 class Octane(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "octane", "2.0.1")
+        Benchmark.__init__(self, "2.0.1")
 
     def processResults(self, results):
         ret = []
@@ -32,9 +37,13 @@ class Octane(Benchmark):
                 ret.append({'name': key, 'time': results[key]})
         return ret
 
+    @staticmethod
+    def name():
+        return "octane"
+
 class Dromaeo(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "dromaeo", "1.0", 17)
+        Benchmark.__init__(self, "1.0", 17)
         self.url = 'http://' + self.suite + ".localhost:8000/?recommended"
 
     def processResults(self, results):
@@ -46,9 +55,13 @@ class Dromaeo(Benchmark):
                 ret.append({'name': key, 'time': results[key]})
         return ret
 
+    @staticmethod
+    def name():
+        return "dromaeo"
+
 class Massive(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "massive", "1.2", 9)
+        Benchmark.__init__(self, "1.2", 9)
 
     def processResults(self, results):
         ret = []
@@ -61,9 +74,13 @@ class Massive(Benchmark):
                 ret.append({'name': item["benchmark"], 'time': item["result"]})
         return ret
 
+    @staticmethod
+    def name():
+        return "massive"
+
 class JetStream(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "jetstream", "1.0", 5)
+        Benchmark.__init__(self, "1.0", 5)
 
     def processResults(self, results):
         ret = []
@@ -74,13 +91,21 @@ class JetStream(Benchmark):
                 ret.append({'name': item, 'time': results[item]["statistics"]["mean"]})
         return ret
 
+    @staticmethod
+    def name():
+        return "jetstream"
+
 class Speedometer(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "speedometer", "1.0", 4)
+        Benchmark.__init__(self, "1.0", 4)
+
+    @staticmethod
+    def name():
+        return "speedometer"
 
 class Kraken(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "kraken", "1.1")
+        Benchmark.__init__(self, "1.1")
 
     def processResults(self, results):
         ret = []
@@ -100,9 +125,13 @@ class Kraken(Benchmark):
         ret.append({'name': "__total__", 'time': total })
         return ret
 
+    @staticmethod
+    def name():
+        return "kraken"
+
 class SunSpider(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "ss", "1.0.2", 1)
+        Benchmark.__init__(self, "1.0.2", 1, suite="ss")
         self.url = "http://sunspider.localhost:8000/"
 
     def processResults(self, results):
@@ -123,9 +152,13 @@ class SunSpider(Benchmark):
         ret.append({'name': "__total__", 'time': total })
         return ret
 
+    @staticmethod
+    def name():
+        return "sunspider"
+
 class Browsermark(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "browsermark", "2.1", 5)
+        Benchmark.__init__(self, "2.1", 5)
         self.url = "http://browsermark.local:8082/"
 
     def processResults(self, results):
@@ -137,27 +170,43 @@ class Browsermark(Benchmark):
                 ret.append({'name': item[0], 'time': item[1]})
         return ret
 
+    @staticmethod
+    def name():
+        return "browsermark"
+
+class WasmMisc(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "0.2")
+        self.url = "http://wasm.local"
+
+    @staticmethod
+    def name():
+        return "wasm"
+
+KnownBenchmarks = [
+    Octane,
+    Dromaeo,
+    Massive,
+    JetStream,
+    Speedometer,
+    Kraken,
+    SunSpider,
+    Browsermark,
+    WasmMisc,
+]
+
+# TODO use this when showing execute.py's help.
+def get_all_known_benchmark_names():
+    return [b.name() for b in KnownBenchmarks]
+
 def getBenchmark(name):
-    if name == "octane":
-        return Octane()
-    if name == "dromaeo":
-        return Dromaeo()
-    if name == "massive":
-        return Massive()
-    if name == "jetstream":
-        return JetStream()
-    if name == "speedometer":
-        return Speedometer()
-    if name == "kraken":
-        return Kraken()
-    if name == "sunspider":
-        return SunSpider()
-    if name == "browsermark":
-        return Browsermark()
+    for b in KnownBenchmarks:
+        if name == b.name():
+            return b()
     raise Exception("Unknown benchmark")
 
 # Test if server is running and start server if needed.
-s =  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 result = s.connect_ex(("localhost", 8000))
 s.close()
 if result > 0:
