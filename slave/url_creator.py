@@ -19,19 +19,22 @@ class ChromeUrlCreator(UrlCreator):
 
     def _url_base(self):
         platform = self._platform()
-        return "http://commondatastorage.googleapis.com/chromium-browser-continuous/"+platform+"/"
+        return "http://commondatastorage.googleapis.com/chromium-browser-snapshots/"+platform+"/"
 
     def _platform(self):
         arch, _ = platform.architecture()
         arch = arch[0:2]
         if platform.system() == "Linux":
-            return "Linux"
+            if arch == '64':
+                return "Linux_x64"
+            if arch == '32':
+                return "Linux"
         if platform.system() == "Darwin":
             return "Mac"
         if platform.system() == "Windows" or platform.system().startswith("CYGWIN"):
             if arch == '32':
                 return "Win"
-            elif arch == '64':
+            if arch == '64':
                 return "Win_x64"
         raise Exception("Unknown platform: " + platform.system())
 

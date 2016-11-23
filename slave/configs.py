@@ -50,6 +50,8 @@ class Wasm(Default):
         super(Wasm, self).__init__(engine, shell)
         if engine == "firefox":
             self.profile_ += "user_pref(\"javascript.options.wasm\", true);\n"
+        elif engine == "chrome":
+            self.args_ += ['--js-flags=--expose_wasm']
 
 class WasmBaseline(Wasm):
     def __init__(self, engine, shell):

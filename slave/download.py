@@ -219,11 +219,11 @@ class GoogleAPISDownloader(Downloader):
 
     def getfilename(self):
         platform = self.url.split("/")[-3]
-        if platform == "Linux":
+        if platform.startswith("Linux"):
             return "chrome-linux.zip"
         elif platform == "Mac":
             return "chrome-mac.zip"
-        elif platform.startswith("Win"): # Yeah chrome puts win64 in win32 folder
+        elif platform.startswith("Win"): # Chrome puts win64 in win32 folder.
             return "chrome-win32.zip"
         elif platform == "Android":
             return "chrome-android.zip"
@@ -286,9 +286,9 @@ if __name__ == "__main__":
     parser.add_option("-u", "--url", dest="url",
                       help="Specify a specific url to download.", default=None)
     parser.add_option("--repo", dest="repo",
-                      help="Specify a repo to download. Currently only mozilla-inbound supported.", default=None)
+                      help="Specify a repo to download. Currently supports: mozilla-inbound (cset?) | chrome", default=None)
     parser.add_option("-r", dest="cset",
-                      help="Specify the revision to download. Default to 'latest'", default='latest')
+                      help="Specify the revision to download. Defaults to 'latest'", default='latest')
     (options, args) = parser.parse_args()
 
     if options.url:
