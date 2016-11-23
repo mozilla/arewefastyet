@@ -19,7 +19,6 @@ class Default(object):
         if engine == "firefox":
             self.env_["JSGC_DISABLE_POISONING"] = "1"
             self.profile_ += "user_pref(\"dom.max_script_run_time\", 0);\n"
-            self.profile_ += "user_pref(\"javascript.options.wasm\", true);\n"
         elif engine == "chrome":
             pass
         elif engine == "webkit":
@@ -35,7 +34,7 @@ class Default(object):
 
     def omit(self):
         return self.omit_
-        
+
     def args(self):
         return self.args_
 
@@ -45,6 +44,18 @@ class Default(object):
     def profile(self):
         # Currently only for firefox profile js file.
         return self.profile_
+
+class Wasm(Default):
+    def __init__(self, engine, shell):
+        super(Wasm, self).__init__(engine, shell)
+        if engine == "firefox":
+            self.profile_ += "user_pref(\"javascript.options.wasm\", true);\n"
+
+class WasmBaseline(Wasm):
+    def __init__(self, engine, shell):
+        super(WasmBaseline, self).__init__(engine, shell)
+        if engine == "firefox":
+            self.profile_ += "user_pref(\"javascript.options.wasm_baselinejit\", true);\n"
 
 class UnboxedObjects(Default):
     def __init__(self, engine, shell):
@@ -71,7 +82,7 @@ class TurboFan(Default):
             self.args_.append("--turbo");
         else:
             self.omit_ = True
-            
+
 class TurboIgnition(Default):
     def __init__(self, engine, shell):
         super(TurboIgnition, self).__init__(engine, shell)
@@ -80,7 +91,7 @@ class TurboIgnition(Default):
             self.args_.append("--ignition-staging");
         else:
             self.omit_ = True
-            
+
 class Ignition(Default):
     def __init__(self, engine, shell):
         super(Ignition, self).__init__(engine, shell)
@@ -148,6 +159,10 @@ class E10S(Default):
 def getConfig(name, info):
     if name == "default":
         return Default(info["engine_type"], info["shell"])
+    if name == "wasm":
+        return Wasm(info["engine_type"], info["shell"])
+    if name == "wasm-baseline":
+        return WasmBaseline(info["engine_type"], info["shell"])
     if name == "unboxedobjects":
         return UnboxedObjects(info["engine_type"], info["shell"])
     if name == "testbedregalloc":
