@@ -247,11 +247,15 @@ class V8Builder(Builder):
     def __init__(self, config, folder):
         super(V8Builder, self).__init__(config, folder)
 
-        #self.env.add("GYP_DEFINES", "clang=1")
         self.env.add("PATH", os.path.realpath(os.path.join(self.folder, 'depot_tools'))+":"+self.env.get()["PATH"])
         self.env.remove("CC")
         self.env.remove("CXX")
         self.env.remove("LINK")
+
+        if self.config.startswith("android"):
+            if "target_os = ['android']" not in open(folder + '/.gclient').read():
+                with open(folder + "/.gclient", "a") as myfile:
+                    myfile.write("target_os = ['android']")
 
     def retrieveInfo(self):
         info = {}
