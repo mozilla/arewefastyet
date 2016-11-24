@@ -29,7 +29,7 @@ class ShellExecutor(object):
 
         # 2. Put the executables.
         path = os.path.dirname(self.engineInfo["binary"])
-        path = runner.put(path)
+        path = runner.put(path, recursive = False)
         binary = os.path.join(path, os.path.basename(self.engineInfo["binary"]))
 
         # 3. Execute
