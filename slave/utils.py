@@ -40,6 +40,24 @@ class ConfigState:
         self.Timeout = eval(self.Timeout, {}, {}) # silly hack to allow 30*60 in the config file.
         self.PythonName = self.getDefault(name, 'python', sys.executable)
 
+    @staticmethod
+    def parseBenchmarkTranslates(li):
+        urls = {}
+        for url in li.split(","):
+            url = url.strip()
+            before_url, after_url = url.split(":")
+            urls[before_url] = after_url
+        return urls
+
+    def benchmarkTranslates(self):
+        assert self.inited
+
+        li = self.getDefault("benchmarks", "translate", None)
+        if not li:
+            return []
+        return ConfigState.parseBenchmarkTranslates(li)
+
+
     def get(self, section, name):
         assert self.inited
         return self.rawConfig.get(section, name)

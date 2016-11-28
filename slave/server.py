@@ -13,6 +13,8 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 from SocketServer     import ThreadingMixIn
 
 import utils
+utils.config.init("awfy.config")
+translates = utils.config.benchmarkTranslates()
 
 class FakeHandler(SimpleHTTPRequestHandler):
 
@@ -109,6 +111,13 @@ class FakeHandler(SimpleHTTPRequestHandler):
         return False
 
     def translatePath(self, host, path):
+        global translates
+        translated = False
+        for url in translates:
+            if host.startswith(url):
+                host = translates[url]
+                translated = True
+
         if host.startswith("massive."):
             if path == "" or path == "/":
                 path = "/Massive/?autoRun=true,postToURL=http://localhost:8000/submit"
@@ -137,6 +146,8 @@ class FakeHandler(SimpleHTTPRequestHandler):
             return "browsermark.local", path
         elif host.startswith("dromaeo."):
             return "dromaeo.com", path
+        if translated:
+            return host, path
         return None, None
 
     def remoteBenchmark(self, postdata=None):
