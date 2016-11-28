@@ -219,7 +219,7 @@ class AndroidRunner(Runner):
     def getdir(self, path):
         return "/data/local/tmp/" + path
 
-    def put(self, path):
+    def put(self, path, recursive=True):
         print "put", path, "on device"
         name = os.path.basename(path)
         if os.path.isdir(path):
@@ -228,7 +228,10 @@ class AndroidRunner(Runner):
 
             if hash1 != hash2:
                 syncDir = os.path.dirname(os.path.realpath(__file__))
-                adbSync = os.path.join(syncDir, "adb-sync")
+                if recursive:
+                    adbSync = os.path.join(syncDir, "adb-sync-r")
+                else:
+                    adbSync = os.path.join(syncDir, "adb-sync")
                 assert os.path.isfile(adbSync)
                 print adbSync, path, self.getdir("")
                 subprocess.check_output([adbSync, path, self.getdir("")])

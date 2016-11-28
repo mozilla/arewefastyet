@@ -84,12 +84,12 @@ class FolderChanger:
 def chdir(folder):
     return FolderChanger(folder)
 
-def Run(vec, env = os.environ.copy()):
+def Run(vec, env = os.environ.copy(), shell=False):
     print(">> Executing in " + os.getcwd())
     print(' '.join(vec))
     print("with: " + str(env))
     try:
-        o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env)
+        o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env, shell=shell)
     except subprocess.CalledProcessError as e:
         print 'output was: ' + e.output
         print e
