@@ -312,6 +312,18 @@ def BuildFileList(fs, path, prefix=b''):
     statresult = fs.lstat(path)
   except OSError:
     return
+  if prefix == b'' and stat.S_ISDIR(statresult.st_mode):
+    yield prefix, statresult
+    try:
+      files = list(fs.listdir(path))
+    except OSError:
+      return
+    files.sort()
+    for n in files:
+      if n == b'.' or n == b'..':
+        continue
+      for t in BuildFileList(fs, path + b'/' + n, prefix + b'/' + n):
+        yield t
   if stat.S_ISREG(statresult.st_mode):
     yield prefix, statresult
   elif stat.S_ISLNK(statresult.st_mode):
@@ -572,6 +584,7 @@ class FileSyncer(object):
           else:
             with self.InterruptProtection(self.dst_fs[i], dst_name):
               if not self.dry_run:
+                sys.stderr.write(dst_name + ": ")
                 self.copy[i](src_name, dst_name)
               self.num_bytes += s.st_size
           if not self.dry_run:
