@@ -118,6 +118,8 @@ for benchmark in benchmarks:
             except Exception as e:
                 print('Failed to run ' + engine_path + ' - ' + benchmark.version + ' - ' + config_name + '!')
                 print('Exception: ' +  repr(e))
+                import traceback
+                traceback.print_exc()
                 continue
 
             mode = submitter.mode(info["engine_type"], config_name)

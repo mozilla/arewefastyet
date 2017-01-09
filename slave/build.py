@@ -189,7 +189,7 @@ class MozillaBuilder(Builder):
                 assert False
 
         with utils.FolderChanger(os.path.join(self.folder, 'js', 'src', 'Opt')):
-            Run(['../configure'] + args, self.env.get())
+            utils.Run(['../configure'] + args, self.env.get())
         return True
 
     def make(self):

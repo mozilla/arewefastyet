@@ -86,7 +86,10 @@ def chdir(folder):
 
 def Run(vec, env = os.environ.copy(), shell=False):
     print(">> Executing in " + os.getcwd())
-    print(' '.join(vec))
+    if shell:
+        print(vec)
+    else:
+        print(' '.join(vec))
     print("with: " + str(env))
     try:
         o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env, shell=shell)
