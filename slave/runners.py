@@ -3,7 +3,38 @@ import shutil
 import time
 import os
 import stat
+import utils
 
+"""
+Runner functions:
+- start
+- kill:
+    Kill a given subprocess
+- killall:
+    Kill all processes given a specific name
+- killAllInstances:
+    Kill all instances of the default
+
+- getdir:
+    Returns the directory where the files are installed.
+    On most runners this will just return the path again.
+    On android this will give back the directory on the device.
+- write:
+    Write the content to a file on the device
+- rm:
+    Remove a file or directory on the device
+- mkdir:
+    Create a directory on the device
+- find:
+    find specific file inside a directory and return the path
+- install:
+    Install an executable on the system.
+- put:
+    Move a file or directory to the device if needed.
+- set_exec_bit:
+    Sets the executable bit on a file.
+
+"""
 class Runner(object):
     def __init__(self, info):
         self.info = info
@@ -11,7 +42,7 @@ class Runner(object):
     def rm(self, path):
         if not os.path.exists(path):
             print "rm", path, "(non-existing)"
-            return 
+            return
 
         print "rm", path
         shutil.rmtree(path)
@@ -53,6 +84,16 @@ class Runner(object):
         paths = subprocess.check_output(["find", path])
         paths = [path.rstrip() for path in paths.splitlines()]
         return [path for path in paths if path.endswith(file)]
+
+    def put(self, path):
+        return path
+
+    def execute(self, command, env, path="."):
+        print " ".join(command)
+        print os.getcwd()
+        print path
+        with utils.chdir(path):
+            return utils.run_realtime(command, env=env)
 
 class LinuxRunner(Runner):
     def killall(self, name):
@@ -144,6 +185,9 @@ class OSXRunner(Runner):
             return exe
 
 class AndroidRunner(Runner):
+    def __init__(self, info):
+        self.info = info
+
     def killall(self, name):
         pass
 
@@ -169,13 +213,67 @@ class AndroidRunner(Runner):
         subprocess.check_output(["adb", "shell", "echo '" + content + "' > " + self.getdir(path)])
 
     def mkdir(self, path):
+        print "adb", "shell", "mkdir", self.getdir(path)
         subprocess.check_output(["adb", "shell", "mkdir " + self.getdir(path)])
 
     def getdir(self, path):
-        return "/storage/emulated/legacy/" + path
+        return "/data/local/tmp/" + path
 
+    def put(self, path, recursive=True):
+        print "put", path, "on device"
+        name = os.path.basename(path)
+        if os.path.isdir(path):
+            hash1 = subprocess.check_output(["adb", "shell", "cat /data/local/tmp/"+name+"/123hash"]).splitlines()[0]
+            hash2 = subprocess.check_output("tar -cf - "+os.path.normpath(path)+" | md5sum", shell=True).splitlines()[0]
 
-def getRunner(platform, info):
+            if hash1 != hash2:
+                syncDir = os.path.dirname(os.path.realpath(__file__))
+                if recursive:
+                    adbSync = os.path.join(syncDir, "adb-sync-r")
+                else:
+                    adbSync = os.path.join(syncDir, "adb-sync")
+                assert os.path.isfile(adbSync)
+                print adbSync, path, self.getdir("")
+                subprocess.check_output([adbSync, path, self.getdir("")])
+
+                self.write(os.path.join(name, "123hash"), hash2)
+        else:
+            print "adb", "push", path, self.getdir(name)
+            subprocess.check_output(["adb", "push", path, self.getdir(name)])
+        return self.getdir(name)
+
+    def set_exec_bit(self, path):
+        print "set_exec_bit not yet supported on AndroidRunner"
+        assert False
+
+    def find(self, path):
+        print "find not yet supported on AndroidRunner"
+        assert False
+
+    def execute(self, command, env, path="."):
+        env_flags = ""
+
+        shebang = subprocess.check_output(["adb", "shell", "head "+os.path.join(path, command[0])])
+        if shebang.startswith("#!/bin/bash"):
+            command = ["sh"] + command
+        if shebang.startswith("#!/usr/bin/perl"):
+            # Make sure we have perl. Copied from corion.net/perl-android
+            perlDir = os.path.dirname(os.path.realpath(__file__))
+            perlDir = os.path.join(perlDir, "perl-android")
+            self.put(perlDir)
+
+            command = ["perl"] + command
+
+            env_flags += 'PATH="$PATH:/data/local/tmp/perl-android/bin/" '
+            env_flags += 'PERL5LIB=/data/local/tmp/perl-android/lib:/data/local/tmp/perl-android/lib/site_perl '
+        for i in env:
+            env_flags += i+"="+env[i]+" "
+
+        print env_flags
+        print "adb shell ... " + " ".join(command) + " ..."
+        return utils.run_realtime(["adb", "shell", "cd "+path+";"+env_flags+" " + " ".join(command) + "; exit"])
+
+def getRunner(platform, info = {}):
     if platform == "linux":
         return LinuxRunner(info)
     if platform == "osx":

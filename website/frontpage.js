@@ -201,6 +201,8 @@ Display.prototype.draw = function () {
         mode.used = true;
         if (mode.hidden)
             continue;
+        if (mode.runtime_hidden)
+            continue;
 
         new_info.push(info);
         new_lines.push(this.orig_graph.lines[i]);

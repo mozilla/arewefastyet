@@ -53,6 +53,18 @@ class TaskQueue {
 		return $tasks;
     }
 
+    function last_tasks($limit = 10) {
+        $qTask = mysql_query("SELECT id
+                              FROM control_task_queue
+                              WHERE control_unit_id = {$this->unit_id}
+                              ORDER BY id DESC LIMIT $limit") or die(mysql_error());
+		$tasks = Array();
+		while ($task = mysql_fetch_object($qTask)) {
+			$tasks[] = QueuedTask::FromId($task->id);
+		}
+		return $tasks;
+    }
+
     function last_finished_task() {
         $qTask = mysql_query("SELECT id
                               FROM control_task_queue

@@ -1,4 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+ <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+ <meta http-equiv="content-language" content="en">
+ <title>ARE WE FAST YET?</title>
+ <link rel="stylesheet" title="Default Stylesheet" type="text/css" href="style.css">
+ <link rel="shortcut icon" href="//www.arewefastyet.com/awfy_favicon.png">
+<link href='//fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+ <script type="text/javascript" src="jquery/jquery-1.8.3.min.js"></script>
+ <script type="text/javascript" src="jquery/jquery.ba-hashchange.min.js"></script>
+ <script type="text/javascript" src="flot/jquery.flot.js"></script>
+ <script type="text/javascript" src="flot/jquery.flot.selection.js"></script>
+ <script type="text/javascript" src="data.php?file=master.js"></script>
+ <script type="text/javascript" src="awfy.js"></script>
+ <script type="text/javascript" src="frontpage.js"></script>
+ <script type="text/javascript" src="tooltip.js"></script>
+</head>
+<body>
+
+<header>
+  <div class='container'>
+    <h1><a href='#'>AreWeFastYet</a></h1>
+    <div class='rightSide'>
+	  <div><a href="http://h4writer.com"><span>Blog</span></a></div>
+	  <div><a href="/overview"><span>Overview</span></a></div>
+    </div>
+  </div>
+</header>
+
+<div class='dashboard_content'>
 <?php
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 require_once("internals.php");
 require_once("lib/DB/Mode.php");
@@ -53,8 +87,16 @@ function time_ago($ptime, $reference = null) {
 
 if ($task_id = GET_int("start")) {
 	$task = QueuedTask::FromId($task_id);
-	if ($task && $task->finish_time() == 0) 
-		$task->set_available_time(0);
+	if ($task && $task->finish_time() == 0 && $task->start_time() == 0) 
+		$task->set_available_time(time());
+}
+
+if ($task_id = GET_int("delete")) {
+	$task = QueuedTask::FromId($task_id);
+	if ($task && $task->finish_time() == 0 && $task->start_time() == 0)  {
+		$task->setStarted();
+		$task->reportError("Cancelled by user.");
+	}
 }
 
 echo "<table width='100%'>";
@@ -78,6 +120,7 @@ while($unit = mysql_fetch_object($qUnits)) {
 			$machine = Machine::FromId($task->machine_id);
 			$mode = Mode::FromId($task->mode_id);
 
+			echo "(".$task->id.") ";
 			echo $machine->description();
 			echo $mode ? " with ".$mode->name() : "";
 			echo "<br>";
@@ -86,47 +129,72 @@ while($unit = mysql_fetch_object($qUnits)) {
 
 	$queue = new TaskQueue($unit->id);
 	echo "<td>";
+	if ($task = $queue->last_finished_task()) {
+		if (time() - $task->finish_time() > 60*60*24)
+			echo "<span style='color:red'>";
+		else
+			echo "<span>";
+	} else {
+		echo "<span>";
+	}
+
 	if ($queue->has_active_task()) {
 		$active = $queue->get_active_task();
-		echo "running";
+		echo "Running";
+		if ($active->control_tasks_id())
+			echo " (".$active->control_tasks_id().")";
 		echo "<span title='".date("G:i d/m/Y", $active->start_time())."'> started ".time_ago($active->start_time())." ago</span>";
 	} else {
-		echo "not running";
+		echo "Not running";
 	}
+	echo "</span>";
 
 	echo "<td>";
 	if ($queue->has_queued_tasks()) {
 		$tasks = $queue->get_queued_tasks();
-		$count = count($tasks);
-		echo $count." tasks";
-		if ($count > 0 && !$queue->has_active_task()) {
-			$min = $tasks[0]->available_time();
-			$min_task = $task[0];
-			foreach ($tasks as $task) {
-				if ($min <= $task->available_time())
-					continue;
+		foreach ($tasks as $task) {
+            $start = $task->available_time();
 
-				$min = $task->available_time();
-				$min_task = $task;
-			}
-			if ($min < time()) {
-				echo " starting immediately";
+			echo "<div style='float:right'>";
+			if ($start > time())
+				echo "<a href='?start=".$task->id."'>(schedule now)</a>";
+			echo " <a href='?delete=".$task->id."'>(delete)</a>";
+			echo "</div>";
+
+			if ($task->control_tasks_id()) {
+				echo "- Queued job ({$task->control_tasks_id()})";
 			} else {
-				echo " starting in ".time_diff(time(), $min);
-				echo "<br><a href='?start=".$task->id."'>(overide)";
+				echo "- Customized job";
 			}
+
+			if ($start <= time())
+				echo " ready";
+			else
+				echo " in ".time_diff(time(), $start);
+
+			echo "<br />";
 		}
 	} else {
-		echo "empty";
+		echo "- empty -";
 	}
 
 	echo "<td>";
-	if ($last = $queue->last_finished_task()) {
-		echo "finished ";
-		echo "<span title='".date("G:i d/m/Y", $last->finish_time())."'>".time_ago($last->finish_time())." ago, </span>";
-		echo "(took ".time_diff($last->start_time(), $last->finish_time()).")";
-		if ($last->hasError()) {
-			echo " unsuccesfull (error: ".htmlspecialchars($last->error()).")";
+	if ($tasks = $queue->last_tasks()) {
+		$tasks = array_reverse($tasks);
+		foreach ($tasks as $task) {
+			$color = "grey";
+			if ($task->hasError()) {
+				$color = "red";
+			} elseif ($task->finish_time() > 0) {
+				if ($task->finish_time() - $task->start_time() < 5*60)
+					$color = "red";
+				else
+					$color = "green";
+			} elseif ($task->start_time() > 0) {
+				$color = "black";
+			}
+			echo "<a href='task_info.php?id={$task->id}' style='color:{$color}'>({$task->control_tasks_id()})</a> ";
+			echo "</font>";
 		}
 	} else {
 		echo "/";
@@ -135,3 +203,7 @@ while($unit = mysql_fetch_object($qUnits)) {
 	
 }
 echo "</table>";
+?>
+</div>
+</body>
+</html>

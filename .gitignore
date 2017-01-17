@@ -25,6 +25,8 @@ benchmarks/asmjs-apps/zlib/minigzipsh
 
 driver/awfy.config
 slave/awfy.config
+slave/results
+slave/profile
 **/*-results/
 
 output/

@@ -5,7 +5,7 @@
 "use strict";
 var AWFY = { };
 
-AWFY.DEFAULT_MACHINE_ID = 28;
+AWFY.DEFAULT_MACHINE_ID = 29;
 AWFY.refreshTime = 60 * 5;
 AWFY.machineId = 0;
 AWFY.hasLegend = false;
@@ -21,6 +21,11 @@ AWFY.lastRefresh = 0;
 
 // Hide a view modes by default. Since they aren't active anymore
 AWFYMaster.modes["35"].hidden = true
+AWFYMaster.modes["36"].hidden = true
+AWFYMaster.modes["40"].hidden = true
+AWFYMaster.modes["42"].hidden = true
+AWFYMaster.modes["54"].hidden = true
+AWFYMaster.modes["56"].hidden = true
 AWFYMaster.modes["27"].hidden = true
 AWFYMaster.modes["29"].hidden = true
 AWFYMaster.modes["22"].hidden = true
@@ -185,7 +190,9 @@ AWFY.drawLegend = function () {
             continue;
         modes.push(mode);
     }
+    modes.sort(function(a,b) {return a.vendor_id + a.name < b.vendor_id + b.name});
 
+    var oneHidden = false;
     for (var i = 0; i < modes.length; i++) {
         var mode = modes[i];
         var vendor = AWFYMaster.vendors[mode.vendor_id];
@@ -200,11 +207,11 @@ AWFY.drawLegend = function () {
 
         var onClick = (function (awfy, mode, link) {
             return (function () {
-                if (mode.hidden) {
-                    mode.hidden = false;
+                if (mode.runtime_hidden) {
+                    mode.runtime_hidden = false;
                     link.css('color', '#000000');
                 } else {
-                    mode.hidden = true;
+                    mode.runtime_hidden = true;
                     link.css('color', '#cccccc');
                 }
                 for (var i = 0; i < this.panes.length; i++) {
@@ -219,14 +226,25 @@ AWFY.drawLegend = function () {
         })(this, mode, link);
         link.click(onClick);
 
-        if (mode.hidden)
-            link.css('color', '#cccccc');
-        else
-            link.css('color', '#000000');
+        if (mode.hidden) {
+            oneHidden = true;
+            link.addClass('inactive');
+        } else {
+            link.removeClass('inactive');
+		}
+		if (mode.runtime_hidden) 
+			link.css('color', '#cccccc');
 
         link.appendTo(item);
         item.appendTo(legend);
     }
+
+	var view = $("<div><a href='#' class='show'>[Show obsolete modes]</a><a href='#' class='hide'>[Hide obsolete modes]</a></div>");
+	view.click(function() {
+		legend.toggleClass("all");
+		return false;
+	});
+	legend.append(view);
 
     this.hasLegend = true;
 }
@@ -936,13 +954,19 @@ AWFY.updateMachineList = function (machineId) {
             }).bind(this);
         }).bind(this)(id));
         if (parseInt(id) == machineId)
-            a.addClass('clicked');
+            li.addClass('clicked');
         if (!machine.recent_runs)
-            a.addClass('inactive');
+            li.addClass('inactive');
         a.html(machine.description);
         a.appendTo(li);
         li.appendTo(menu);
     }
+    var view = $("<div><a href='#' class='show'>[Show hidden machines]</a><a href='#' class='hide'>[Hide hidden machines]</a></div>");
+	view.click(function() {
+		menu.toggleClass("all");
+		return false;
+	});
+	menu.append(view);
     $('#message').html(AWFYMaster.machines[machineId].message+"<br />&nbsp;");
 }
 

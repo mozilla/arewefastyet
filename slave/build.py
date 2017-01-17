@@ -9,6 +9,8 @@ import socket
 import utils
 import puller
 import platform
+import subprocess
+import stat
 from utils import Run
 
 import tarfile
@@ -47,27 +49,39 @@ class Builder(object):
         self.folder = folder
 
         if platform.system() == "Darwin":
-            #self.installClang()
-            # assume clang has been upgraded using port or bootstrap mozilla
-            self.env.add("CC", "clang")
-            self.env.add("CXX", "clang++")
-            self.env.add("LINK", "clang++")
+            self.installClang()
+            self.env.add("CC", os.path.abspath("clang-3.8.0/bin/clang"))
+            self.env.add("CXX", os.path.abspath("clang-3.8.0/bin/clang++"))
+            self.env.add("LINK", os.path.abspath("clang-3.8.0/bin/clang++"))
 
     def installClang(self):
         # The standard clang version on mac is outdated.
         # Retrieve a better one.
 
-        if os.path.exists("clang-3.6.2"):
+        if os.path.exists("clang-3.8.0"):
             return
 
-        urllib.urlretrieve("http://llvm.org/releases/3.6.2/clang+llvm-3.6.2-x86_64-apple-darwin.tar.xz", "./clang-3.6.2.tar.xz")
-        tar = tarfile.open("clang-3.6.2.tar.xz", "r:xz")
-        tar.extractall(".")
-        tar.close()
+        urllib.urlretrieve("http://llvm.org/releases/3.8.0/clang+llvm-3.8.0-x86_64-apple-darwin.tar.xz", "./clang-3.8.0.tar.xz")
+        utils.run_realtime(["tar", "xf", "clang-3.8.0.tar.xz"])
 
-        shutil.move("clang+llvm-3.6.2-x86_64-apple-darwin", "clang-3.6.2")
+        shutil.move("clang+llvm-3.8.0-x86_64-apple-darwin", "clang-3.8.0")
 
-        os.unlink("clang-3.6.2.tar.xz")
+        os.unlink("clang-3.8.0.tar.xz")
+
+    def installNdk(self):
+        # Retrieve the ndk needed to build an android app.
+        # Using version 12, since that still supports gcc (Couldn't get clang working).
+        assert platform.system() == "Linux"
+        assert platform.architecture()[0] == "64bit"
+
+        with utils.FolderChanger(self.folder):
+            if os.path.exists("android-ndk-r12"):
+                print "already installed: ", os.path.join(self.folder, "android-ndk-r12")
+                return
+
+            print "installing"
+            urllib.urlretrieve("https://dl.google.com/android/repository/android-ndk-r12-linux-x86_64.zip", "./android-ndk.zip")
+            Run(["unzip", "android-ndk.zip"])
 
     def unlinkBinary(self):
         try:
@@ -90,7 +104,10 @@ class Builder(object):
     def build(self, puller):
         self.unlinkBinary()
 
-        self.make()
+        try:
+            self.make()
+        except:
+            pass
 
         if not self.successfullyBuild():
             self.reconf()
@@ -100,7 +117,7 @@ class Builder(object):
 
         info = self.retrieveInfo()
         info["revision"] = puller.identify()
-        # Deafult 'shell' to True only if it isn't set yet!
+        # Default 'shell' to True only if it isn't set yet!
         if 'shell' not in info:
             info["shell"] = True
         info["binary"] = os.path.abspath(self.binary())
@@ -121,6 +138,8 @@ class MozillaBuilder(Builder):
     def retrieveInfo(self):
         info = {}
         info["engine_type"] = "firefox"
+        if self.config.startswith("android"):
+            info["platform"] = "android"
         return info
 
     def objdir(self):
@@ -130,50 +149,61 @@ class MozillaBuilder(Builder):
         return os.path.join(self.objdir(), 'dist', 'bin', 'js')
 
     def reconf(self):
+        # Step 0. install ndk if needed.
+        if self.config.startswith("android"):
+            self.env.remove("CC")
+            self.env.remove("CXX")
+            self.env.remove("LINK")
+            self.installNdk()
+
         # Step 1. autoconf.
         with utils.FolderChanger(os.path.join(self.folder, 'js', 'src')):
             if platform.system() == "Darwin":
-                utils.Shell("autoconf213")
+                utils.run_realtime("autoconf213", shell=True)
             elif platform.system() == "Linux":
-                utils.Shell("autoconf2.13")
+                utils.run_realtime("autoconf2.13", shell=True)
             elif platform.system() == "Windows":
-                utils.Shell("autoconf-2.13")
+                utils.run_realtime("autoconf-2.13", shell=True)
 
         # Step 2. configure
         if os.path.exists(os.path.join(self.folder, 'js', 'src', 'Opt')):
             shutil.rmtree(os.path.join(self.folder, 'js', 'src', 'Opt'))
         os.mkdir(os.path.join(self.folder, 'js', 'src', 'Opt'))
-        with utils.FolderChanger(os.path.join(self.folder, 'js', 'src', 'Opt')):
-            args = ['--enable-optimize', '--disable-debug']
-            if platform.architecture()[0] == "64bit" and self.config == "32bit":
-                if platform.system() == "Darwin":
-                    args.append("--target=i686-apple-darwin10.0.0")
-                elif platform.system() == "Linux":
-                    args.append("--target=i686-pc-linux-gnu")
-                else:
-                    assert False
+        args = ['--enable-optimize', '--disable-debug']
+        if self.config == "android":
+            args.append("--target=arm-linux-androideabi")
+            args.append("--with-android-ndk="+os.path.abspath(self.folder)+"/android-ndk-r12/")
+            args.append("--with-android-version=24")
+            args.append("--enable-pie")
+        if self.config == "android64":
+            args.append("--target=aarch64-linux-androideabi")
+            args.append("--with-android-ndk="+os.path.abspath(self.folder)+"/android-ndk-r12/")
+            args.append("--with-android-version=24")
+            args.append("--enable-pie")
+        if platform.architecture()[0] == "64bit" and self.config == "32bit":
+            if platform.system() == "Darwin":
+                args.append("--target=i686-apple-darwin10.0.0")
+            elif platform.system() == "Linux":
+                args.append("--target=i686-pc-linux-gnu")
+            else:
+                assert False
 
-            Run(['../configure'] + args, self.env.get())
+        with utils.FolderChanger(os.path.join(self.folder, 'js', 'src', 'Opt')):
+            utils.Run(['../configure'] + args, self.env.get())
         return True
 
     def make(self):
         if not os.path.exists(os.path.join(self.folder, 'js', 'src', 'Opt')):
             return
-        utils.Shell("make -j6 -C " + os.path.join(self.folder, 'js', 'src', 'Opt'))
+        utils.run_realtime("make -j6 -C " + os.path.join(self.folder, 'js', 'src', 'Opt'), shell=True)
 
 class WebkitBuilder(Builder):
     def retrieveInfo(self):
-        with utils.chdir(os.path.join(self.folder)):
-            objdir = os.path.abspath(os.path.join('WebKitBuild', 'Release'))
-
         info = {}
         info["engine_type"] = "webkit"
-        info["env"] = {'DYLD_FRAMEWORK_PATH': objdir}
         return info
 
     def patch(self):
-        patch = os.path.join(os.path.dirname(os.path.realpath(__file__)), "jsc.patch")
-
         with utils.FolderChanger(self.folder):
             # Hack 1: Remove reporting errors for warnings that currently are present.
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/JavaScriptCore/Configurations/Base.xcconfig"])
@@ -181,7 +211,6 @@ class WebkitBuilder(Builder):
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/WTF/Configurations/Base.xcconfig"])
             Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/SmallLine.h"])
             Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/SmallRun.h"])
-            Run(["patch","Source/JavaScriptCore/jsc.cpp", patch])
 
             # Hack 2: This check fails currently. Disable checking to still have a build.
             os.remove("Tools/Scripts/check-for-weak-vtables-and-externals")
@@ -195,7 +224,6 @@ class WebkitBuilder(Builder):
             Run(["svn","revert","Source/WTF/Configurations/Base.xcconfig"])
             Run(["svn","revert","Source/bmalloc/bmalloc/SmallLine.h"])
             Run(["svn","revert","Source/bmalloc/bmalloc/SmallPage.h"])
-            Run(["svn","revert","Source/JavaScriptCore/jsc.cpp"])
 
     def make(self):
         try:
@@ -207,6 +235,7 @@ class WebkitBuilder(Builder):
                 Run(args, self.env.get())
         finally:
             self.clean()
+        Run(["install_name_tool", "-change", "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/JavaScriptCore", self.objdir()+"/JavaScriptCore.framework/JavaScriptCore", self.objdir() + "/jsc"])
 
     def objdir(self):
         return os.path.join(self.folder, 'WebKitBuild', 'Release')
@@ -218,19 +247,44 @@ class V8Builder(Builder):
     def __init__(self, config, folder):
         super(V8Builder, self).__init__(config, folder)
 
-        #self.env.add("GYP_DEFINES", "clang=1")
-        self.env.add("PATH", os.path.join(self.folder, 'depot_tools')+":"+self.env.get()["PATH"])
-	self.env.remove("CC")
-	self.env.remove("CXX")
-	self.env.remove("LINK")
+        self.env.add("PATH", os.path.realpath(os.path.join(self.folder, 'depot_tools'))+":"+self.env.get()["PATH"])
+        self.env.remove("CC")
+        self.env.remove("CXX")
+        self.env.remove("LINK")
+
+        if self.config.startswith("android"):
+            if "target_os = ['android']" not in open(folder + '/.gclient').read():
+                with open(folder + "/.gclient", "a") as myfile:
+                    myfile.write("target_os = ['android']")
 
     def retrieveInfo(self):
         info = {}
         info["engine_type"] = "chrome"
         info["args"] = ['--expose-gc']
+        if self.config == "android":
+            info["platform"] = "android"
         return info
 
     def make(self):
+        if self.config == "android":
+            objdir = os.path.realpath(self.objdir())
+            if not os.path.isdir(objdir):
+                os.mkdir(objdir)
+            with utils.FolderChanger(os.path.join(self.folder, 'v8')):
+                config = [
+                    'is_component_build = false',
+                    'is_debug = false',
+                    'symbol_level = 1',
+                    'target_cpu = "arm"',
+                    'target_os = "android"',
+                    'v8_android_log_stdout = true',
+                    'v8_test_isolation_mode = "prepare"',
+                ]
+                args = 'gn gen '+objdir+' --args=\''+" ".join(config)+'\''
+                Run(args, self.env.get(), shell=True)
+                Run(["ninja", "-C", objdir], self.env.get())
+            return
+
         args = ['make', '-j6']
         if self.config == '32bit':
             args += ['ia32.release']
@@ -243,6 +297,8 @@ class V8Builder(Builder):
             Run(args, self.env.get())
 
     def objdir(self):
+        if self.config == 'android':
+            return os.path.join(self.folder, 'v8', 'out', 'android_arm.release')
         if self.config == '64bit':
             return os.path.join(self.folder, 'v8', 'out', 'x64.release')
         elif self.config == '32bit':
@@ -302,7 +358,7 @@ if __name__ == "__main__":
                       help="download to DIR, default=output/", metavar="DIR", default='output')
 
     parser.add_option("-c", "--config", dest="config",
-                      help="default, 32bit, 64bit", default='default')
+                      help="auto, 32bit, 64bit, android, android64", default='auto')
 
     parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
                       help="Force runs even without source changes")
@@ -316,11 +372,11 @@ if __name__ == "__main__":
     if not options.output.endswith("/"):
         options.output += "/"
 
-    if options.config not in ["default", "32bit", "64bit"]:
+    if options.config not in ["auto", "32bit", "64bit", "android", "android64"]:
         print "Please provide a valid config"
         exit()
 
-    if options.config == "default":
+    if options.config == "auto":
         options.config, _ = platform.architecture()
 
     if options.config == "64bit" and platform.architecture()[0] == "32bit":

@@ -1,16 +1,20 @@
-import sys
 import BaseHTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-import urlparse
-import os
-import json
-import urllib
-import httplib
-from SocketServer     import ThreadingMixIn
 import hashlib
+import httplib
+import json
+import os
 import pickle
-import utils
 import signal
+import sys
+import urllib
+import urlparse
+
+from SimpleHTTPServer import SimpleHTTPRequestHandler
+from SocketServer     import ThreadingMixIn
+
+import utils
+utils.config.init("awfy.config")
+translates = utils.config.benchmarkTranslates()
 
 class FakeHandler(SimpleHTTPRequestHandler):
 
@@ -107,14 +111,21 @@ class FakeHandler(SimpleHTTPRequestHandler):
         return False
 
     def translatePath(self, host, path):
+        global translates
+        translated = False
+        for url in translates:
+            if host.startswith(url):
+                host = translates[url]
+                translated = True
+
         if host.startswith("massive."):
             if path == "" or path == "/":
                 path = "/Massive/?autoRun=true,postToURL=http://localhost:8000/submit"
             return "kripken.github.io", path
         elif host.startswith("octane."):
             if path == "" or path == "/":
-                path = "/svn/latest/index.html"
-            return "octane-benchmark.googlecode.com", path
+                path = "/octane/index.html"
+            return "chromium.github.io", path
         elif host.startswith("jetstream."):
             if path == "" or path == "/":
                 path = "/JetStream/"
@@ -135,6 +146,8 @@ class FakeHandler(SimpleHTTPRequestHandler):
             return "browsermark.local", path
         elif host.startswith("dromaeo."):
             return "dromaeo.com", path
+        if translated:
+            return host, path
         return None, None
 
     def remoteBenchmark(self, postdata=None):
@@ -224,7 +237,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
             if path == "/Massive/driver.js":
                 return data.replace("job.calculate().toFixed(3)","normalize(job)")
         if host.startswith("octane."):
-            if path == "/svn/latest/index.html":
+            if path == "/octane/index.html":
                 return data.replace("</body>",
                                     "<script>"
                                     "   window.setTimeout(Run, 10000);"
@@ -282,7 +295,6 @@ class FakeHandler(SimpleHTTPRequestHandler):
             if path == "/benchmarks/misc-desktop/hosted/assorted/driver.html":
                 return data.replace('location = "results.html?" + encodeURI(outputString);',
                                     'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
-        if host == "localhost":
             if path == "/benchmarks/webaudio/webaudio-bench.js":
                 return data.replace('xhr.open("POST", "/results", true);',
                                     'xhr.open("POST", "/submit", true);');
@@ -322,8 +334,6 @@ Protocol     = "HTTP/1.0"
 Port = 8000
 ServerAddress = ('', Port)
 
-import os
-import utils
 path = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
 with utils.FolderChanger(path):
     HandlerClass.protocol_version = Protocol

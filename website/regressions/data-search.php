@@ -36,7 +36,9 @@ if (!empty($states))
 if (!empty($bug))
 	$where[] = "awfy_regression.bug = $bug"; 
 if ($bug === 0)
-	$where[] = "awfy_regression.bug = ''"; 
+	$where[] = "awfy_regression.bug = ''";
+if (count($where) == 0)
+	die();
 
 $query = mysql_query("SELECT awfy_regression.id
                       FROM awfy_regression

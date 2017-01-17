@@ -34,7 +34,7 @@ class Default(object):
 
     def omit(self):
         return self.omit_
-        
+
     def args(self):
         return self.args_
 
@@ -44,6 +44,20 @@ class Default(object):
     def profile(self):
         # Currently only for firefox profile js file.
         return self.profile_
+
+class Wasm(Default):
+    def __init__(self, engine, shell):
+        super(Wasm, self).__init__(engine, shell)
+        if engine == "firefox":
+            self.profile_ += "user_pref(\"javascript.options.wasm\", true);\n"
+        elif engine == "chrome":
+            self.args_ += ['--js-flags=--expose_wasm']
+
+class WasmBaseline(Wasm):
+    def __init__(self, engine, shell):
+        super(WasmBaseline, self).__init__(engine, shell)
+        if engine == "firefox":
+            self.profile_ += "user_pref(\"javascript.options.wasm_baselinejit\", true);\n"
 
 class UnboxedObjects(Default):
     def __init__(self, engine, shell):
@@ -68,6 +82,23 @@ class TurboFan(Default):
         super(TurboFan, self).__init__(engine, shell)
         if engine == "chrome"and shell:
             self.args_.append("--turbo");
+        else:
+            self.omit_ = True
+
+class TurboIgnition(Default):
+    def __init__(self, engine, shell):
+        super(TurboIgnition, self).__init__(engine, shell)
+        if engine == "chrome"and shell:
+            self.args_.append("--turbo");
+            self.args_.append("--ignition-staging");
+        else:
+            self.omit_ = True
+
+class Ignition(Default):
+    def __init__(self, engine, shell):
+        super(Ignition, self).__init__(engine, shell)
+        if engine == "chrome"and shell:
+            self.args_.append("--ignition-staging");
         else:
             self.omit_ = True
 
@@ -130,12 +161,20 @@ class E10S(Default):
 def getConfig(name, info):
     if name == "default":
         return Default(info["engine_type"], info["shell"])
+    if name == "wasm":
+        return Wasm(info["engine_type"], info["shell"])
+    if name == "wasm-baseline":
+        return WasmBaseline(info["engine_type"], info["shell"])
     if name == "unboxedobjects":
         return UnboxedObjects(info["engine_type"], info["shell"])
     if name == "testbedregalloc":
         return TestbedRegalloc(info["engine_type"], info["shell"])
     if name == "turbofan":
         return TurboFan(info["engine_type"], info["shell"])
+    if name == "ignition":
+        return Ignition(info["engine_type"], info["shell"])
+    if name == "turboignition":
+        return TurboIgnition(info["engine_type"], info["shell"])
     if name == "noasmjs":
         return NoAsmjs(info["engine_type"], info["shell"])
     if name == "nonwritablejitcode":

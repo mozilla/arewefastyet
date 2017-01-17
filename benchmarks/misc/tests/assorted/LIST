@@ -40,3 +40,4 @@ misc-basic-hoist-bounds-check
 misc-apply-array
 misc-apply-array-headroom
 misc-map-iterator
+misc-react-shell

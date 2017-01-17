@@ -46,6 +46,8 @@ if ($unit = GET_int("unit")) {
 
     $task = new QueuedTask($task_id);
     $task->setFinished();
+    if (isset($_POST["output"]))
+		$task->setOutput($_POST["output"]);
 
     die();
 }

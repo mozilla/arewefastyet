@@ -27,7 +27,6 @@ h1 {
 }
 .graph-container {
  width: 600px;
- height: 340px;
  display: inline-block;
 }
 
@@ -322,4 +321,54 @@ html, body {
 
 header {
 	margin-bottom: 30px;
+}
+
+#machinelist .inactive {
+	display: none;
+}
+#machinelist .inactive a {
+    color: inherit;
+}
+#machinelist.all .inactive {
+	display: list-item;
+}
+#machinelist .clicked {
+	display: list-item;
+}
+#machinelist.all .show {
+	display: none;
+}
+#machinelist:not(.all) .hide {
+	display: none;
+}
+
+#legend .inactive {
+	display: none;
+}
+#legend.all .inactive {
+	display: list-item;
+}
+#legend.all .show {
+	display: none;
+}
+#legend:not(.all) .hide {
+	display: none;
+}
+
+
+.graph-row {
+	margin-left: 350px;
+}
+.graph-container {
+	margin: auto;
+}
+
+.task_content {
+	padding: 15px;
+	width: 1200px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.task_content pre {
+	overflow: auto;
 }

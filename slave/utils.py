@@ -25,7 +25,6 @@ class ConfigState:
         self.DriverPath = None
         self.Timeout = 15*60
         self.PythonName = None
-        self.SlaveType = None
 
     def init(self, name):
         self.rawConfig = ConfigParser.RawConfigParser()
@@ -40,7 +39,24 @@ class ConfigState:
         self.Timeout = self.getDefault('main', 'timeout', str(15*60))
         self.Timeout = eval(self.Timeout, {}, {}) # silly hack to allow 30*60 in the config file.
         self.PythonName = self.getDefault(name, 'python', sys.executable)
-        self.SlaveType = self.getDefault("main", 'slaveType', "")
+
+    @staticmethod
+    def parseBenchmarkTranslates(li):
+        urls = {}
+        for url in li.split(","):
+            url = url.strip()
+            before_url, after_url = url.split(":")
+            urls[before_url] = after_url
+        return urls
+
+    def benchmarkTranslates(self):
+        assert self.inited
+
+        li = self.getDefault("benchmarks", "translate", None)
+        if not li:
+            return []
+        return ConfigState.parseBenchmarkTranslates(li)
+
 
     def get(self, section, name):
         assert self.inited
@@ -51,55 +67,6 @@ class ConfigState:
         if self.rawConfig.has_option(section, name):
             return self.rawConfig.get(section, name)
         return default
-
-    @staticmethod
-    def parseBenchmarks(li):
-        benchmarks = []
-        for benchmark in li.split(","):
-            benchmark = benchmark.strip()
-            _, section, name = benchmark.split(".")
-            if section == "local":
-                import benchmarks_local
-                benchmarks.append(benchmarks_local.getBenchmark(name))
-            elif section == "remote":
-                import benchmarks_remote
-                benchmarks.append(benchmarks_remote.getBenchmark(name))
-            elif section == "shell":
-                import benchmarks_shell
-                benchmarks.append(benchmarks_shell.getBenchmark(name))
-            else:
-                raise Exception("Unknown benchmark type")
-        return benchmarks
-
-    def browserbenchmarks(self):
-        assert self.inited
-
-        browserList = self.getDefault("benchmarks", "browserList", None)
-        if not browserList:
-            return []
-        return ConfigState.parseBenchmarks(browserList)
-
-    def shellbenchmarks(self):
-        assert self.inited
-
-        shellList = self.getDefault("benchmarks", "shellList", None)
-        if not shellList:
-            return []
-        return ConfigState.parseBenchmarks(shellList)
-
-    def engines(self):
-        assert self.inited
-
-        engineList = self.getDefault("engines", "list", None)
-        if not engineList:
-            return []
-
-        import engine
-        engines = []
-        for engineName in engineList.split(","):
-            engineName = engineName.strip()
-            engines.append(engine.getEngine(engineName))
-        return engines
 
 config = ConfigState()
 
@@ -117,12 +84,15 @@ class FolderChanger:
 def chdir(folder):
     return FolderChanger(folder)
 
-def Run(vec, env = os.environ.copy()):
+def Run(vec, env = os.environ.copy(), shell=False):
     print(">> Executing in " + os.getcwd())
-    print(' '.join(vec))
+    if shell:
+        print(vec)
+    else:
+        print(' '.join(vec))
     print("with: " + str(env))
     try:
-        o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env)
+        o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env, shell=shell)
     except subprocess.CalledProcessError as e:
         print 'output was: ' + e.output
         print e
@@ -176,6 +146,29 @@ def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenar
     print (output)
     return output
 
+def run_realtime(cmd, shell=False, env=None):
+    """from http://blog.kagesenshi.org/2008/02/teeing-python-subprocesspopen-output.html
+    """
+    print cmd
+    p = subprocess.Popen(cmd, shell=shell, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout = []
+    while True:
+        with Handler(signal.SIGALRM, timeout_handler):
+            try:
+                signal.alarm(60)
+                line = p.stdout.readline()
+                signal.alarm(0)
+                stdout.append(line)
+                print line,
+            except TimeException:
+                line = ''
+        if line == '' and p.poll() != None:
+            p.stdout.close()
+            return_code = p.wait()
+            if return_code:
+                raise subprocess.CalledProcessError(return_code, cmd)
+            break
+    return ''.join(stdout)
 
 def unzip(directory, name):
     if "tar.bz2" in name:

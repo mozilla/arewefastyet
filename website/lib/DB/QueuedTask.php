@@ -23,6 +23,10 @@ class QueuedTask extends DB {
         $this->updateString("error", empty($error) ? "unknown error" : $error);
     }
 
+    function setOutput($output) {
+		$this->updateString("output", $output);
+	}
+
     function task() {
         return $this->select("task");
     }
@@ -45,6 +49,14 @@ class QueuedTask extends DB {
 
 	function control_unit_id() {
         return $this->select("control_unit_id");
+	}
+
+	function control_tasks_id() {
+        return $this->select("control_tasks_id");
+	}
+
+	function output() {
+		return $this->select("output");
 	}
 
 	function hasError() {

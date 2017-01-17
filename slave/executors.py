@@ -1,10 +1,10 @@
-import runners
 import time
 import os
 import sys
 import json
 
 import utils
+import runners
 
 class ShellExecutor(object):
     def __init__(self, engineInfo):
@@ -12,12 +12,32 @@ class ShellExecutor(object):
 
     def run(self, benchmark, config):
         env = os.environ.copy()
+        env.clear()
         env.update(config.env())
         env.update(self.engineInfo["env"])
-        args = config.args() + self.engineInfo["args"]
 
-        with utils.chdir(os.path.join(utils.config.BenchmarkPath, benchmark.folder)):
-            return benchmark.benchmark(self.engineInfo["binary"], env, args)
+        args = config.args() + self.engineInfo["args"]
+        benchmarkDir = os.path.join(utils.config.BenchmarkPath, benchmark.folder())
+
+        return self.execute(benchmarkDir, benchmark, args, env, config)
+
+    def execute(self, benchmarkDir, benchmark, args, env, config):
+        runner = runners.getRunner(self.engineInfo["platform"])
+
+        # 1. Move all files to the device if needed
+        benchmarkDir = runner.put(benchmarkDir)
+
+        # 2. Put the executables.
+        path = os.path.dirname(self.engineInfo["binary"])
+        path = runner.put(path, recursive = False)
+        binary = os.path.join(path, os.path.basename(self.engineInfo["binary"]))
+
+        # 3. Execute
+        env["LD_LIBRARY_PATH"] = path
+        command = benchmark.getCommand(binary, args)
+        output = runner.execute(command, env, benchmarkDir)
+
+        return benchmark.processResults(output)
 
 class BrowserExecutor(object):
 
@@ -110,7 +130,7 @@ class FirefoxExecutor(BrowserExecutor):
         self.resetResults()
 
         # start browser
-        process = runner.start(binary, args + ["--profile", runner.getdir("profile")], env)
+        process = runner.start(binary, args + ["--no-remote", "--profile", runner.getdir("profile")], env)
 
         # wait for results
         self.waitForResults(benchmark.timeout)
@@ -168,8 +188,8 @@ class WebKitExecutor(BrowserExecutor):
         # kill all possible running instances.
         runner.killAllInstances()
 
-	# remove the saved tabs.
-	runner.rm(os.path.join(os.environ.get("HOME"), "Library","Saved Application State","com.apple.Safari.savedState"))
+        # remove the saved tabs.
+        runner.rm(os.path.join(os.environ.get("HOME"), "Library","Saved Application State","com.apple.Safari.savedState"))
 
         # if needed install the executable
         binary = runner.install(self.engineInfo["binary"])
@@ -215,13 +235,13 @@ class ServoExecutor(BrowserExecutor):
 def getExecutor(engineInfo):
     if engineInfo["shell"]:
         return ShellExecutor(engineInfo)
-    if engineInfo["engine_type"] == "firefox" and not engineInfo["shell"]:
+    if engineInfo["engine_type"] == "firefox":
         return FirefoxExecutor(engineInfo)
-    if engineInfo["engine_type"] == "chrome" and not engineInfo["shell"]:
+    if engineInfo["engine_type"] == "chrome":
         return ChromeExecutor(engineInfo)
-    if engineInfo["engine_type"] == "webkit" and not engineInfo["shell"]:
+    if engineInfo["engine_type"] == "webkit":
         return WebKitExecutor(engineInfo)
-    if engineInfo["engine_type"] == "edge" and not engineInfo["shell"]:
+    if engineInfo["engine_type"] == "edge":
         return EdgeExecutor(engineInfo)
     if engineInfo["engine_type"] == "servo":
         return ServoExecutor(engineInfo)
