@@ -28,6 +28,7 @@ def load_metadata(prefix):
         with open(os.path.join(awfy.path, 'metadata-' + prefix + '.json'), 'r') as fp:
             cache = util.json_load(fp)
     except:
+        print "failed to load metadata", prefix
         cache = { 'last_stamp': 0 }
 
     return cache
@@ -52,24 +53,36 @@ def fetch_test_scores(machine_id, suite_id, name,
     for row in c.fetchall():
       suite_ids.append(str(row[0]))
 
-    query = "SELECT STRAIGHT_JOIN r.id, r.approx_stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
-             FROM awfy_run r                                                        \
-             JOIN awfy_build b ON r.id = b.run_id                                   \
-             JOIN awfy_score s1 ON s1.build_id = b.id                               \
-             JOIN awfy_breakdown s ON s.score_id = s1.id                            \
-             JOIN awfy_suite_test t ON s.suite_test_id = t.id                       \
-             JOIN awfy_suite_version v ON v.id = t.suite_version_id                 \
+    with Profiler() as p:
+        query = "SELECT id                                                              \
+                 FROM awfy_run                                                          \
+                 WHERE status > 0                                                       \
+                 AND machine = %s                                                       \
+                 AND approx_stamp >= "+str(approx_stamp[0])+"                           \
+                 AND approx_stamp <= "+str(approx_stamp[1])+"                           \
+                 AND finish_stamp >= "+str(finish_stamp[0])+"                           \
+                 AND finish_stamp <= "+str(finish_stamp[1])+"                           \
+                 "
+        c.execute(query, [machine_id])
+        run_ids = ['0']
+        for row in c.fetchall():
+            run_ids.append(str(row[0]))
+        diff = p.time()
+    print('found ' + str(len(run_ids)) + ' rows in ' + diff)
+
+    query = "SELECT r.id, r.approx_stamp, bu.cset, s.score, bu.mode_id, v.id, s.id   \
+             FROM awfy_suite_version v                                              \
+             JOIN awfy_suite_test t ON v.id = t.suite_version_id                    \
+             JOIN awfy_breakdown s ON s.suite_test_id = t.id                        \
+             JOIN awfy_score s1 ON s.score_id = s1.id                               \
+             JOIN awfy_build bu ON s1.build_id = bu.id                                \
+		     JOIN awfy_run r ON r.id = bu.run_id                                     \
              WHERE v.suite_id = %s                                                  \
              AND t.id in ("+(",".join(suite_ids))+")                                \
-             AND r.status > 0                                                       \
-             AND r.machine = %s                                                     \
-             AND r.approx_stamp >= "+str(approx_stamp[0])+"                         \
-             AND r.approx_stamp <= "+str(approx_stamp[1])+"                         \
-             AND r.finish_stamp >= "+str(finish_stamp[0])+"                         \
-             AND r.finish_stamp <= "+str(finish_stamp[1])+"                         \
+             AND r.id in ("+(",".join(run_ids))+")                                  \
              ORDER BY r.sort_order ASC                                              \
              "
-    c.execute(query, [suite_id, machine_id])
+    c.execute(query, [suite_id])
     return c.fetchall()
 
 def fetch_suite_scores(machine_id, suite_id,
@@ -242,6 +255,8 @@ def perform_update(cx, machine, suite, prefix, fetch):
     new_rows = len(rows)
     print('found ' + str(new_rows) + ' new rows in ' + diff)
     if new_rows == 0:
+        metadata['last_stamp'] = current_stamp
+        save_metadata(prefix, metadata)
         return 0
 
     # Break everything into months.
