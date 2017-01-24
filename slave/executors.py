@@ -72,6 +72,8 @@ class BrowserExecutor(object):
         while not os.path.exists("results") and timeout > 0:
             time.sleep(10)
             timeout -= 10
+        if not os.path.exists("results"):
+            print "timeout!"
 
 class EdgeExecutor(BrowserExecutor):
     def execute(self, benchmark, env, args, profile):
