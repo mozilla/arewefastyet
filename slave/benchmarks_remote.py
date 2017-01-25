@@ -176,7 +176,7 @@ class Browsermark(Benchmark):
 
 class WasmMisc(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "0.3", timeout=5)
+        Benchmark.__init__(self, "0.4", timeout=5)
         self.url = "http://wasm.local:8000"
 
     @staticmethod
