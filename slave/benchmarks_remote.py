@@ -43,7 +43,7 @@ class Octane(Benchmark):
 
 class Dromaeo(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "1.0", 17)
+        Benchmark.__init__(self, "1.0", 20)
         self.url = 'http://' + self.suite + ".localhost:8000/?recommended"
 
     def processResults(self, results):
