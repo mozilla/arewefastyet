@@ -85,7 +85,7 @@ class Runner(object):
         paths = [path.rstrip() for path in paths.splitlines()]
         return [path for path in paths if path.endswith(file)]
 
-    def put(self, path):
+    def put(self, path, recursive=True):
         return path
 
     def execute(self, command, env, path="."):
