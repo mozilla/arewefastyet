@@ -2,11 +2,11 @@
 function assertEqual() {}
 function test(fn) {
     var its = iterations;
-    var start = new Date();
+    var start = Date.now();
     for (var i = 0; i < its; i++) {
         fn();
     }
-    timing = new Date() - start;
+    timing = Date.now() - start;
 }
 
 var tests = [
