@@ -102,15 +102,15 @@ class MozillaUrlCreator(UrlCreator):
     def treeherder_platform(self):
         platform = self._platform()
         if platform == "linux":
-            return "linux32"
+            return ["linux32"]
         if platform == "linux64":
-            return platform
+            return ["platform"]
         if platform == "win32":
-            return "windowsxp"
+            return ["windowsxp", "windows2012-32"]
         if platform == "win64":
-            return "windows8-64" # LATER??
+            return ["windows8-64", "windows2012-64"]  # LATER??
         if platform == "macosx64":
-            return "osx-10-7"
+            return ["osx-10-7"]
 
     def latest(self):
         url = "https://treeherder.mozilla.org/api/project/"+self.repo+"/resultset/?count=10"
@@ -118,9 +118,9 @@ class MozillaUrlCreator(UrlCreator):
 
         revisions = [i["revision"] for i in data["results"]]
         for revision in revisions:
-            url = self._urlForRevision(revision)
-            if len(url) == 1:
-                return [url[0]]
+            urls = self._urlForRevision(revision)
+            if len(urls) == 1:
+                return [urls[0]]
 
         return []
 
@@ -151,8 +151,8 @@ class MozillaUrlCreator(UrlCreator):
         builds = data["results"]
         builds = [i for i in builds if i["build_system_type"] == "taskcluster"]
         builds = [i for i in builds if i["job_type_symbol"] == "B" or i["job_type_symbol"] == "Bo"] # Builds
-        builds = [i for i in builds if i["platform"] == self.treeherder_platform()] # platform
         builds = [i for i in builds if i["platform_option"] == "opt"] # opt / debug / pgo
+        builds = [i for i in builds if i["platform"] in self.treeherder_platform()] # platform
 
         if len(builds) != 1:
             return []
@@ -177,6 +177,7 @@ class MozillaUrlCreator(UrlCreator):
         urls = [i for i in urls if "jsshell" not in i]
         urls = [i for i in urls if "mozharness" not in i]
         urls = [i for i in urls if "sdk" not in i]
+        urls = [i for i in urls if "installer" not in i]
 
         return urls
 
