@@ -1,42 +1,18 @@
 <?php
 
-// Demo site using Auth_BrowserID for authentication
+if (isset($_POST['idtoken'])) {
+	$json = file_get_contents("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=".$_POST['idtoken']);
+	$obj = json_decode($json);
+	echo $obj->email;
 
-if(isset($_GET['persona'])) {
-  require_once 'BrowserID.php';
-  
-  // Login
-  if(isset($_GET['assertion'])) {
-    if ($_SERVER['HTTP_HOST'] == "www.arewefastyet.com")
-      $verifier = new Auth_BrowserID('https://www.arewefastyet.com');
-    else
-      $verifier = new Auth_BrowserID('https://arewefastyet.com');
-    $result = $verifier->verifyAssertion($_GET['assertion']);
-
-    if ($result->status === 'okay') {
-      session_start();
-      $email = htmlentities($result->email, ENT_QUOTES);
-      $_SESSION["persona"] = $email;
-      setcookie ("persona", $email, 0, "/");
-    }
-  }
-  
-  // Logout
-  if(isset($_GET['logout'])) {
-    session_start();
-    unset($_SESSION['persona']);
-    setcookie ("persona", "", 1, "/");
-  }
-
-  if(isset($_GET['check'])) {
-    session_start();
-    echo isset($_SESSION['persona'])?$_SESSION['persona']:"";
-    exit();
-  }
-  
-  echo "<script>history.back();</script>";
-  exit();
+	session_start();
+	$_SESSION["persona"] = $obj->email;
+	setcookie ("persona", $obj->email, 0, "/");
+	exit();
 }
 
-
-// Now you can use $_SESSION['persona'] to check if people is logged in. It is a email adress.
+if (isset($_GET['check'])) {
+	session_start();
+	echo isset($_SESSION['persona'])?$_SESSION['persona']:"";
+	exit();
+}
