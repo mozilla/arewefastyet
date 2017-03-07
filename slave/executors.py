@@ -1,10 +1,10 @@
-import runners
 import time
 import os
 import sys
 import json
 
 import utils
+import runners
 
 class ShellExecutor(object):
     def __init__(self, engineInfo):
@@ -29,7 +29,7 @@ class ShellExecutor(object):
 
         # 2. Put the executables.
         path = os.path.dirname(self.engineInfo["binary"])
-        path = runner.put(path)
+        path = runner.put(path, recursive = False)
         binary = os.path.join(path, os.path.basename(self.engineInfo["binary"]))
 
         # 3. Execute
@@ -72,6 +72,8 @@ class BrowserExecutor(object):
         while not os.path.exists("results") and timeout > 0:
             time.sleep(10)
             timeout -= 10
+        if not os.path.exists("results"):
+            print "timeout!"
 
 class EdgeExecutor(BrowserExecutor):
     def execute(self, benchmark, env, args, profile):
@@ -130,7 +132,7 @@ class FirefoxExecutor(BrowserExecutor):
         self.resetResults()
 
         # start browser
-        process = runner.start(binary, args + ["--profile", runner.getdir("profile")], env)
+        process = runner.start(binary, args + ["--no-remote", "--profile", runner.getdir("profile")], env)
 
         # wait for results
         self.waitForResults(benchmark.timeout)
@@ -235,13 +237,13 @@ class ServoExecutor(BrowserExecutor):
 def getExecutor(engineInfo):
     if engineInfo["shell"]:
         return ShellExecutor(engineInfo)
-    if engineInfo["engine_type"] == "firefox" and not engineInfo["shell"]:
+    if engineInfo["engine_type"] == "firefox":
         return FirefoxExecutor(engineInfo)
-    if engineInfo["engine_type"] == "chrome" and not engineInfo["shell"]:
+    if engineInfo["engine_type"] == "chrome":
         return ChromeExecutor(engineInfo)
-    if engineInfo["engine_type"] == "webkit" and not engineInfo["shell"]:
+    if engineInfo["engine_type"] == "webkit":
         return WebKitExecutor(engineInfo)
-    if engineInfo["engine_type"] == "edge" and not engineInfo["shell"]:
+    if engineInfo["engine_type"] == "edge":
         return EdgeExecutor(engineInfo)
     if engineInfo["engine_type"] == "servo":
         return ServoExecutor(engineInfo)

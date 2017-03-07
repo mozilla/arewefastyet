@@ -1,16 +1,20 @@
-import sys
 import BaseHTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-import urlparse
-import os
-import json
-import urllib
-import httplib
-from SocketServer     import ThreadingMixIn
 import hashlib
+import httplib
+import json
+import os
 import pickle
-import utils
 import signal
+import sys
+import urllib
+import urlparse
+
+from SimpleHTTPServer import SimpleHTTPRequestHandler
+from SocketServer     import ThreadingMixIn
+
+import utils
+utils.config.init("awfy.config")
+translates = utils.config.benchmarkTranslates()
 
 class FakeHandler(SimpleHTTPRequestHandler):
 
@@ -107,39 +111,54 @@ class FakeHandler(SimpleHTTPRequestHandler):
         return False
 
     def translatePath(self, host, path):
+        global translates
+        translated = False
+        for url in translates:
+            if host.startswith(url):
+                new_host = translates[url]
+                if new_host[-1] == "/":
+                    new_host = new_host[:-1]
+                translated = True
+
         if host.startswith("massive."):
             if path == "" or path == "/":
                 path = "/Massive/?autoRun=true,postToURL=http://localhost:8000/submit"
-            return "kripken.github.io", path
+            return "http", "kripken.github.io", path
         elif host.startswith("octane."):
             if path == "" or path == "/":
                 path = "/octane/index.html"
-            return "chromium.github.io", path
+            return "http", "chromium.github.io", path
         elif host.startswith("jetstream."):
             if path == "" or path == "/":
                 path = "/JetStream/"
-            return "browserbench.org", path
+            return "http", "browserbench.org", path
         elif host.startswith("speedometer."):
             if path == "" or path == "/":
                 path = "/Speedometer/"
-            return "browserbench.org", path
+            return "http", "browserbench.org", path
         elif host.startswith("kraken."):
             if path == "" or path == "/":
                 path = "/kraken-1.1/driver.html"
-            return "krakenbenchmark.mozilla.org", path
+            return "http", "krakenbenchmark.mozilla.org", path
         elif host.startswith("sunspider."):
             if path == "" or path == "/":
                 path = "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html"
-            return "www.webkit.org", path
+            return "http", "www.webkit.org", path
         elif host.startswith("browsermark."):
-            return "browsermark.local", path
+            return "http", "browsermark.local", path
         elif host.startswith("dromaeo."):
-            return "dromaeo.com", path
-        return None, None
+            return "http", "dromaeo.com", path
+        elif host.startswith("speedometer-misc"):
+            if path == "" or path == "/":
+                path = "/InteractiveRunner.html"
+            return "https", new_host, path
+        if translated:
+            return "http", new_host, path
+        return None, None, None
 
     def remoteBenchmark(self, postdata=None):
         host = self.headers.get("Host", "")
-        url, path = self.translatePath(host, self.path)
+        protocol, url, path = self.translatePath(host, self.path)
         if not url and not path:
             return False
 
@@ -149,22 +168,22 @@ class FakeHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             return True
 
-        status, headers, data = self.retrieve(url, path, postdata)
+        status, headers, data = self.retrieve(protocol, url, path, postdata)
         data = self.injectData(host, path, data)
 
         if status == 301 or status == 302:
             for i in range(len(headers)):
                 if headers[i][0] == "Location" or headers[i][0] == "location":
-                    location = headers[i][1].split("/", 4)
+                    location = headers[i][1].split("/")
                     if len(location) == 3:
                         location = "/"
                     else:
-                        location = location[4]
-                    print location
+                        location = "/".join(location[3:])
                     headers[i] = ("Location", "http://" + host + location)
         self.send_response(status)
         for name, header in headers:
-            if name == "content-length" or name == "accept-ranges" or name == "connection" or name == "transfer-encoding":
+            name = name.lower()
+            if name == "content-length" or name == "accept-ranges" or name == "connection" or name == "transfer-encoding" or name == "content-encoding":
                 pass
             else:
                 self.send_header(name, header)
@@ -174,7 +193,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
         self.wfile.write(bytes(data))
         return True
 
-    def retrieve(self, host, path, postdata):
+    def retrieve(self, protocol, host, path, postdata):
         hash_object = hashlib.sha1(host+path)
         hex_dig = hash_object.hexdigest()
         if os.path.exists("cache/"+host+"/"+hex_dig):
@@ -182,7 +201,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
             status, headers, data = pickle.load(fp)
             fp.close()
         else:
-            status, headers, data = self.retrieveOnline(host, path, postdata)
+            status, headers, data = self.retrieveOnline(protocol, host, path, postdata)
 
             if not os.path.exists("cache"):
                 os.mkdir("cache")
@@ -194,30 +213,34 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
         return status, headers, data
 
-    def retrieveOnline(self, host, path, postdata):
-        conn = httplib.HTTPConnection(host)
+    def retrieveOnline(self, protocol, host, path, postdata):
+        import requests
         if not postdata:
-            conn.request("GET", path, headers = {
-                "Cache-Control": self.headers.get("Cache-Control", ""),
-                "Accept": self.headers.get("Accept", ""),
-                "User-Agent": self.headers.get("User-Agent", ""),
-                "Accept-Language": self.headers.get("Accept-Language", ""),
-            })
+            response = requests.get(url=protocol+"://"+host+path,
+                         headers = {
+                             "Cache-Control": self.headers.get("Cache-Control", ""),
+                             "Accept": self.headers.get("Accept", ""),
+                             "User-Agent": self.headers.get("User-Agent", ""),
+                             "Accept-Language": self.headers.get("Accept-Language", ""),
+                         },
+                         verify=False
+            )
         else:
-            conn.request("POST", path, postdata, headers = {
-                "Cache-Control": self.headers.get("Cache-Control", ""),
-                "Accept": self.headers.get("Accept", ""),
-                "User-Agent": self.headers.get("User-Agent", ""),
-                "Content-Length": len(postdata),
-                "Accept-Language": self.headers.get("Accept-Language", ""),
-            })
-        response = conn.getresponse()
-        headers = response.getheaders()
+            response = requests.post(url=protocol+"://"+host+path,
+                          data=postdata,
+                          headers = {
+                              "Cache-Control": self.headers.get("Cache-Control", ""),
+                              "Accept": self.headers.get("Accept", ""),
+                              "User-Agent": self.headers.get("User-Agent", ""),
+                              "Content-Length": len(postdata),
+                              "Accept-Language": self.headers.get("Accept-Language", ""),
+                          },
+                          verify=False
+            )
+        headers = [[key, response.headers[key]] for key in response.headers]
 
-        data = response.read()
-        conn.close()
-
-        return response.status, headers, data
+        data = response.content
+        return response.status_code, headers, data
 
     def injectData(self, host, path, data):
         if host.startswith("massive."):
@@ -282,7 +305,6 @@ class FakeHandler(SimpleHTTPRequestHandler):
             if path == "/benchmarks/misc-desktop/hosted/assorted/driver.html":
                 return data.replace('location = "results.html?" + encodeURI(outputString);',
                                     'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
-        if host == "localhost":
             if path == "/benchmarks/webaudio/webaudio-bench.js":
                 return data.replace('xhr.open("POST", "/results", true);',
                                     'xhr.open("POST", "/submit", true);');
@@ -310,6 +332,14 @@ class FakeHandler(SimpleHTTPRequestHandler):
                                         results["total"] = summary;
                                         location.href = "http://localhost:8000/submit?results="+encodeURIComponent(JSON.stringify(results))
                                      """)
+        if host.startswith("speedometer-misc."):
+            if path == "/InteractiveRunner.html":
+                data = data.replace('if (queryParam !== undefined) {', 'if (true) {')
+                return data.replace('for (var suiteName in measuredValues.tests) {',
+                                    """
+                                    location.href = "http://localhost:8000/submit?results="+encodeURIComponent(JSON.stringify(measuredValues))
+                                    for (var suiteName in measuredValues.tests) {
+                                    """)
         return data
 
 class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
@@ -322,8 +352,6 @@ Protocol     = "HTTP/1.0"
 Port = 8000
 ServerAddress = ('', Port)
 
-import os
-import utils
 path = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
 with utils.FolderChanger(path):
     HandlerClass.protocol_version = Protocol

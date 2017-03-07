@@ -104,7 +104,10 @@ class Builder(object):
     def build(self, puller):
         self.unlinkBinary()
 
-        self.make()
+        try:
+            self.make()
+        except:
+            pass
 
         if not self.successfullyBuild():
             self.reconf()
@@ -114,7 +117,7 @@ class Builder(object):
 
         info = self.retrieveInfo()
         info["revision"] = puller.identify()
-        # Deafult 'shell' to True only if it isn't set yet!
+        # Default 'shell' to True only if it isn't set yet!
         if 'shell' not in info:
             info["shell"] = True
         info["binary"] = os.path.abspath(self.binary())
@@ -135,7 +138,7 @@ class MozillaBuilder(Builder):
     def retrieveInfo(self):
         info = {}
         info["engine_type"] = "firefox"
-        if self.config == "android":
+        if self.config.startswith("android"):
             info["platform"] = "android"
         return info
 
@@ -147,7 +150,7 @@ class MozillaBuilder(Builder):
 
     def reconf(self):
         # Step 0. install ndk if needed.
-        if self.config == "android":
+        if self.config.startswith("android"):
             self.env.remove("CC")
             self.env.remove("CXX")
             self.env.remove("LINK")
@@ -172,6 +175,11 @@ class MozillaBuilder(Builder):
             args.append("--with-android-ndk="+os.path.abspath(self.folder)+"/android-ndk-r12/")
             args.append("--with-android-version=24")
             args.append("--enable-pie")
+        if self.config == "android64":
+            args.append("--target=aarch64-linux-androideabi")
+            args.append("--with-android-ndk="+os.path.abspath(self.folder)+"/android-ndk-r12/")
+            args.append("--with-android-version=24")
+            args.append("--enable-pie")
         if platform.architecture()[0] == "64bit" and self.config == "32bit":
             if platform.system() == "Darwin":
                 args.append("--target=i686-apple-darwin10.0.0")
@@ -181,7 +189,7 @@ class MozillaBuilder(Builder):
                 assert False
 
         with utils.FolderChanger(os.path.join(self.folder, 'js', 'src', 'Opt')):
-            Run(['../configure'] + args, self.env.get())
+            utils.Run(['../configure'] + args, self.env.get())
         return True
 
     def make(self):
@@ -239,13 +247,12 @@ class V8Builder(Builder):
     def __init__(self, config, folder):
         super(V8Builder, self).__init__(config, folder)
 
-        #self.env.add("GYP_DEFINES", "clang=1")
-        self.env.add("PATH", os.path.join(self.folder, 'depot_tools')+":"+self.env.get()["PATH"])
+        self.env.add("PATH", os.path.realpath(os.path.join(self.folder, 'depot_tools'))+":"+self.env.get()["PATH"])
         self.env.remove("CC")
         self.env.remove("CXX")
         self.env.remove("LINK")
 
-        if self.config == "android":
+        if self.config.startswith("android"):
             if "target_os = ['android']" not in open(folder + '/.gclient').read():
                 with open(folder + "/.gclient", "a") as myfile:
                     myfile.write("target_os = ['android']")
@@ -259,10 +266,26 @@ class V8Builder(Builder):
         return info
 
     def make(self):
-        args = ['make', '-j6']
         if self.config == "android":
-            self.installNdk()
-            args += ['android_arm.release']
+            objdir = os.path.realpath(self.objdir())
+            if not os.path.isdir(objdir):
+                os.mkdir(objdir)
+            with utils.FolderChanger(os.path.join(self.folder, 'v8')):
+                config = [
+                    'is_component_build = false',
+                    'is_debug = false',
+                    'symbol_level = 1',
+                    'target_cpu = "arm"',
+                    'target_os = "android"',
+                    'v8_android_log_stdout = true',
+                    'v8_test_isolation_mode = "prepare"',
+                ]
+                args = 'gn gen '+objdir+' --args=\''+" ".join(config)+'\''
+                Run(args, self.env.get(), shell=True)
+                Run(["ninja", "-C", objdir], self.env.get())
+            return
+
+        args = ['make', '-j6']
         if self.config == '32bit':
             args += ['ia32.release']
         elif self.config == '64bit':
@@ -335,7 +358,7 @@ if __name__ == "__main__":
                       help="download to DIR, default=output/", metavar="DIR", default='output')
 
     parser.add_option("-c", "--config", dest="config",
-                      help="auto, 32bit, 64bit, android", default='auto')
+                      help="auto, 32bit, 64bit, android, android64", default='auto')
 
     parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
                       help="Force runs even without source changes")
@@ -349,7 +372,7 @@ if __name__ == "__main__":
     if not options.output.endswith("/"):
         options.output += "/"
 
-    if options.config not in ["auto", "32bit", "64bit", "android"]:
+    if options.config not in ["auto", "32bit", "64bit", "android", "android64"]:
         print "Please provide a valid config"
         exit()
 

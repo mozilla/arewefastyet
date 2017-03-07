@@ -40,6 +40,24 @@ class ConfigState:
         self.Timeout = eval(self.Timeout, {}, {}) # silly hack to allow 30*60 in the config file.
         self.PythonName = self.getDefault(name, 'python', sys.executable)
 
+    @staticmethod
+    def parseBenchmarkTranslates(li):
+        urls = {}
+        for url in li.split(","):
+            url = url.strip()
+            before_url, after_url = url.split(":")
+            urls[before_url] = after_url
+        return urls
+
+    def benchmarkTranslates(self):
+        assert self.inited
+
+        li = self.getDefault("benchmarks", "translate", None)
+        if not li:
+            return []
+        return ConfigState.parseBenchmarkTranslates(li)
+
+
     def get(self, section, name):
         assert self.inited
         return self.rawConfig.get(section, name)
@@ -66,12 +84,15 @@ class FolderChanger:
 def chdir(folder):
     return FolderChanger(folder)
 
-def Run(vec, env = os.environ.copy()):
+def Run(vec, env = os.environ.copy(), shell=False):
     print(">> Executing in " + os.getcwd())
-    print(' '.join(vec))
+    if shell:
+        print(vec)
+    else:
+        print(' '.join(vec))
     print("with: " + str(env))
     try:
-        o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env)
+        o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env, shell=shell)
     except subprocess.CalledProcessError as e:
         print 'output was: ' + e.output
         print e

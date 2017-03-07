@@ -165,6 +165,37 @@ class Dart(Benchmark):
 
         return tests
 
+class SixSpeed(Benchmark):
+    def __init__(self):
+        super(SixSpeed, self).__init__('six-speed', 'six-speed/')
+
+    def getCommand(self, shell, args):
+        full_args = [shell]
+        if args:
+            full_args.extend(args)
+        full_args.append('test.js')
+
+        return full_args
+
+    def processResults(self, output):
+        tests = []
+        lines = output.splitlines()
+
+        total = 0
+        for x in lines:
+            m = re.search("(.+): (\d+)", x)
+            if not m:
+                continue
+            name = m.group(1)
+            score = m.group(2)
+            total += int(score)
+            tests.append({ 'name': name, 'time': score})
+            print(score + '    - ' + name)
+        tests.append({ 'name': '__total__', 'time': total})
+        print(str(total) + '    - __total__')
+
+        return tests
+
 def getBenchmark(name):
     if name == "octane":
         return Octane()
@@ -180,4 +211,6 @@ def getBenchmark(name):
         return AsmJSMicro()
     if name == "dart":
         return Dart()
+    if name == "sixspeed":
+        return SixSpeed()
     raise Exception("Unknown benchmark")

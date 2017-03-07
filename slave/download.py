@@ -1,17 +1,20 @@
+#!/usr/bin/env python2
+
 import json
-import urllib2
-import urllib
-import re
 import os
+import platform
+import re
 import shutil
 import socket
-import utils
-import platform
-import url_creator
-
 import tarfile
+import urllib
+import urllib2
 import zipfile
+
 socket.setdefaulttimeout(120)
+
+import url_creator
+import utils
 
 DEBUG = True
 
@@ -26,6 +29,8 @@ class DownloadTools(object):
             url.startswith("http://inbound-archive.pub.build.mozilla.org") or
             url.startswith("https://inbound-archive.pub.build.mozilla.org")):
             return ArchiveMozillaDownloader(url)
+        if url.startswith("https://queue.taskcluster.net/v1/task/"):
+            return TreeherderDownloader(url)
         if url.startswith("http://commondatastorage.googleapis.com"):
             return GoogleAPISDownloader(url)
         if (url.startswith("http://builds.nightly.webkit.org") or
@@ -58,13 +63,13 @@ class Downloader(object):
     def valid(self):
         return self.getfilename() != None
 
-    def setOutputFolder(self, folder):
+    def set_output_folder(self, folder):
         if not folder.endswith("/"):
             folder += "/"
         self.folder = folder
 
     def download(self):
-        self.createOutputFolder()
+        self.create_output_folder()
 
         filename = self.getfilename()
         assert filename
@@ -76,7 +81,7 @@ class Downloader(object):
         json.dump(info, fp)
         fp.close()
 
-    def createOutputFolder(self):
+    def create_output_folder(self):
         if os.path.isdir(self.folder):
             shutil.rmtree(self.folder)
         os.makedirs(self.folder)
@@ -99,8 +104,58 @@ class Downloader(object):
             zip.extractall(self.folder)
             zip.close()
 
-class ArchiveMozillaDownloader(Downloader):
+class TreeherderDownloader(Downloader):
 
+    def __init__(self, url):
+        super(TreeherderDownloader, self).__init__(url)
+        self.url = "/".join(url.split("/")[:-1])+"/"
+        self.filename = url.split("/")[-1]
+
+    def getfilename(self):
+        return self.filename
+
+    def retrieveInfo(self):
+        infoname = self.getinfoname()
+
+        response = urllib2.urlopen(self.url + infoname)
+        raw_info = json.loads(response.read())
+
+        info = {}
+        info["revision"] = raw_info["moz_source_stamp"]
+        info["engine_type"] = "firefox"
+        info["shell"] = False
+        info["binary"] = os.path.abspath(self.getbinary())
+        info["folder"] = os.path.abspath(self.folder)
+
+        return info
+
+    def getinfoname(self):
+        filename = self.getfilename()
+        try:
+            filename = os.path.splitext(filename)[0]
+            response = urllib2.urlopen(self.url + filename + ".json")
+            html = response.read()
+        except:
+            filename = os.path.splitext(filename)[0]
+            response = urllib2.urlopen(self.url + filename + ".json")
+            html = response.read()
+
+        return filename + ".json"
+
+    def getbinary(self):
+        if os.path.exists(self.folder + "firefox/firefox.exe"):
+            return self.folder + "firefox/firefox.exe"
+        if os.path.exists(self.folder + "firefox/firefox"):
+            return self.folder + "firefox/firefox"
+        files = os.listdir(self.folder)
+        assert len(files) == 1
+        if files[0].endswith(".apk"):
+            return self.folder + files[0]
+        if files[0].endswith(".dmg"):
+            return self.folder + files[0]
+        assert False
+
+class ArchiveMozillaDownloader(Downloader):
 
     def getfilename(self):
         try:
@@ -218,11 +273,11 @@ class GoogleAPISDownloader(Downloader):
 
     def getfilename(self):
         platform = self.url.split("/")[-3]
-        if platform == "Linux":
+        if platform.startswith("Linux"):
             return "chrome-linux.zip"
         elif platform == "Mac":
             return "chrome-mac.zip"
-        elif platform.startswith("Win"): # Yeah chrome puts win64 in win32 folder
+        elif platform.startswith("Win"): # Chrome puts win64 in win32 folder.
             return "chrome-win32.zip"
         elif platform == "Android":
             return "chrome-android.zip"
@@ -285,17 +340,23 @@ if __name__ == "__main__":
     parser.add_option("-u", "--url", dest="url",
                       help="Specify a specific url to download.", default=None)
     parser.add_option("--repo", dest="repo",
-                      help="Specify a repo to download. Currently only mozilla-inbound supported.", default=None)
+                      help="Specify a repo to download. Currently supports: mozilla-inbound, mozilla-central, mozilla-aurora, mozilla-beta, mozilla-release, webkit, chrome", default=None)
     parser.add_option("-r", dest="cset",
-                      help="Specify the revision to download. Default to 'latest'", default='latest')
+                      help="Specify the revision to download. Defaults to 'latest'. (Note: this is currently only supported when using a mozilla repo)", default='latest')
     (options, args) = parser.parse_args()
+
+    import sys
+    if ((sys.version_info.major < 2) or
+        (sys.version_info.major == 2 and sys.version_info.minor < 7) or
+        (sys.version_info.major == 2 and sys.version_info.minor == 7 and sys.version_info.micro < 10)):
+        exit("python version need to be >= 2.7.10")
 
     if options.url:
         downloader = DownloadTools.forSpecificUrl(options.url)
     elif options.repo:
         downloader = DownloadTools.forRepo(options.repo, options.cset)
     else:
-        raise Exception("You'll need to specify atleast an url or repo")
+        raise Exception("You'll need to specify at least an url or repo")
 
-    downloader.setOutputFolder(options.output)
+    downloader.set_output_folder(options.output)
     downloader.download()
