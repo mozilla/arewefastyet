@@ -14,10 +14,11 @@
   <script type="text/javascript" src="../jquery/jquery-1.8.3.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular-route.js"></script>
-  <script src="//login.persona.org/include.js"></script>
-  <script src="js/persona.js"></script>
   <script src="js/app.js"></script>
   <script src="js/controllers.js"></script>
+
+  <script src="https://apis.google.com/js/platform.js"></script>
+  <script src="js/googlelogin.js"></script>
 
 </head>
 <body ng-controller="pageCtrl">
@@ -28,13 +29,10 @@
     <div class='rightSide'>
 	  <div><a href="http://h4writer.com"><span>Blog</span></a></div>
 	  <div><a href="/"><span>Graphs</span></a></div>
-<!--
-	  <div><a href="/regressions"><span>Regressions</span></a></div>
--->
       <div class='userMenu'>
-        <a href="javascript:doPersonaLogin()" ng-if="!currentUser"><span>Login</span></a>
-        <a href="javascript:doPersonaLogout()" ng-if='currentUser'><span>Logout</span></a>
+	    <div class="g-signin2" data-onsuccess="onSignIn"></div>
       </div>
+
     </div>
   </div>
 </header>

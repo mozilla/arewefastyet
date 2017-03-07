@@ -43,7 +43,7 @@ class Octane(Benchmark):
 
 class Dromaeo(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "1.0", 17)
+        Benchmark.__init__(self, "1.0", 20)
         self.url = 'http://' + self.suite + ".localhost:8000/?recommended"
 
     def processResults(self, results):
@@ -102,6 +102,25 @@ class Speedometer(Benchmark):
     @staticmethod
     def name():
         return "speedometer"
+
+class SpeedometerMisc(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "0.1", 4)
+        self.url = "http://speedometer-misc.local:8000/"
+
+    def processResults(self, results):
+        ret = []
+        for category in results["tests"]:
+            for test in results["tests"][category]["tests"]:
+                ret.append({'name': category+"-"+test+"-sync", 'time': results["tests"][category]["tests"][test]["tests"]["Sync"]})
+                ret.append({'name': category+"-"+test+"-async", 'time': results["tests"][category]["tests"][test]["tests"]["Async"]})
+
+        ret.append({'name': "__total__", 'time': results["total"]})
+        return ret
+
+    @staticmethod
+    def name():
+        return "speedometer-misc"
 
 class Kraken(Benchmark):
     def __init__(self):
@@ -176,7 +195,7 @@ class Browsermark(Benchmark):
 
 class WasmMisc(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "0.2")
+        Benchmark.__init__(self, "0.5", timeout=5)
         self.url = "http://wasm.local:8000"
 
     @staticmethod
@@ -189,6 +208,7 @@ KnownBenchmarks = [
     Massive,
     JetStream,
     Speedometer,
+    SpeedometerMisc,
     Kraken,
     SunSpider,
     Browsermark,

@@ -20,14 +20,13 @@ if (!preg_match("/^[a-zA-Z0-9-. _]*$/i", $name)) {
 }
 
 $file = $config->data_folder.$name;
-if (!file_exists($file)) {
-	if (!has_permissions())
-		fault();
-
-	$file = $config->data_folder."auth-".$name;
-	if (!file_exists($file))
-		fault();
+if (has_permissions()) {
+	$authfile = $config->data_folder."auth-".$name;
+	if (file_exists($authfile))
+		$file = $authfile;
 }
+if (!file_exists($file))
+	fault();
 
 if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) &&
     strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == filemtime($file))
