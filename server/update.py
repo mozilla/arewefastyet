@@ -340,6 +340,15 @@ def export_master(cx):
     with open(path, 'w') as fp:
         fp.write(text)
 
+	j["suites"] = cx.exportSuitesAll()
+    text = "var AWFYMaster = " + json.dumps(j) + ";\n"
+
+    path = os.path.join(awfy.path, 'auth-master.js')
+    if os.path.exists(path):
+        os.remove(path)
+    with open(path, 'w') as fp:
+        fp.write(text)
+
 def update_all(cx):
     for machine in cx.machines:
         # Don't try to update machines that we're no longer tracking.
