@@ -171,6 +171,7 @@ class ChromeExecutor(BrowserExecutor):
         # settings
         runner.rm("profile/")
         runner.mkdir("profile/")
+        runner.write("profile/First Run", "")
 
         effective_args = ["--disable-setuid-sandbox"] + \
                          ["--user-data-dir=profile"] + \
