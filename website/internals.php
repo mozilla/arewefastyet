@@ -226,8 +226,9 @@ if (!function_exists("mysql_connect")){
 		global $dbconnect;
         return mysqli_error ($dbconnect);
 	}
-    function mysql_insert_id($cnx){
-        return mysqli_insert_id ( $cnx );
+    function mysql_insert_id(){
+		global $dbconnect;
+        return mysqli_insert_id ($dbconnect);
 	}
     function mysql_close(){
         return true;
