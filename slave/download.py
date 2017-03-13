@@ -41,8 +41,8 @@ class DownloadTools(object):
         raise Exception("Unknown retriever")
 
     @classmethod
-    def forRepo(cls, repo, cset="latest"):
-        urlCreator = url_creator.getUrlCreator(repo)
+    def forRepo(cls, config, repo, cset="latest"):
+        urlCreator = url_creator.getUrlCreator(config, repo)
         urls = urlCreator.find(cset)
         for url in urls:
             print "trying: " + url
@@ -343,6 +343,8 @@ if __name__ == "__main__":
                       help="Specify a repo to download. Currently supports: mozilla-inbound, mozilla-central, mozilla-aurora, mozilla-beta, mozilla-release, webkit, chrome", default=None)
     parser.add_option("-r", dest="cset",
                       help="Specify the revision to download. Defaults to 'latest'. (Note: this is currently only supported when using a mozilla repo)", default='latest')
+    parser.add_option("-c", "--config", dest="config",
+                      help="auto, 32bit, 64bit", default='auto')
     (options, args) = parser.parse_args()
 
     import sys
@@ -351,10 +353,21 @@ if __name__ == "__main__":
         (sys.version_info.major == 2 and sys.version_info.minor == 7 and sys.version_info.micro < 10)):
         exit("python version need to be >= 2.7.10")
 
+    if options.config not in ["auto", "32bit", "64bit"]:
+        print "Please provide a valid config"
+        exit()
+
+    if options.config == "auto":
+        options.config, _ = platform.architecture()
+
+    if options.config == "64bit" and platform.architecture()[0] == "32bit":
+        print "Cannot download a 64bit binary on 32bit architecture"
+        exit()
+
     if options.url:
         downloader = DownloadTools.forSpecificUrl(options.url)
     elif options.repo:
-        downloader = DownloadTools.forRepo(options.repo, options.cset)
+        downloader = DownloadTools.forRepo(options.config, options.repo, options.cset)
     else:
         raise Exception("You'll need to specify at least an url or repo")
 
