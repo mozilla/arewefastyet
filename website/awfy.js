@@ -140,7 +140,7 @@ AWFY.loadAggregateGraph = function (blobgraph) {
     return graph;
 }
 
-AWFY.displayNewGraph = function (id, domid, graph) {
+AWFY.displayNewGraph = function (prefix, id, domid, graph) {
     var elt = $('#' + domid + '-graph');
     var title = $('#' + domid + '-title');
     if (!elt.length)
@@ -155,7 +155,7 @@ AWFY.displayNewGraph = function (id, domid, graph) {
     title.show();
     var display = elt.data('awfy-display');
     if (!display) {
-        display = new Display(this, id, domid, elt);
+        display = new Display(this, prefix, id, domid, elt);
         elt.data('awfy-display', display);
     }
     if (display.shouldRefresh()) {
@@ -249,7 +249,7 @@ AWFY.drawLegend = function () {
     this.hasLegend = true;
 }
 
-AWFY.computeBreakdown = function (data, id, domid) {
+AWFY.computeBreakdown = function (data, prefix, id, domid) {
     var blob = typeof data == "string"
                ? JSON.parse(data)
                : data;
@@ -261,7 +261,7 @@ AWFY.computeBreakdown = function (data, id, domid) {
     }
 
     var graph = this.loadAggregateGraph(blob['graph']);
-    this.displayNewGraph(id, domid, graph);
+    this.displayNewGraph(prefix, id, domid, graph);
 }
 
 AWFY.computeAggregate = function (received) {
@@ -287,7 +287,7 @@ AWFY.computeAggregate = function (received) {
     this.aggregate = graphs;
 
     for (var id in graphs) {
-        this.displayNewGraph(id, id, graphs[id]);
+        this.displayNewGraph("", id, id, graphs[id]);
     }
 
     this.drawLegend();
@@ -529,15 +529,12 @@ AWFY.requestZoom = function (display, kind, start_t, end_t) {
                         ? end.getUTCMonth() + 1
                         : 12;
         for (var month = firstMonth; month <= lastMonth; month++) {
-            var name = kind + '-' +
+            var name = display.prefix +
+                       kind + '-' +
 					   display.id + '-' +
 					   this.machineId + '-' +
                        year + '-' +
                        month;
-            if (this.view == 'breakdown')
-                name = 'bk-' + name;
-            else if (this.view == 'single' && this.subtest)
-				name = 'bk-' + name;
             files.push(name);
         }
     }
@@ -598,11 +595,36 @@ AWFY.showBreakdown = function (name) {
 
     var total = 0;
 
+	// Create a div showing the full benchmark score.
+	var id = name;
+	var prefix = "";
+	var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
+	var title = $('<div id="' + domid + '-title"></div>').html('<b>' + id + '</b>').appendTo(breakdown);
+	title.hide();
+	var div = $('<div id="' + domid + '-graph" class="graph"></div>');
+	div.appendTo(breakdown);
+	div.hide();
+	$('<br><br>').appendTo(breakdown);
+
+	this.panes.push(div);
+
+	var callback = (function (prefix, id, domid) {
+			return (function (received) {
+				if (received[0])
+					this.computeBreakdown(received[0], prefix, id, domid);
+				this.drawLegend();
+				}).bind(this);
+			}).bind(this)(prefix, id, domid);
+
+	var file = prefix + 'aggregate-' + id + '-' + this.machineId;
+	this.request([file], callback);
+
     // Create a div for each sub-test.
     var suite = AWFYMaster.suites[name];
     for (var i = 0; i < suite.tests.length; i++) {
         var test = suite.tests[i];
         var id = name + '-' + test;
+		var prefix = "bk-";
         var domid = id.replace(/ /g,'-').replace(/\./g, '-');
         ( function (name, test) {
             var title = $('<div id="' + domid + '-title"></div>').click(
@@ -621,17 +643,17 @@ AWFY.showBreakdown = function (name) {
 
         this.panes.push(div);
 
-        var callback = (function (id, domid) {
+        var callback = (function (prefix, id, domid) {
                 return (function (received) {
                     if (received[0])
-                        this.computeBreakdown(received[0], id, domid);
+                        this.computeBreakdown(received[0], prefix, id, domid);
                     if (++total == suite.tests.length)
                     this.drawLegend();
                     }).bind(this);
-                }).bind(this)(id, domid);
+                }).bind(this)(prefix, id, domid);
 
         // Fire off an XHR request for each test.
-        var file = 'bk-aggregate-' + id + '-' + this.machineId;
+        var file = prefix + 'aggregate-' + id + '-' + this.machineId;
         this.request([file], callback);
     }
     this.lastRefresh = Date.now();
@@ -666,6 +688,7 @@ AWFY.showSingle = function (name, subtest, start, end) {
 
     if (found) {
         var id = name + '-' + test;
+		var prefix = "bk-";
         var domid = id.replace(/ /g,'-').replace(/\./g, '-');
         var title = $('<div id="' + domid + '-title"></div>').html('<b>' + id + '</b>').appendTo(breakdown);
 		title.hide();
@@ -676,18 +699,19 @@ AWFY.showSingle = function (name, subtest, start, end) {
 
         this.panes.push(div);
 
-        var callback = (function (id, domid) {
+        var callback = (function (prefix, id, domid) {
                 return (function (received) {
                     if (received[0])
-                        this.computeBreakdown(received[0], id, domid);
+                        this.computeBreakdown(received[0], prefix, id, domid);
                     this.drawLegend();
                     }).bind(this);
-                }).bind(this)(id, domid);
+                }).bind(this)(prefix, id, domid);
 
-        var file = 'bk-aggregate-' + id + '-' + this.machineId;
+        var file = prefix + 'aggregate-' + id + '-' + this.machineId;
         this.request([file], callback);
     } else {
         var id = name;
+		var prefix = "";
         var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
         var title = $('<div id="' + domid + '-title"></div>').html('<b>' + id + '</b>').appendTo(breakdown);
 		title.hide();
@@ -698,15 +722,15 @@ AWFY.showSingle = function (name, subtest, start, end) {
 
         this.panes.push(div);
 
-        var callback = (function (id, domid) {
+        var callback = (function (prefix, id, domid) {
                 return (function (received) {
                     if (received[0])
-                        this.computeBreakdown(received[0], id, domid);
+                        this.computeBreakdown(received[0], prefix, id, domid);
                     this.drawLegend();
                     }).bind(this);
-                }).bind(this)(id, domid);
+                }).bind(this)(prefix, id, domid);
 
-        var file = 'aggregate-' + id + '-' + this.machineId;
+        var file = prefix + 'aggregate-' + id + '-' + this.machineId;
         this.request([file], callback);
     }
 
@@ -736,16 +760,17 @@ AWFY.requestRedraw = function () {
         var total = 0;
         for (var i = 0; i < suite.tests.length; i++) {
             var id = this.suiteName + '-' + suite.tests[i];
+			var prefix = "bk-";
 			var domid = id.replace(/ /g,'-').replace(/\./g, '-');
-            var callback = (function (id, domid) {
+            var callback = (function (prefix, id, domid) {
                     return (function (received) {
                         if (received[0])
-                            this.computeBreakdown(received[0], id, domid);
+                            this.computeBreakdown(received[0], prefix, id, domid);
                         if (++total == suite.tests.length)
                             this.drawLegend();
                         }).bind(this);
-                    }).bind(this)(id, domid);
-            var file = 'bk-aggregate-' + id + '-' + this.machineId;
+                    }).bind(this)(prefix, id, domid);
+            var file = prefix + 'aggregate-' + id + '-' + this.machineId;
             this.request([file], callback);
         }
     } else if (this.view == 'single') {
@@ -759,27 +784,29 @@ AWFY.requestRedraw = function () {
         }
         if (found) {
             var id = this.suiteName + '-' + this.subtest;
+			var prefix = "bk-";
 			var domid = id.replace(/ /g,'-').replace(/\./g, '-');
-            var callback = (function (id, domid) {
+            var callback = (function (prefix, id, domid) {
                     return (function (received) {
                         if (received[0])
-                            this.computeBreakdown(received[0], id, domid);
+                            this.computeBreakdown(received[0], prefix, id, domid);
                         this.drawLegend();
                         }).bind(this);
-                    }).bind(this)(id, domid);
-            var file = 'bk-aggregate-' + id + '-' + this.machineId;
+                    }).bind(this)(prefix, id, domid);
+            var file = prefix + 'aggregate-' + id + '-' + this.machineId;
             this.request([file], callback);
         } else {
             var id = this.suiteName;
+			var prefix = "";
 			var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
-            var callback = (function (id, domid) {
+            var callback = (function (prefix, id, domid) {
                     return (function (received) {
                         if (received[0])
-                            this.computeBreakdown(received[0], id, domid);
+                            this.computeBreakdown(received[0], prefix, id, domid);
                         this.drawLegend();
                         }).bind(this);
-                    }).bind(this)(id, domid);
-            var file = 'aggregate-' + id + '-' + this.machineId;
+                    }).bind(this)(prefix, id, domid);
+            var file = prefix + 'aggregate-' + id + '-' + this.machineId;
             this.request([file], callback);
         }
     }
@@ -990,7 +1017,7 @@ AWFY.updateSuiteList = function (machineId) {
     var suites = [];
     for (var i=0; i < AWFYMaster.machines[machineId].suites.length; i++) {
         var name = AWFYMaster.machines[machineId].suites[i];
-        if (AWFYMaster.suites[name] && AWFYMaster.suites[name].visible == 1)
+        if (AWFYMaster.suites[name])
             suites.push([name, AWFYMaster.suites[name]]);
     }
 

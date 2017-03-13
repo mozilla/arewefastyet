@@ -48,7 +48,7 @@ class BrowserExecutor(object):
         env = os.environ.copy()
         env.update(config.env())
         env.update(self.engineInfo["env"])
-        args = [benchmark.url] + config.args() + self.engineInfo["args"]
+        args = config.args() + self.engineInfo["args"] + [benchmark.url]
 
         self.execute(benchmark, env, args, config.profile())
 
@@ -167,8 +167,18 @@ class ChromeExecutor(BrowserExecutor):
         # reset the result
         self.resetResults()
 
+        # enforce an empty user data directory to clear caches and previous
+        # settings
+        runner.rm("profile/")
+        runner.mkdir("profile/")
+        runner.write("profile/First Run", "")
+
+        effective_args = ["--disable-setuid-sandbox"] + \
+                         ["--user-data-dir=profile"] + \
+                         args
+
         # start browser
-        process = runner.start(binary, ["--disable-setuid-sandbox"] + args, env)
+        process = runner.start(binary, effective_args, env)
 
         # wait for results
         self.waitForResults(benchmark.timeout)
