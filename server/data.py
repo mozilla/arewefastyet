@@ -174,6 +174,14 @@ class Context(object):
     def exportSuites(self):
         o = { }
         for b in self.benchmarks:
+            if b.visible == 2:
+                continue
+            o[b.name] = b.export()
+        return o
+
+    def exportSuitesAll(self):
+        o = { }
+        for b in self.benchmarks:
             o[b.name] = b.export()
         return o
 

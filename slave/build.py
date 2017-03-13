@@ -210,7 +210,7 @@ class WebkitBuilder(Builder):
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/bmalloc/Configurations/Base.xcconfig"])
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/WTF/Configurations/Base.xcconfig"])
             Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/SmallLine.h"])
-            Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/SmallRun.h"])
+            #Run(["sed","-i.bac","s/std::numeric_limits<unsigned char>::max()/255/","Source/bmalloc/bmalloc/SmallRun.h"])
 
             # Hack 2: This check fails currently. Disable checking to still have a build.
             os.remove("Tools/Scripts/check-for-weak-vtables-and-externals")
@@ -223,7 +223,7 @@ class WebkitBuilder(Builder):
             Run(["svn","revert","Source/bmalloc/Configurations/Base.xcconfig"])
             Run(["svn","revert","Source/WTF/Configurations/Base.xcconfig"])
             Run(["svn","revert","Source/bmalloc/bmalloc/SmallLine.h"])
-            Run(["svn","revert","Source/bmalloc/bmalloc/SmallPage.h"])
+            #Run(["svn","revert","Source/bmalloc/bmalloc/SmallPage.h"])
 
     def make(self):
         try:
