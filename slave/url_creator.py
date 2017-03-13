@@ -5,8 +5,9 @@ import utils
 
 
 class UrlCreator(object):
-    def __init__(self, repo):
+    def __init__(self, config, repo):
         self.repo = repo
+        self.config = config
 
     def find(self, cset = 'latest'):
         if cset == 'latest':
@@ -22,8 +23,7 @@ class ChromeUrlCreator(UrlCreator):
         return "http://commondatastorage.googleapis.com/chromium-browser-snapshots/"+platform+"/"
 
     def _platform(self):
-        arch, _ = platform.architecture()
-        arch = arch[0:2]
+        arch = self.config[0:2]
         if platform.system() == "Linux":
             if arch == '64':
                 return "Linux_x64"
@@ -58,15 +58,14 @@ class WebKitUrlCreator(UrlCreator):
 
 class MozillaUrlCreator(UrlCreator):
 
-    def __init__(self, repo):
-        UrlCreator.__init__(self, repo)
+    def __init__(self, config, repo):
+        UrlCreator.__init__(self, config, repo)
         self.url = self._url()
         if self.url[-1] != "/":
             self.url += "/"
 
     def _platform(self):
-        arch, _ = platform.architecture()
-        arch = arch[0:2]
+        arch = self.config[0:2]
         if platform.system() == "Linux":
             if arch == "32":
                 return "linux"
@@ -104,7 +103,7 @@ class MozillaUrlCreator(UrlCreator):
         if platform == "linux":
             return ["linux32"]
         if platform == "linux64":
-            return ["platform"]
+            return ["linux64"]
         if platform == "win32":
             return ["windowsxp", "windows2012-32"]
         if platform == "win64":
@@ -137,12 +136,12 @@ class MozillaUrlCreator(UrlCreator):
 
         # No corresponding build found given revision
         if len(data["results"]) != 1:
-            return None
+            return []
 
         # The revision is not pushed seperately. It is not the top commit
         # of a list of pushes that were done at the same time.
         if not data["results"][0]["revision"].startswith(cset):
-            return None
+            return []
 
         id = str(data["results"][0]["id"])
 
@@ -154,7 +153,12 @@ class MozillaUrlCreator(UrlCreator):
         builds = [i for i in builds if i["platform_option"] == "opt"] # opt / debug / pgo
         builds = [i for i in builds if i["platform"] in self.treeherder_platform()] # platform
 
-        if len(builds) != 1:
+        if len(builds) == 0:
+            print "Found no builds."
+            return []
+
+        if len(builds) > 1:
+            print "Found multiple builds. Couldn't decide."
             return []
 
         url = "https://treeherder.mozilla.org/api/jobdetail/?job_guid="+str(builds[0]["job_guid"])
@@ -181,11 +185,11 @@ class MozillaUrlCreator(UrlCreator):
 
         return urls
 
-def getUrlCreator(name):
+def getUrlCreator(config, name):
     if "mozilla" in name:
-        return MozillaUrlCreator(name)
+        return MozillaUrlCreator(config, name)
     if "chrome" in name:
-        return ChromeUrlCreator(name)
+        return ChromeUrlCreator(config, name)
     if "webkit" in name:
-        return WebKitUrlCreator(name)
+        return WebKitUrlCreator(config, name)
     raise Exception("Unkown vendor")
