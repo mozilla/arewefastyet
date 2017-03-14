@@ -47,11 +47,11 @@ function time_ago($ptime, $reference = null) {
 	if (!$reference)
 		$reference = time();
     $etime = $reference - $ptime;
-     
+
     if ($etime < 1) {
         return '0 seconds';
     }
-     
+
     $interval = array( 12 * 30 * 24 * 60 * 60  =>  'year',
                 30 * 24 * 60 * 60       =>  'month',
                 24 * 60 * 60            =>  'day',
@@ -59,7 +59,7 @@ function time_ago($ptime, $reference = null) {
                 60                      =>  'minute',
                 1                       =>  'second'
                 );
-     
+
     foreach ($interval as $secs => $str) {
         $d = $etime / $secs;
         if ($d >= 1) {
@@ -89,6 +89,8 @@ if ($task_id = GET_int("id")) {
 	echo htmlspecialchars($task->task());
 	echo "</pre>";
 
+	echo "<div id='results'></div>";
+
 	if ($error = $task->error()) {
 		echo "<h2>Error: </h2>";
 		echo "<pre>";
@@ -97,13 +99,58 @@ if ($task_id = GET_int("id")) {
 	}
 
 	echo "<h2>Output: </h2>";
-	echo "<pre>";
+	echo "<pre id='output'>";
 	echo htmlspecialchars($task->output());
 	echo "</pre>";
 
-    die();
-}
-?>
+	?>
+	<script>
+	var results = {}
+	var output = document.getElementById("output").innerHTML;
+	var re = /Added mode [a-zA-Z0-9]* \(engine: [a-zA-Z0-9]*, config: [a-zA-Z0-9,-]*, changeset: [a-zA-Z0-9]*\)/g
+	var re = /[\*]{1,}/g;
+	while ((match = re.exec(output)) !== null) {
+		var data = output.substr(re.lastIndex + 1);
+		var newline = /\n/g;
+		var start = 0;
+		var revision = data.match(/changeset: ([a-zA-Z0-9]*)/)[1]
+
+		if (!results[revision])
+			results[revision] = {}
+
+		while ((match = newline.exec(data)) !== null) {
+			var end = match.index;
+			var line = data.substring(start, end);
+			var result = line.match(/([a-zA-Z0-9,_-])* \(([a-zA-Z0-9,_ ])* -- [a-zA-Z0-9]*\): ([0-9.])*/)
+			var result = line.match(/([a-zA-Z0-9,_-]*) \(([a-zA-Z0-9,_. ]*) -- [a-zA-Z0-9]*\): ([0-9.]*)/)
+
+			if (result) {
+				if (!results[revision][result[2]])
+					results[revision][result[2]] = []
+				results[revision][result[2]].push([result[1], result[3]]);
+			}
+			if (line.length < 6)
+				break
+			start = end;
+		}
+	}
+
+	var html = "<h2>Results:</h2><table>";
+		console.log(results);
+	for (revision in results) {
+		html += "<h3>Revision: "+revision+"</h3>";
+		for (benchmark in results[revision]) {
+			html += "<h4>Benchmark: "+benchmark+"</h4><table>";
+			for (var i = 0; i < results[revision][benchmark].length; i++) {
+				html += "<tr><td>"+results[revision][benchmark][i][0]+
+							"<td>"+results[revision][benchmark][i][1];
+			}
+			html += "</table>";
+		}
+	}
+	document.getElementById("results").innerHTML = html;
+	</script>
+<?php }?>
 </div>
 </body>
 </html>

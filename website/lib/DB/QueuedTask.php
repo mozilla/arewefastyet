@@ -59,6 +59,14 @@ class QueuedTask extends DB {
 		return $this->select("output");
 	}
 
+	function hasEmail() {
+		return $this->select("email") != "";
+	}
+
+	function email() {
+		return $this->select("email");
+	}
+
 	function hasError() {
 		return $this->select("error") != "";
 	}
