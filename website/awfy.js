@@ -965,7 +965,15 @@ AWFY.updateMachineList = function (machineId) {
     var showAll = false;
     if (!AWFYMaster.machines[machineId].frontpage)
         showAll = true;
+
+	var machines_ids = []
     for (var id in AWFYMaster.machines) {
+		machines_ids.push(id);
+	}
+    machines_ids.sort(function(a,b) {return AWFYMaster.machines[a].description > AWFYMaster.machines[b].description});
+
+	for (var i = 0; i < machines_ids.length; i++) {
+		var id = machines_ids[i];
         var machine = AWFYMaster.machines[id];
         if (!showAll && !machine.frontpage)
             continue;

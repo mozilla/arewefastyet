@@ -49,5 +49,11 @@ if ($unit = GET_int("unit")) {
     if (isset($_POST["output"]))
 		$task->setOutput($_POST["output"]);
 
+	if ($task->hasEmail()) {
+		mail($task->email(), "AreWeFastYet task ".$task_id." finished",
+			"Task ".$task_id." has finished.\r\n".
+			"You can see the results on https://arewefastyet.com/task_info.php?id=".$task_id);
+	}
+
     die();
 }
