@@ -8,3 +8,4 @@ import awfy
 c = awfy.db.cursor()
 query = "UPDATE `control_task_queue` SET output = '' WHERE UNIX_TIMESTAMP() - 60*60*24*30 >= finish"
 c.execute(query)
+awfy.db.commit()
