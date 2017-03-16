@@ -154,6 +154,8 @@ class OSXRunner(Runner):
     def killAllInstances(self):
 
         if "osx_mount_point" not in self.info or not os.path.exists(self.info["osx_mount_point"]):
+            if "osx_processname" in self.info:
+                self.killall(self.info["osx_processname"])
             return
 
         print "killallinstances"
