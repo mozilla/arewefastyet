@@ -39,4 +39,11 @@ class ControlTasks extends DB {
 		}
 		return $tasks;
 	}
+	public function updateLastScheduled($available_at = 0) {
+		if ($available_at == 0)
+			$available_at = time();
+		mysql_query("UPDATE control_tasks
+					 SET last_scheduled = ".$available_at."
+					 WHERE id = ".$this->id) or die(mysql_error());
+	}
 }

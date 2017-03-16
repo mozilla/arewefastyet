@@ -100,9 +100,8 @@ class Downloader(object):
             tar.extractall(self.folder)
             tar.close()
         elif "zip" in filename:
-            zip = zipfile.ZipFile(self.folder + filename)
-            zip.extractall(self.folder)
-            zip.close()
+            with utils.FolderChanger(self.folder):
+                utils.Run(["unzip", filename]);
 
 class TreeherderDownloader(Downloader):
 

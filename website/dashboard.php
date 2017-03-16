@@ -38,6 +38,7 @@ require_once("internals.php");
 require_once("lib/DB/Mode.php");
 require_once("lib/DB/Machine.php");
 require_once("lib/DB/TaskQueue.php");
+require_once("lib/DB/ControlTasks.php");
 
 init_database();
 
@@ -87,8 +88,13 @@ function time_ago($ptime, $reference = null) {
 
 if ($task_id = GET_int("start")) {
 	$task = QueuedTask::FromId($task_id);
-	if ($task && $task->finish_time() == 0 && $task->start_time() == 0) 
+	if ($task && $task->finish_time() == 0 && $task->start_time() == 0) {
 		$task->set_available_time(time());
+		if ($task->control_tasks_id() != 0) {
+			$control_tasks = new ControlTasks($task->control_tasks_id());
+			$control_tasks->updateLastScheduled();
+		}
+	}
 }
 
 if ($task_id = GET_int("delete")) {
