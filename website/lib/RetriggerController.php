@@ -5,6 +5,7 @@ require_once("VersionControl.php");
 require_once("DB/Mode.php");
 require_once("DB/Run.php");
 require_once("DB/Build.php");
+require_once("DB/ControlTasks.php");
 
 class RetriggerController {
 
@@ -206,9 +207,8 @@ class RetriggerController {
                                  '".mysql_escape_string($task->task())."',".
                                  $available_at.")") or throw_exception(mysql_error());
             if ($task->control_tasks_id != 0) {
-                mysql_query("UPDATE control_tasks
-                             SET last_scheduled = ".$available_at."
-                             WHERE id = ".$task->control_tasks_id()) or die(mysql_error());
+				$control_tasks = new ControlTasks($task->control_tasks_id());
+				$control_tasks->updateLastScheduled($available_at);
             }
         }
     }
