@@ -59,10 +59,9 @@ class WebKitUrlCreator(UrlCreator):
 class MozillaUrlCreator(UrlCreator):
 
     def __init__(self, config, repo):
+        if repo == "mozilla-try":
+            repo = "try";
         UrlCreator.__init__(self, config, repo)
-        self.url = self._url()
-        if self.url[-1] != "/":
-            self.url += "/"
 
     def _platform(self):
         arch = self.config[0:2]
@@ -77,26 +76,6 @@ class MozillaUrlCreator(UrlCreator):
         if platform.system().startswith("CYGWIN"):
             return "win"+arch
         raise Exception("Unknown platform: " + platform.system())
-
-    def _subdir(self):
-        platform = self._platform()
-        if self.repo == "mozilla-inbound":
-            return "mozilla-inbound-"+platform
-        if self.repo == "mozilla-central":
-            return "mozilla-central-"+platform
-        if self.repo == "mozilla-aurora":
-            return "mozilla-aurora-"+platform
-        if self.repo == "mozilla-beta":
-            return "mozilla-beta-"+platform
-        if self.repo == "mozilla-release":
-            return "mozilla-release-"+platform
-        raise Exception("Unknown repo: " + self.repo)
-
-    def _url(self):
-        return "http://archive.mozilla.org/pub/firefox/tinderbox-builds/"+self._subdir()+"/"
-
-    def _archive_url(self):
-        return "http://inbound-archive.pub.build.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/"+self._subdir()+"/"
 
     def treeherder_platform(self):
         platform = self._platform()
