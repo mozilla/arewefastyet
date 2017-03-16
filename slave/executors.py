@@ -163,6 +163,9 @@ class ChromeExecutor(BrowserExecutor):
         helpers = runner.find(self.engineInfo["folder"], "Chromium Helper")
         for helper in helpers:
             runner.set_exec_bit(helper)
+        helpers = runner.find(self.engineInfo["folder"], "Chromium Framework")
+        for helper in helpers:
+            runner.set_exec_bit(helper)
 
         # reset the result
         self.resetResults()
