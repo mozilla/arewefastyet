@@ -15,6 +15,9 @@
  <script type="text/javascript" src="awfy.js"></script>
  <script type="text/javascript" src="frontpage.js"></script>
  <script type="text/javascript" src="tooltip.js"></script>
+
+  <script src="https://apis.google.com/js/platform.js"></script>
+  <script src="googlelogin.js"></script>
 </head>
 <body>
 
@@ -25,6 +28,9 @@
 	  <div><a href="/"><span>Graphs</span></a></div>
 	  <div><a href="http://h4writer.com"><span>Blog</span></a></div>
 	  <div><a href="/overview"><span>Overview</span></a></div>
+      <div class='userMenu'>
+	    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+      </div>
     </div>
   </div>
 </header>
