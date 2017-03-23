@@ -24,6 +24,7 @@
     <div class='rightSide'>
 	  <div><a href="http://h4writer.com"><span>Blog</span></a></div>
 	  <div><a href="/overview"><span>Overview</span></a></div>
+	  <div><a href="/schedule.php"><span>Schedule</span></a></div>
     </div>
   </div>
 </header>
@@ -192,8 +193,8 @@ while($unit = mysql_fetch_object($qUnits)) {
 			if ($task->hasError()) {
 				$color = "red";
 			} elseif ($task->finish_time() > 0) {
-				if ($task->finish_time() - $task->start_time() < 5*60)
-					$color = "red";
+				if (strpos($task->output(), "Traceback") !== false)
+					$color = "orange";
 				else
 					$color = "green";
 			} elseif ($task->start_time() > 0) {

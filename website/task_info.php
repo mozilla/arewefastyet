@@ -24,6 +24,7 @@
     <div class='rightSide'>
 	  <div><a href="http://h4writer.com"><span>Blog</span></a></div>
 	  <div><a href="/overview"><span>Overview</span></a></div>
+	  <div><a href="/schedule.php"><span>Schedule</span></a></div>
     </div>
   </div>
 </header>
@@ -80,7 +81,8 @@ if ($task_id = GET_int("id")) {
     $task = new QueuedTask($task_id);
 
 	echo "<h1>Task ".$task->id."</h1>";
-	echo "Available from: ".print_time($task->available_time())."</br>";
+	if ($task->available_time() != 0)
+		echo "Available from: ".print_time($task->available_time())."</br>";
 	echo "Started time: ".print_time($task->start_time())."</br>";
 	echo "Finished time: ".print_time($task->finish_time())."</br>";
 
@@ -107,13 +109,15 @@ if ($task_id = GET_int("id")) {
 	<script>
 	var results = {}
 	var output = document.getElementById("output").innerHTML;
-	var re = /Added mode [a-zA-Z0-9]* \(engine: [a-zA-Z0-9]*, config: [a-zA-Z0-9,-]*, changeset: [a-zA-Z0-9]*\)/g
-	var re = /[\*]{1,}/g;
+	var re = /[\*]{3,}/g;
 	while ((match = re.exec(output)) !== null) {
 		var data = output.substr(re.lastIndex + 1);
 		var newline = /\n/g;
 		var start = 0;
-		var revision = data.match(/changeset: ([a-zA-Z0-9]*)/)[1]
+		var revision = data.match(/changeset: ([a-zA-Z0-9]*)/)
+		if (!revision)
+			continue;
+		revision = revision[1]
 
 		if (!results[revision])
 			results[revision] = {}
@@ -121,7 +125,6 @@ if ($task_id = GET_int("id")) {
 		while ((match = newline.exec(data)) !== null) {
 			var end = match.index;
 			var line = data.substring(start, end);
-			var result = line.match(/([a-zA-Z0-9,_-])* \(([a-zA-Z0-9,_ ])* -- [a-zA-Z0-9]*\): ([0-9.])*/)
 			var result = line.match(/([a-zA-Z0-9,_-]*) \(([a-zA-Z0-9,_. ]*) -- [a-zA-Z0-9]*\): ([0-9.]*)/)
 
 			if (result) {
@@ -136,7 +139,6 @@ if ($task_id = GET_int("id")) {
 	}
 
 	var html = "<h2>Results:</h2><table>";
-		console.log(results);
 	for (revision in results) {
 		html += "<h3>Revision: "+revision+"</h3>";
 		for (benchmark in results[revision]) {
@@ -148,7 +150,8 @@ if ($task_id = GET_int("id")) {
 			html += "</table>";
 		}
 	}
-	document.getElementById("results").innerHTML = html;
+	if (Object.keys(results).length != 0)
+		document.getElementById("results").innerHTML = html;
 	</script>
 <?php }?>
 </div>
