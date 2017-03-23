@@ -152,6 +152,30 @@ class V8GIT(GIT):
         with FolderChanger(self.path()):
             Run(['gclient', 'sync'], {"PATH": os.path.abspath("../depot_tools/")+":"+env["PATH"]})
 
+class MozillaTry(HG):
+    """
+    Special-case try, since we don't want to fetch the whole repo.
+    """
+    def __init__(self, folder):
+        super(MozillaTry, self).__init__("https://hg.mozilla.org/mozilla-unified", folder);
+
+    def update(self, rev = None):
+        assert rev != None
+        output = Run(['hg', 'up', '--check', '--cwd', self.folder])
+        output = Run(['hg', 'pull', '--cwd', self.folder])
+        output = Run(['hg', 'pull', '-r', rev, '--cwd', self.folder, "https://hg.mozilla.org/try"])
+        output = Run(['hg', 'update', '-r', rev, '--cwd', self.folder])
+        if re.search("unknown revision", output) != None:
+            raise Exception('unknown revision: ' + output)
+        return
+
+    def identify(self):
+        output = Run(['hg', 'id', '-i', '--cwd', self.folder])
+        m = re.match("([0-9a-z]+)\s*", output)
+        if m == None:
+            raise Exception('unknown output from hg: ' + output)
+        return m.group(1)
+
 def getPuller(repo, path):
     if repo == "mozilla":
         repo = "http://hg.mozilla.org/integration/mozilla-inbound"
@@ -160,6 +184,8 @@ def getPuller(repo, path):
     elif repo == "servo":
         repo = "https://github.com/servo/servo.git"
 
+    if "mozilla-try" == repo:
+        return MozillaTry(path)
     if "hg." in repo:
         return HG(repo, path)
     if "svn." in repo:

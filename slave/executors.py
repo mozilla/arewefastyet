@@ -149,6 +149,7 @@ class ChromeExecutor(BrowserExecutor):
             #"osx_mount_point": "/Volumes/Nightly",
             #"osx_binary": "/Volumes/Nightly/Nightly.app/Contents/MacOS/firefox",
             #"android_processname": "org.mozilla.fennec"
+            "osx_processname": "Chromium",
             "linux_processname": "chrome",
             "windows_processname": "chrome.exe"
         })

@@ -339,7 +339,7 @@ if __name__ == "__main__":
     parser.add_option("-u", "--url", dest="url",
                       help="Specify a specific url to download.", default=None)
     parser.add_option("--repo", dest="repo",
-                      help="Specify a repo to download. Currently supports: mozilla-inbound, mozilla-central, mozilla-aurora, mozilla-beta, mozilla-release, webkit, chrome", default=None)
+                      help="Specify a repo to download. Currently supports: mozilla-inbound, mozilla-central, mozilla-aurora, mozilla-beta, mozilla-release, mozilla-try, webkit, chrome", default=None)
     parser.add_option("-r", dest="cset",
                       help="Specify the revision to download. Defaults to 'latest'. (Note: this is currently only supported when using a mozilla repo)", default='latest')
     parser.add_option("-c", "--config", dest="config",
