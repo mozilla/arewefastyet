@@ -21,6 +21,15 @@ class Benchmark:
         return results
 
     @staticmethod
+    def injectData(path, data):
+        return data
+
+    @staticmethod
+    def translatePath(path):
+        # return "https/http", "host", "path"
+        raise Exception("NYI")
+
+    @staticmethod
     def name(self):
         raise Exception("NYI")
 
@@ -36,6 +45,34 @@ class Octane(Benchmark):
             else:
                 ret.append({'name': key, 'time': results[key]})
         return ret
+
+    @staticmethod
+    def translatePath(path):
+        if path == "" or path == "/":
+            path = "/octane/index.html"
+        return "http", "chromium.github.io", path
+
+    @staticmethod
+    def injectData(path, data):
+        print "inject"
+        if path == "/octane/index.html":
+            return data.replace("</body>",
+                                "<script>"
+                                "   window.setTimeout(Run, 10000);"
+                                "   var oldAddResult = AddResult;"
+                                "   var results = {};"
+                                "   AddScore = function(score) {"
+                                "      results['total'] = score;"
+                                "      location.href = 'http://localhost:8000/submit?results=' + "
+                                "                          encodeURIComponent(JSON.stringify(results))"
+                                "   };"
+                                "   AddResult = function(name, result) {"
+                                "      results[name] = result;"
+                                "      oldAddResult(name, result);"
+                                "   };"
+                                "</script>"
+                                "</body>");
+        return data
 
     @staticmethod
     def name():
@@ -54,6 +91,34 @@ class Dromaeo(Benchmark):
             else:
                 ret.append({'name': key, 'time': results[key]})
         return ret
+
+    @staticmethod
+    def injectData(path, data):
+        if path == "/webrunner.js":
+            data = data.replace('function init(){',
+                                """
+                                function init(){
+                                    setTimeout(function () {
+                                        interval = true;
+                                        dequeue();
+                                    }, 10000);
+                                """)
+            return data.replace('} else if ( queue.length == 0 ) {',
+                                 """
+                                 } else if ( queue.length == 0 ) {;
+                                    var results = {};
+                                    for (var i=0; i<dataStore.length; i++) {
+                                        results[dataStore[i].curID] = dataStore[i].mean
+                                    }
+                                    var summary = (runStyle === "runs/s" ? Math.pow(Math.E, maxTotal / maxTotalNum) : maxTotal).toFixed(2);
+                                    results["total"] = summary;
+                                    location.href = "http://localhost:8000/submit?results="+encodeURIComponent(JSON.stringify(results))
+                                 """)
+        return data
+
+    @staticmethod
+    def translatePath(path):
+        return "http", "dromaeo.com", path
 
     @staticmethod
     def name():
@@ -75,6 +140,18 @@ class Massive(Benchmark):
         return ret
 
     @staticmethod
+    def injectData(path, data):
+        if path == "/Massive/driver.js":
+            return data.replace("job.calculate().toFixed(3)","normalize(job)")
+        return data
+
+    @staticmethod
+    def translatePath(path):
+        if path == "" or path == "/":
+            path = "/Massive/?autoRun=true,postToURL=http://localhost:8000/submit"
+        return "http", "kripken.github.io", path
+
+    @staticmethod
     def name():
         return "massive"
 
@@ -92,12 +169,59 @@ class JetStream(Benchmark):
         return ret
 
     @staticmethod
+    def injectData(path, data):
+        if path == "/JetStream/":
+            return data.replace("</body>",
+                                "<script>"
+                                "   window.setTimeout(JetStream.start, 10000);"
+                                "</script>"
+                                "</body>");
+        if path == "/JetStream/JetStreamDriver.js":
+            return data.replace("function end()",
+                                "function end()"
+                                "{"
+                                "      location.href = 'http://localhost:8000/submit?results=' + "
+                                "                          encodeURIComponent(JSON.stringify(computeRawResults()))"
+                                "} "
+                                "function foo()");
+        return data
+
+    @staticmethod
+    def translatePath(path):
+        if path == "" or path == "/":
+            path = "/JetStream/"
+        return "http", "browserbench.org", path
+
+    @staticmethod
     def name():
         return "jetstream"
 
 class Speedometer(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "1.0", 4)
+
+    @staticmethod
+    def injectData(path, data):
+        if path == "/Speedometer/":
+            return data.replace("</body>",
+                                """
+                                <script defer>
+                                   window.setTimeout(function() {
+                                       startTest()
+                                       benchmarkClient._updateGaugeNeedle = function (rpm) {
+                                          location.href = 'http://localhost:8000/submit?results=' +
+                                                              encodeURIComponent(JSON.stringify([{'name': '__total__', 'time': rpm}]));
+                                       };
+                                   }, 10000);
+                                </script>
+                                </body>""");
+        return data
+
+    @staticmethod
+    def translatePath(path):
+        if path == "" or path == "/":
+            path = "/Speedometer/"
+        return "http", "browserbench.org", path
 
     @staticmethod
     def name():
@@ -117,6 +241,23 @@ class SpeedometerMisc(Benchmark):
 
         ret.append({'name': "__total__", 'time': results["total"]})
         return ret
+
+    @staticmethod
+    def injectData(path, data):
+        if path == "/InteractiveRunner.html":
+            data = data.replace('if (queryParam !== undefined) {', 'if (true) {')
+            return data.replace('for (var suiteName in measuredValues.tests) {',
+                                """
+                                location.href = "http://localhost:8000/submit?results="+encodeURIComponent(JSON.stringify(measuredValues))
+                                for (var suiteName in measuredValues.tests) {
+                                """)
+        return data
+
+    @staticmethod
+    def translatePath(path):
+        if path == "" or path == "/":
+            path = "/InteractiveRunner.html"
+        return "https", new_host, path
 
     @staticmethod
     def name():
@@ -143,6 +284,19 @@ class Kraken(Benchmark):
 
         ret.append({'name': "__total__", 'time': total })
         return ret
+
+    @staticmethod
+    def injectData(path, data):
+        if path == "/kraken-1.1/driver.html":
+            return data.replace('location = "results.html?" + encodeURI(outputString);',
+                                'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
+        return data
+
+    @staticmethod
+    def translatePath(path):
+        if path == "" or path == "/":
+            path = "/kraken-1.1/driver.html"
+        return "http", "krakenbenchmark.mozilla.org", path
 
     @staticmethod
     def name():
@@ -172,6 +326,19 @@ class SunSpider(Benchmark):
         return ret
 
     @staticmethod
+    def injectData(path, data):
+        if path == "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html":
+            return data.replace('location = "results.html?" + encodeURI(outputString);',
+                                'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
+        return data
+
+    @staticmethod
+    def translatePath(path):
+        if path == "" or path == "/":
+            path = "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html"
+        return "http", "www.webkit.org", path
+
+    @staticmethod
     def name():
         return "sunspider"
 
@@ -180,7 +347,8 @@ class Browsermark(Benchmark):
         Benchmark.__init__(self, "2.1", 5)
         self.url = "http://browsermark.local:8082/"
 
-    def processResults(self, results):
+    @staticmethod
+    def injectData(path, data):
         ret = []
         for item in results["data"]:
             if item[0] == "Overall":
@@ -188,6 +356,10 @@ class Browsermark(Benchmark):
             else:
                 ret.append({'name': item[0], 'time': item[1]})
         return ret
+
+    @staticmethod
+    def translatePath(path):
+        return "http", "browsermark.local", path
 
     @staticmethod
     def name():

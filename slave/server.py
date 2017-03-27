@@ -8,6 +8,7 @@ import signal
 import sys
 import urllib
 import urlparse
+import benchmarks_remote as benchmarks
 
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from SocketServer     import ThreadingMixIn
@@ -111,7 +112,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
         return False
 
     def translatePath(self, host, path):
-        global translates
+        global translates, benchmarks
         translated = False
         for url in translates:
             if host.startswith(url):
@@ -120,38 +121,10 @@ class FakeHandler(SimpleHTTPRequestHandler):
                     new_host = new_host[:-1]
                 translated = True
 
-        if host.startswith("massive."):
-            if path == "" or path == "/":
-                path = "/Massive/?autoRun=true,postToURL=http://localhost:8000/submit"
-            return "http", "kripken.github.io", path
-        elif host.startswith("octane."):
-            if path == "" or path == "/":
-                path = "/octane/index.html"
-            return "http", "chromium.github.io", path
-        elif host.startswith("jetstream."):
-            if path == "" or path == "/":
-                path = "/JetStream/"
-            return "http", "browserbench.org", path
-        elif host.startswith("speedometer."):
-            if path == "" or path == "/":
-                path = "/Speedometer/"
-            return "http", "browserbench.org", path
-        elif host.startswith("kraken."):
-            if path == "" or path == "/":
-                path = "/kraken-1.1/driver.html"
-            return "http", "krakenbenchmark.mozilla.org", path
-        elif host.startswith("sunspider."):
-            if path == "" or path == "/":
-                path = "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html"
-            return "http", "www.webkit.org", path
-        elif host.startswith("browsermark."):
-            return "http", "browsermark.local", path
-        elif host.startswith("dromaeo."):
-            return "http", "dromaeo.com", path
-        elif host.startswith("speedometer-misc"):
-            if path == "" or path == "/":
-                path = "/InteractiveRunner.html"
-            return "https", new_host, path
+        for benchmark in benchmarks.KnownBenchmarks:
+            if host.startswith(benchmark.name()+"."):
+                return benchmark.translatePath(path)
+
         if translated:
             return "http", new_host, path
         return None, None, None
@@ -243,64 +216,10 @@ class FakeHandler(SimpleHTTPRequestHandler):
         return response.status_code, headers, data
 
     def injectData(self, host, path, data):
-        if host.startswith("massive."):
-            if path == "/Massive/driver.js":
-                return data.replace("job.calculate().toFixed(3)","normalize(job)")
-        if host.startswith("octane."):
-            if path == "/octane/index.html":
-                return data.replace("</body>",
-                                    "<script>"
-                                    "   window.setTimeout(Run, 10000);"
-                                    "   var oldAddResult = AddResult;"
-                                    "   var results = {};"
-                                    "   AddScore = function(score) {"
-                                    "      results['total'] = score;"
-                                    "      location.href = 'http://localhost:8000/submit?results=' + "
-                                    "                          encodeURIComponent(JSON.stringify(results))"
-                                    "   };"
-                                    "   AddResult = function(name, result) {"
-                                    "      results[name] = result;"
-                                    "      oldAddResult(name, result);"
-                                    "   };"
-                                    "</script>"
-                                    "</body>");
-        if host.startswith("jetstream."):
-            if path == "/JetStream/":
-                return data.replace("</body>",
-                                    "<script>"
-                                    "   window.setTimeout(JetStream.start, 10000);"
-                                    "</script>"
-                                    "</body>");
-            if path == "/JetStream/JetStreamDriver.js":
-                return data.replace("function end()",
-                                    "function end()"
-                                    "{"
-                                    "      location.href = 'http://localhost:8000/submit?results=' + "
-                                    "                          encodeURIComponent(JSON.stringify(computeRawResults()))"
-                                    "} "
-                                    "function foo()");
-        if host.startswith("speedometer."):
-            if path == "/Speedometer/":
-                return data.replace("</body>",
-                                    """
-                                    <script defer>
-                                       window.setTimeout(function() {
-                                           startTest()
-                                           benchmarkClient._updateGaugeNeedle = function (rpm) {
-                                              location.href = 'http://localhost:8000/submit?results=' +
-                                                                  encodeURIComponent(JSON.stringify([{'name': '__total__', 'time': rpm}]));
-                                           };
-                                       }, 10000);
-                                    </script>
-                                    </body>""");
-        if host.startswith("kraken."):
-            if path == "/kraken-1.1/driver.html":
-                return data.replace('location = "results.html?" + encodeURI(outputString);',
-                                    'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
-        if host.startswith("sunspider."):
-            if path == "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html":
-                return data.replace('location = "results.html?" + encodeURI(outputString);',
-                                    'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
+        global benchmarks
+        for benchmark in benchmarks.KnownBenchmarks:
+            if host.startswith(benchmark.name()+"."):
+                return benchmark.injectData(path, data)
         if host == "localhost":
             if path == "/benchmarks/misc-desktop/hosted/assorted/driver.html":
                 return data.replace('location = "results.html?" + encodeURI(outputString);',
@@ -311,35 +230,6 @@ class FakeHandler(SimpleHTTPRequestHandler):
             if path == "/benchmarks/unity-webgl/Data/mozbench.js":
                 return data.replace('xmlHttp.open("POST", "/results", true);',
                                     'xmlHttp.open("POST", "/submit", true);');
-        if host.startswith("dromaeo."):
-            if path == "/webrunner.js":
-                data = data.replace('function init(){',
-                                    """
-                                    function init(){
-                                        setTimeout(function () {
-                                            interval = true;
-                                            dequeue();
-                                        }, 10000);
-                                    """)
-                return data.replace('} else if ( queue.length == 0 ) {',
-                                     """
-                                     } else if ( queue.length == 0 ) {;
-                                        var results = {};
-                                        for (var i=0; i<dataStore.length; i++) {
-                                            results[dataStore[i].curID] = dataStore[i].mean
-                                        }
-                                        var summary = (runStyle === "runs/s" ? Math.pow(Math.E, maxTotal / maxTotalNum) : maxTotal).toFixed(2);
-                                        results["total"] = summary;
-                                        location.href = "http://localhost:8000/submit?results="+encodeURIComponent(JSON.stringify(results))
-                                     """)
-        if host.startswith("speedometer-misc."):
-            if path == "/InteractiveRunner.html":
-                data = data.replace('if (queryParam !== undefined) {', 'if (true) {')
-                return data.replace('for (var suiteName in measuredValues.tests) {',
-                                    """
-                                    location.href = "http://localhost:8000/submit?results="+encodeURIComponent(JSON.stringify(measuredValues))
-                                    for (var suiteName in measuredValues.tests) {
-                                    """)
         return data
 
 class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
