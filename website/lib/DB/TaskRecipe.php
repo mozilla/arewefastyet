@@ -73,6 +73,12 @@ class TaskRecipe extends DB {
                               "shell.asmjsapps", "shell.asmjsmicro", "shell.dart", "shell.sixspeed"]
 			);
 		}
+		if (strpos($task, "{autodir}") !== false) {
+			$inputs[] = array(
+				"id" => "autodir",
+				"type" => "auto",
+			);
+		}
 		return $inputs;
 	}
 
@@ -80,6 +86,19 @@ class TaskRecipe extends DB {
 		$task = $this->task();
 		$inputs = $this->inputs();
 		foreach ($inputs as $input) {
+			if ($input["type"] == "auto" && $input["id"] == "autodir") {
+				if (isset($values["shell_repo"]) &&
+                    preg_match("/[a-z]*-[a-z]*/i", $values["shell_repo"]))
+				{
+					$task = str_replace("{autodir}", $values["shell_repo"], $task);
+				} else if (isset($values["repo"]) &&
+                           preg_match("/[a-z]*-[a-z]*/i", $values["repo"]))
+				{
+					$task = str_replace("{autodir}", $values["repo"], $task);
+				} else {
+					$task = str_replace("{autodir}", ".", $task);
+				}
+			}
 			if (!isset($values[$input["id"]]))
 				continue;
 
