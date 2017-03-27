@@ -227,7 +227,7 @@ header {
     vertical-align: middle; }
   header .rightSide {
     text-align: right; }
-    header .rightSide div {
+    header .rightSide > div {
       margin-left: 24px; }
   header a {
     text-decoration: none;

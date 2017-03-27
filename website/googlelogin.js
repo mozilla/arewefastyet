@@ -4,7 +4,7 @@ function onSignIn(googleUser) {
 
   //var profile = googleUser.getBasicProfile();
   //console.log('Email: ' + profile.getEmail());
-  var url = window.location.href.replace(window.location.hash, "") + "../auth.php";
+  var url = window.location.origin + "/auth.php";
 
   var xhr = new XMLHttpRequest();
   xhr.open('POST', url);

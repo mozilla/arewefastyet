@@ -74,5 +74,17 @@ class QueuedTask extends DB {
 	function error() {
 		return $this->select("error");
 	}
+
+	static function insert($control_unit_id, $task, $email) {
+		$control_unit_id = (int)$control_unit_id;
+		$task = mysql_real_escape_string($task);
+		$email = mysql_real_escape_string($email);
+
+		mysql_query("INSERT INTO control_task_queue
+					 (control_unit_id, task, email)
+					 VALUES
+					 ($control_unit_id, '$task', '$email')");
+		return mysql_insert_id();
+	}
 }
 
