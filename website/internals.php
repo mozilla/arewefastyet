@@ -59,10 +59,17 @@ function has_permissions()
         return false;
 
     # Test here which persons have permission to see all benchmarks
-    if ($_SESSION['persona'] == "hv1989@gmail.com")
+    if (preg_match("/^[0-9A-Za-z.]*@mozilla\.com$/", $_SESSION['persona'])) {
         return true;
-    if (preg_match("/^[0-9A-Za-z.]*@mozilla\.com$/", $_SESSION['persona']))
-        return true;
+    } else {
+		$split = explode("@", $_SESSION['persona'], 2);
+		if ($split[1] == "gmail.com") {
+			if ($split[0] == "hv1989")
+				return true;
+			if ($split[0] == "evilpies")
+				return true;
+		}
+	}
 
     return false;
 }
