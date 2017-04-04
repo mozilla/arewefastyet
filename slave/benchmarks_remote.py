@@ -342,6 +342,56 @@ class SunSpider(Benchmark):
     def name():
         return "sunspider"
 
+class EmberPerf(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, "0.1", 20)
+
+    def processResults(self, results):
+        ret = []
+        total = 0
+        for item in results["results"]:
+            avg = item["mean"]
+            total += avg
+            ret.append({'name': item["name"], 'time': avg })
+
+        ret.append({'name': "__total__", 'time': total })
+        return ret
+
+    @staticmethod
+    def injectData(path, data):
+        if path == "/assets/ember-performance.js":
+            return data.replace('this.newFlagName = null;',
+                                """
+			        this.newFlagName = null;
+                                setTimeout(function() {
+                                    var button = document.getElementsByTagName("button")[0];
+                                    if (button.innerHTML == "Submit my Results") {
+                                        button.click();
+                                    } else {
+                                        // Disable some tests that don't run to completion.
+                                        document.getElementsByClassName("form-group")[0].getElementsByTagName("input")[7].click();
+                                        document.getElementsByClassName("form-group")[0].getElementsByTagName("input")[8].click();
+                                        document.getElementsByClassName("form-group")[0].getElementsByTagName("input")[9].click();
+                                        document.getElementsByClassName("form-group")[0].getElementsByTagName("input")[12].click();
+                                        document.getElementsByClassName("form-group")[0].getElementsByTagName("input")[15].click();
+
+                                        setTimeout(function() {
+                                            document.getElementsByClassName("footer")[0].getElementsByTagName("button")[0].click()
+                                        }, 10000);
+                                    }
+				}, 4000);
+				""").replace("http://perflogger.eviltrout.com/api/results",
+                                             "http://localhost:8000/submit").replace("POST","GET")
+        return data
+
+    @staticmethod
+    def translatePath(path):
+        return "http", "emberperf.eviltrout.com", path
+
+    @staticmethod
+    def name():
+        return "emberperf"
+
 class Browsermark(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "2.1", 5)
@@ -385,6 +435,7 @@ KnownBenchmarks = [
     SunSpider,
     Browsermark,
     WasmMisc,
+    EmberPerf,
 ]
 
 # TODO use this when showing execute.py's help.
