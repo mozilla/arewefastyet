@@ -66,6 +66,7 @@ function has_permissions()
 		if ($split[1] == "gmail.com") {
 			if ($split[0] == "hv1989")
 				return true;
+		} else if ($split[1] == "googlemail.com") {
 			if ($split[0] == "evilpies")
 				return true;
 		}

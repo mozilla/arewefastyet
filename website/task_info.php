@@ -125,7 +125,7 @@ if ($task_id = GET_int("id")) {
 		while ((match = newline.exec(data)) !== null) {
 			var end = match.index;
 			var line = data.substring(start, end);
-			var result = line.match(/([a-zA-Z0-9,_-]*) \(([a-zA-Z0-9,_. ]*) -- [a-zA-Z0-9]*\): ([0-9.]*)/)
+			var result = line.match(/([a-zA-Z0-9,_-]*) \(([a-zA-Z0-9,_. -]*) -- [a-zA-Z0-9]*\): ([0-9.]*)/)
 
 			if (result) {
 				if (!results[revision][result[2]])
