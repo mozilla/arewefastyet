@@ -99,49 +99,10 @@
    <li>You can unzoom by double-clicking inside a graph.</li>
    <li>A graph will refresh every 5 minutes if it is not zoomed in and has no attached tooltips.</li>
   </ul>
-  <strong>FAQ:</strong>
+  <strong>FAQ:</strong><br />
   <ul>
-   <li>
-    <p>Who maintains this site?</p>
-    <p>This site is maintained by Mozilla's JavaScript team.</p>
-   </li>
-   <li>
-    <p>How does it work?</p>
-    <p>AWFY is automated. Throughout the day, we checkout the latest source code to each available JavaScript engine, and compile it. Then we run it through some benchmark suites, and tally up the scores into a database. This data gets exported as JSON which can then be easily plotted.</p>
-   </li>
-   <li>
-    <p>Why is Opera not available?</p>
-    <p>Historically AWFY runs standalone, command-line JavaScript shells - not the web browsers that embed them. Opera doesn't provide a standalone shell. Currently we have some machines that also runs browser versions, but now Opera has switched to V8 (js engine of Chrome). As a result it doesn't seems that important to include a seperate line, since you can mostly look to the v8 line.</p>
-   </li>
-   <li>
-    <p>Why is IE not available?</p>
-    <p>AWFY runs cutting-edge not released yet versions of the browsers to track improvements and regressions as they happen. The browsers get tested multiple times a day, since that is how fast performance can change from one to another build. IE doesn't provide nightly builds. So a new build is only available every few months/years. In that regard it doesn't really make sense to run benchmarks on it every few hours. (This is nexto the fact that currently only one machine would be able to run IE versions and that IE builds are quite invasive and touch a lot of the machine OS upon install and might cause unrelated regressions on other browsers). Maybe the release of Spartan will bring us closer on having IE on AWFY.</p>
-   </li>
-   <li>
-    <p>Why is Safari not tested on 32-bit machine?</p>
-    <p>Safari defaults to 64-bit machines and doesn't need to worry about 32-bit anymore. Big pieces of their engine is 64-bit only. As a result showing Safari on 32-bit machines would give incorrect results.</p>
-   </li>
-   <li>
-    <p>What are the graphs?</p>
-    <p>The top left-hand graph is Mozilla's Kraken benchmark. The top right-hand graph is Apple's SunSpider benchmark. The bottom graph is Google's V8 benchmark suite.</p>
-   </li>
-   <li>
-    <p>What do the hover tips mean?</p>
-    <p>"Source" is where we got the engine from. "Tested" is when we downloaded the engine, compiled, and tested it. "Rev" is the unique point in the engine's revision history we tested. If the datapoint represents a range, there may be multiple revs. These numbers/strings are for developers to see which changes happened in between points in the graph.</p>
-   </li>
-   <li>
-    <p>What's ARM?</p>
-    <p>ARM is the CPU present in many embedded devices, like smartphones. We're interested in this for mobile Firefox and Firefox OS.</p>
-   </li>
-   <li>
-    <p>Is this open source?</p>
-    <p>Fo' sho', <a href="https://github.com/h4writer/arewefastyet">https://github.com/h4writer/arewefastyet</a></p>
-   </li>
-   <li>
-    <p>Suggestions?</p>
-    <p><a href="mailto:Hannes Verschore <hverschore@mozilla.com>">e-mail</a></p>
+   <li><a href="https://github.com/h4writer/arewefastyet/wiki/FAQ">https://github.com/h4writer/arewefastyet/wiki/FAQ</a></li>
   </ul>
- </div>
  <br>
 </div>
 <script>
