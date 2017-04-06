@@ -421,6 +421,10 @@ class WasmMisc(Benchmark):
         self.url = "http://wasm.local:8000"
 
     @staticmethod
+    def translatePath(path):
+        return "http", "wasm.local", path
+
+    @staticmethod
     def name():
         return "wasm"
 
