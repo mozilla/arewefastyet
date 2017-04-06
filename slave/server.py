@@ -111,15 +111,15 @@ class FakeHandler(SimpleHTTPRequestHandler):
         fp.close()
         return False
 
-    def translatePath(self, host, path):
+    def translatePath(self, old_host, old_path):
         global translates, benchmarks
 	protocol = None
 	host = None
 	path = None
 
         for benchmark in benchmarks.KnownBenchmarks:
-            if host.startswith(benchmark.name()+"."):
-                protocol, host, path = benchmark.translatePath(path)
+            if old_host.startswith(benchmark.name()+"."):
+                protocol, host, path = benchmark.translatePath(old_path)
                 break
 
 	if host:
@@ -127,7 +127,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
                 if host.startswith(url):
                     host = translates[url]
                     if host[-1] == "/":
-                        host = new_host[:-1]
+                        host = host[:-1]
 
         return protocol, host, path
 
