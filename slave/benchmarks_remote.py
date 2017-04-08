@@ -350,7 +350,7 @@ class EmberPerf(Benchmark):
         ret = []
         total = 0
         for item in results["results"]:
-            avg = item["mean"]
+            avg = item["hz"]
             total += avg
             ret.append({'name': item["name"], 'time': avg })
 

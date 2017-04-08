@@ -3,7 +3,7 @@ global $name, $pretty_name, $lower_is_better;
 
 $name = "emberperf"; // Corresponds to the name in benchmarks_shell.py. An unique name without spaces.
 $pretty_name = "Ember perf"; // The name that will be visible on the AWFY site.
-$lower_is_better = true; // If the benchmark is measuring time executing. Lower is better. If the benchmark is a score this needs to be false.
+$lower_is_better = false; // If the benchmark is measuring time executing. Lower is better. If the benchmark is a score this needs to be false.
 
 $migrate = function() {
     global $name, $pretty_name, $lower_is_better;
