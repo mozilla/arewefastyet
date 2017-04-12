@@ -351,10 +351,10 @@ class EmberPerf(Benchmark):
         total = 0
         for item in results["results"]:
             avg = 1000.0 / item["mean"]
-            total += avg
+            total += item["mean"]
             ret.append({'name': item["name"], 'time': avg })
 
-        ret.append({'name': "__total__", 'time': total })
+        ret.append({'name': "__total__", 'time': 1000 / total })
         return ret
 
     @staticmethod
