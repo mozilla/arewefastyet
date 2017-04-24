@@ -363,6 +363,9 @@ if __name__ == "__main__":
         print "Cannot download a 64bit binary on 32bit architecture"
         exit()
 
+    if os.path.exists(os.path.join(options.output, "info.json")):
+        os.remove(os.path.join(options.output, "info.json"))
+
     if options.url:
         downloader = DownloadTools.forSpecificUrl(options.url)
     elif options.repo:
