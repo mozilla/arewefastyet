@@ -24,8 +24,7 @@ class Benchmark:
     def injectData(path, data):
         return data
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         # return "https/http", "host", "path"
         raise Exception("NYI")
 
@@ -46,8 +45,7 @@ class Octane(Benchmark):
                 ret.append({'name': key, 'time': results[key]})
         return ret
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         if path == "" or path == "/":
             path = "/octane/index.html"
         return "http", "chromium.github.io", path
@@ -116,8 +114,7 @@ class Dromaeo(Benchmark):
                                  """)
         return data
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         return "http", "dromaeo.com", path
 
     @staticmethod
@@ -145,8 +142,7 @@ class Massive(Benchmark):
             return data.replace("job.calculate().toFixed(3)","normalize(job)")
         return data
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         if path == "" or path == "/":
             path = "/Massive/?autoRun=true,postToURL=http://localhost:8000/submit"
         return "http", "kripken.github.io", path
@@ -186,8 +182,7 @@ class JetStream(Benchmark):
                                 "function foo()");
         return data
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         if path == "" or path == "/":
             path = "/JetStream/"
         return "http", "browserbench.org", path
@@ -217,8 +212,7 @@ class Speedometer(Benchmark):
                                 </body>""");
         return data
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         if path == "" or path == "/":
             path = "/Speedometer/"
         return "http", "browserbench.org", path
@@ -253,11 +247,10 @@ class SpeedometerMisc(Benchmark):
                                 """)
         return data
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         if path == "" or path == "/":
             path = "/InteractiveRunner.html"
-        return "https", new_host, path
+        return "https", self.url, path
 
     @staticmethod
     def name():
@@ -292,8 +285,7 @@ class Kraken(Benchmark):
                                 'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
         return data
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         if path == "" or path == "/":
             path = "/kraken-1.1/driver.html"
         return "http", "krakenbenchmark.mozilla.org", path
@@ -332,8 +324,7 @@ class SunSpider(Benchmark):
                                 'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
         return data
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         if path == "" or path == "/":
             path = "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html"
         return "http", "www.webkit.org", path
@@ -384,8 +375,7 @@ class EmberPerf(Benchmark):
                                              "http://localhost:8000/submit").replace("POST","GET")
         return data
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         return "http", "emberperf.eviltrout.com", path
 
     @staticmethod
@@ -407,8 +397,7 @@ class Browsermark(Benchmark):
                 ret.append({'name': item[0], 'time': item[1]})
         return ret
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         return "http", "browsermark.local", path
 
     @staticmethod
@@ -420,8 +409,7 @@ class WasmMisc(Benchmark):
         Benchmark.__init__(self, "0.5", timeout=5)
         self.url = "http://wasm.local:8000"
 
-    @staticmethod
-    def translatePath(path):
+    def translatePath(self, path):
         return "http", "wasm.local", path
 
     @staticmethod
