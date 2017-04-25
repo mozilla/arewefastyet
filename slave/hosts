@@ -1,0 +1,14 @@
+127.0.0.1   dromaeo.localhost
+127.0.0.1   kraken.localhost
+127.0.0.1   octane.localhost
+127.0.0.1   massive.localhost
+127.0.0.1   jetstream.localhost
+127.0.0.1   speedometer.localhost
+127.0.0.1   speedometer-misc.localhost
+127.0.0.1   sunspider.localhost
+127.0.0.1   emberperf.localhost
+127.0.0.1   wasm.localhost
+
+127.0.0.1   speedometer-misc.local
+127.0.0.1   browsermark.local
+127.0.0.1   wasm.local
