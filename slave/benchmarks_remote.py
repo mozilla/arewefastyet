@@ -344,7 +344,7 @@ class SunSpider(Benchmark):
 
 class EmberPerf(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "0.1", 20)
+        Benchmark.__init__(self, "0.2", 20)
 
     def processResults(self, results):
         ret = []
@@ -362,25 +362,37 @@ class EmberPerf(Benchmark):
         if path == "/assets/ember-performance.js":
             return data.replace('this.newFlagName = null;',
                                 """
-			        this.newFlagName = null;
+                                this.newFlagName = null;
                                 setTimeout(function() {
                                     var button = document.getElementsByTagName("button")[0];
                                     if (button.innerHTML == "Submit my Results") {
                                         button.click();
                                     } else {
-                                        // Disable some tests that don't run to completion.
-                                        document.getElementsByClassName("form-group")[0].getElementsByTagName("input")[7].click();
-                                        document.getElementsByClassName("form-group")[0].getElementsByTagName("input")[8].click();
-                                        document.getElementsByClassName("form-group")[0].getElementsByTagName("input")[9].click();
-                                        document.getElementsByClassName("form-group")[0].getElementsByTagName("input")[12].click();
-                                        document.getElementsByClassName("form-group")[0].getElementsByTagName("input")[15].click();
+                                        // Select a fixed release.
+                                        var FIXED_RELEASE = '2.13.0';
+                                        var versions = document.querySelectorAll('.form-group')[1];
 
+                                        var checkboxes = versions.querySelectorAll('input[type=checkbox]');
+                                        checkboxes.forEach(function(checkbox) {
+                                            if (checkbox.parentElement.textContent.trim() === FIXED_RELEASE) {
+                                                // Click the targeted release checkbox, so Ember updates
+                                                // internal state.
+                                                if (!checkbox.checked)
+                                                    checkbox.click();
+                                            } else {
+                                                // Unselect other pre-checked checkboxes.
+                                                if (checkbox.checked)
+                                                    checkbox.click();
+                                            }
+                                        });
+
+                                        // Click the "Run tests" button after some time.
                                         setTimeout(function() {
-                                            document.getElementsByClassName("footer")[0].getElementsByTagName("button")[0].click()
-                                        }, 10000);
+                                            document.getElementsByClassName("footer")[0].getElementsByTagName("button")[0].click();
+                                        }, 3000);
                                     }
-				}, 4000);
-				""").replace("http://perflogger.eviltrout.com/api/results",
+                                }, 4000);
+                                """).replace("http://perflogger.eviltrout.com/api/results",
                                              "http://localhost:8000/submit").replace("POST","GET")
         return data
 
