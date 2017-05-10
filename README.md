@@ -12,4 +12,5 @@ A public instance is hosted by Mozilla and running at
 Full Documentation
 ==================
 
-See the [Wiki](https://github.com/h4writer/arewefastyet/wiki/) for full documentation, examples, operational details and other information.
+See the [Wiki](https://github.com/mozilla/arewefastyet/wiki/) for full
+documentation, examples, operational details and other information.

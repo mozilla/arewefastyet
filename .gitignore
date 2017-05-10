@@ -30,3 +30,4 @@ slave/profile
 **/*-results/
 
 output/
+cache/

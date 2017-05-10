@@ -22,7 +22,7 @@ input, select {
 <script>
 $(function() {
 	function report() {
-		alert("Internal error: Please report to hv1989@gmail.com / h4writer on #jsapi.");
+		alert("Internal error: Please report to bbouvier@mozilla.com / bbouvier on #jsapi.");
 	}
 	function urlHas(key, value) {
 		var params = location.search.split(key+"="+value)
