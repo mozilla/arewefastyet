@@ -37,6 +37,10 @@
 
 require_once("internals.php");
 
+if (!has_permissions()) {
+    die("You need to be logged in.");
+}
+
 require_once("lib/RetriggerController.php");
 require_once("lib/DB/TaskQueue.php");
 require_once("lib/DB/QueuedTask.php");
