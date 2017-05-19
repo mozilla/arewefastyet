@@ -56,7 +56,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
         if self.path.startswith("/submit"):
             return self.captureResults(query)
         else:
-            return self.retrieveOffline();
+            return self.retrieveOffline()
 
     def retrieveOffline(self):
         path = self.translate_path(self.path)
@@ -106,10 +106,16 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
     def captureResults(self, query):
         queryParsed = urlparse.parse_qs(query)
-        fp = open("slave/results", "w");
-        fp.write(queryParsed["results"][0]);
+        fp = open("slave/results", "w")
+        fp.write(queryParsed["results"][0])
         fp.close()
-        return False
+
+        content = "Results successfully captured!"
+        self.send_response(200)
+        self.send_header("Content-Length", len(content))
+        self.end_headers()
+        self.wfile.write(bytes(content))
+        return True
 
     def translatePath(self, old_host, old_path):
         global translates, benchmarks

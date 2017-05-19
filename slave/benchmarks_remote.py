@@ -463,10 +463,3 @@ def getBenchmark(name):
         if name == b.name():
             return b()
     raise Exception("Unknown benchmark")
-
-# Test if server is running and start server if needed.
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-result = s.connect_ex(("localhost", 8000))
-s.close()
-if result > 0:
-    subprocess.Popen(["python", "server.py"])

@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import json
+import subprocess
 import sys
 import traceback
 
@@ -101,31 +102,46 @@ for engine_path in options.engines:
         print('Exception: ' +  repr(e))
         traceback.print_exc(file=sys.stdout)
 
-# Run every benchmark for every build and config
-benchmarks = [benchmarks.getBenchmark(i) for i in options.benchmarks]
-for benchmark in benchmarks:
-    for engine_path in engines:
-        info = engineInfo.getInfo(engine_path)
-        executor = executors.getExecutor(info)
+class AutoSpawnServer:
+    def __init__(self):
+        self.server = None
 
-        for config_name in options.configs:
-            config = configs.getConfig(config_name, info)
-            if config.omit():
-                continue
+    def __enter__(self):
+        print("Starting proxy server.")
+        self.server = subprocess.Popen(['python', 'server.py'])
 
-            try:
-                results = executor.run(benchmark, config)
-                if not results:
+    def __exit__(self, type, value, traceback):
+        print("Terminating proxy server.")
+        if self.server:
+            self.server.terminate()
+            self.server = None
+
+with AutoSpawnServer():
+    # Run every benchmark for every build and config
+    benchmarks = [benchmarks.getBenchmark(i) for i in options.benchmarks]
+    for benchmark in benchmarks:
+        for engine_path in engines:
+            info = engineInfo.getInfo(engine_path)
+            executor = executors.getExecutor(info)
+
+            for config_name in options.configs:
+                config = configs.getConfig(config_name, info)
+                if config.omit():
                     continue
-            except Exception as e:
-                print('Failed to run ' + engine_path + ' - ' + benchmark.version + ' - ' + config_name + '!')
-                print('Exception: ' +  repr(e))
-                import traceback
-                traceback.print_exc()
-                continue
 
-            mode = submitter.mode(info["engine_type"], config_name)
-            submitter.addTests(results, benchmark.suite, benchmark.version, mode)
+                try:
+                    results = executor.run(benchmark, config)
+                    if not results:
+                        continue
+                except Exception as e:
+                    print('Failed to run ' + engine_path + ' - ' + benchmark.version + ' - ' + config_name + '!')
+                    print('Exception: ' +  repr(e))
+                    import traceback
+                    traceback.print_exc()
+                    continue
 
-if not options.session:
-    submitter.finish()
+                mode = submitter.mode(info["engine_type"], config_name)
+                submitter.addTests(results, benchmark.suite, benchmark.version, mode)
+
+    if not options.session:
+        submitter.finish()
