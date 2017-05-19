@@ -27,9 +27,10 @@ class ConfigState:
         self.PythonName = None
 
     def init(self, name):
-        self.rawConfig = ConfigParser.RawConfigParser()
         if not os.path.isfile(name):
             raise Exception('could not find file: ' + name)
+
+        self.rawConfig = ConfigParser.RawConfigParser()
         self.rawConfig.read(name)
         self.inited = True
 
@@ -51,12 +52,10 @@ class ConfigState:
 
     def benchmarkTranslates(self):
         assert self.inited
-
         li = self.getDefault("benchmarks", "translate", None)
         if not li:
             return []
         return ConfigState.parseBenchmarkTranslates(li)
-
 
     def get(self, section, name):
         assert self.inited

@@ -24,5 +24,5 @@ def getInfo(path):
         info["args"] = []
     if "env" not in info:
         info["env"] = {}
-    
+
     return info

@@ -23,10 +23,10 @@ if __name__ == "__main__":
         options.output += "/"
 
     info = {}
-    info["revision"] = "25.10586.0.0" 
+    info["revision"] = "25.10586.0.0"
     info["engine_type"] = "edge"
     info["shell"] = False
-    info["binary"] = "" 
+    info["binary"] = ""
 
     if os.path.isdir(options.output):
         shutil.rmtree(options.output)

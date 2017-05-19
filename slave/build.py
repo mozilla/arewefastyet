@@ -311,9 +311,9 @@ class V8Builder(Builder):
 
 class ServoBuilder(Builder):
     def __init__(self, config, folder):
-        super(ServoBuilder, self).__init__(config, folder);
+        super(ServoBuilder, self).__init__(config, folder)
         # Some other config here
-    
+
     def retrieveInfo(self):
         info = {}
         info["engine_type"] = "servo"
