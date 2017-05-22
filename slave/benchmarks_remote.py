@@ -227,9 +227,9 @@ class Speedometer(Benchmark):
     def name():
         return "speedometer"
 
-class SpeedometerMisc(Benchmark):
+class Speedometer2(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "0.1", 4)
+        Benchmark.__init__(self, "0.2", 4)
         self.url = "http://speedometer-misc.local:8000/"
 
     def processResults(self, results):
@@ -245,7 +245,7 @@ class SpeedometerMisc(Benchmark):
     @staticmethod
     def injectData(path, data):
         if path == "/InteractiveRunner.html":
-            data = data.replace('if (queryParam !== undefined) {', 'if (true) {')
+            data = data.replace("if (parseQueryString['startAutomatically'] !== undefined)", "if (true)")
             return data.replace('for (var suiteName in measuredValues.tests) {',
                                 """
                                 location.href = "http://localhost:8000/submit?results="+encodeURIComponent(JSON.stringify(measuredValues))
@@ -257,7 +257,7 @@ class SpeedometerMisc(Benchmark):
     def translatePath(path):
         if path == "" or path == "/":
             path = "/InteractiveRunner.html"
-        return "https", "speedometer-misc.local", path
+        return "http", "speedometer2.benj.me", path
 
     @staticmethod
     def name():
@@ -446,7 +446,7 @@ KnownBenchmarks = [
     Massive,
     JetStream,
     Speedometer,
-    SpeedometerMisc,
+    Speedometer2,
     Kraken,
     SunSpider,
     Browsermark,
