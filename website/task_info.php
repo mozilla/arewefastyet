@@ -35,11 +35,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require_once("internals.php");
-
-if (!has_permissions()) {
-    die("You need to be logged in.");
-}
+require_once("lib/internals.php");
+check_permissions();
 
 require_once("lib/RetriggerController.php");
 require_once("lib/DB/TaskQueue.php");

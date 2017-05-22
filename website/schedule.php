@@ -41,45 +41,45 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require_once("internals.php");
+require_once("lib/internals.php");
+check_permissions();
+
 require_once("lib/DB/QueuedTask.php");
 require_once("lib/DB/TaskRecipe.php");
 
 init_database();
-if (!has_permissions()) {
-	die("You need to be logged in.");
-} else if (isset($_POST["task"])) {
+if (isset($_POST["task"])) {
 
-	$recipe = new TaskRecipe((int)$_POST["task"]);
-	$task = $recipe->fill($_POST);
-	$email = isset($_POST["email"]) ? username() : "";
+    $recipe = new TaskRecipe((int)$_POST["task"]);
+    $task = $recipe->fill($_POST);
+    $email = isset($_POST["email"]) ? username() : "";
 
-	$id = QueuedTask::insert($recipe->control_unit_id(), $task, $email);
+    $id = QueuedTask::insert($recipe->control_unit_id(), $task, $email);
 
-	echo "Task submitted. <br />Results will become visible on <a href='https://arewefastyet.com/task_info.php?id=$id'>https://arewefastyet.com/task_info.php?id=$id</a>";
+    echo "Task submitted. <br />Results will become visible on <a href='https://arewefastyet.com/task_info.php?id=$id'>https://arewefastyet.com/task_info.php?id=$id</a>";
 } else {
-	$recipes = TaskRecipe::all();
-	$recipes_json = [];
-	foreach ($recipes as $recipe) {
-		$recipes_json[] = array(
-			"id" => $recipe->id,
-			"name" => $recipe->name(),
-			"description" => $recipe->description(),
-			"task" => $recipe->task(),
-			"inputs" => $recipe->inputs()
-		);
-	}
-	?>
-	<script>
-	var recipes = <?php echo json_encode($recipes_json); ?>
-	</script>
-		<form method=POST>
-			<h2>Schedule a task</h2>
-			<div class='dashboard_content'></div>
-			<script src='schedule.js'></script>
-			<script>init_schedule();</script>
-		</form>
-	<?php
+    $recipes = TaskRecipe::all();
+    $recipes_json = [];
+    foreach ($recipes as $recipe) {
+        $recipes_json[] = array(
+            "id" => $recipe->id,
+            "name" => $recipe->name(),
+            "description" => $recipe->description(),
+            "task" => $recipe->task(),
+            "inputs" => $recipe->inputs()
+        );
+    }
+?>
+    <script>
+    var recipes = <?php echo json_encode($recipes_json); ?>
+    </script>
+        <form method=POST>
+            <h2>Schedule a task</h2>
+            <div class='dashboard_content'></div>
+            <script src='schedule.js'></script>
+            <script>init_schedule();</script>
+        </form>
+<?php
 }
 ?>
 </div>

@@ -3,7 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require_once("../internals.php");
+require_once("../lib/internals.php");
+check_permissions();
 
 init_database();
 
@@ -13,11 +14,12 @@ $request = json_decode($postdata);
 
 $query = mysql_query("SELECT *
                       FROM awfy_regression_status
-					  WHERE regression_id = '".(int)$request->id."'
+                      WHERE regression_id = '".(int)$request->id."'
                       ORDER BY stamp DESC") or die(mysql_error());
+
 $data = array();
 while ($output = mysql_fetch_assoc($query)) {
-	$data[] = $output;
+    $data[] = $output;
 }
 
 echo json_encode($data);

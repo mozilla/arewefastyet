@@ -3,7 +3,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require_once("../internals.php");
+require_once("../lib/internals.php");
+check_permissions();
+
 init_database();
 
 require_once("data-func.php");
@@ -19,10 +21,10 @@ $ids = array();
 $single = true;
 if (isset($request->ids)) {
 	for ($i=0; $i < count($request->ids); $i++)
-		$ids[] = (int)$request->ids[$i]; 
+		$ids[] = (int)$request->ids[$i];
 	$single = false;
 } else {
-	$ids[] = (int)$request->id; 
+	$ids[] = (int)$request->id;
 }
 $minimal = isset($request->minimal) ? !!$request->minimal : false;
 

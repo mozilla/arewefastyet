@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require_once("internals.php");
+require_once("lib/internals.php");
 require_once("lib/RetriggerController.php");
 require_once("lib/DB/TaskQueue.php");
 require_once("lib/DB/QueuedTask.php");
@@ -23,14 +23,14 @@ if ($unit = GET_int("unit")) {
     RetriggerController::fillQueue($unit);
 
     $task = $queue->get_oldest_available_queued_task();
-	if (!$task) {
-		echo json_encode(Array(
-			"task" => "sleep 60",
-			"id" => 0
-		));
+    if (!$task) {
+        echo json_encode(Array(
+            "task" => "sleep 60",
+            "id" => 0
+        ));
         sleep(5);
-		die();
-	}
+        die();
+    }
 
     $task->setStarted();
 
@@ -46,13 +46,13 @@ if ($unit = GET_int("unit")) {
     $task = new QueuedTask($task_id);
     $task->setFinished();
     if (isset($_POST["output"]))
-		$task->setOutput($_POST["output"]);
+        $task->setOutput($_POST["output"]);
 
-	if ($task->hasEmail()) {
-		mail($task->email(), "AreWeFastYet task ".$task_id." finished",
-			"Task ".$task_id." has finished.\r\n".
-			"You can see the results on https://arewefastyet.com/task_info.php?id=".$task_id);
-	}
+    if ($task->hasEmail()) {
+        mail($task->email(), "AreWeFastYet task ".$task_id." finished",
+            "Task ".$task_id." has finished.\r\n".
+            "You can see the results on https://arewefastyet.com/task_info.php?id=".$task_id);
+    }
 
     die();
 }

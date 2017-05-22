@@ -6,7 +6,7 @@
 
 error_reporting(-1);
 
-include "../internals.php";
+include "../lib/internals.php";
 
 init_database();
 

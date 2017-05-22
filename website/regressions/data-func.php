@@ -3,6 +3,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+require_once("../lib/internals.php");
+check_permissions();
+
 function prev_($sort_order_id, $machine, $mode, $suite, $limit = 1) {
 	$limit = (int) $limit;
     $query = "SELECT awfy_score.id, score, cset

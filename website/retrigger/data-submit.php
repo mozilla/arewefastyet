@@ -3,7 +3,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require_once("../internals.php");
+require_once("../lib/internals.php");
+check_permissions();
+
 require_once("../lib/RetriggerController.php");
 require_once("../lib/VersionControl/HGWeb.php");
 require_once("../lib/DB/ControlTasks.php");

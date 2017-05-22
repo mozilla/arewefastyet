@@ -1,3 +1,10 @@
+<?php
+
+require_once("../lib/internals.php");
+check_permissions();
+
+?>
+
 <html>
 <head>
 <style>
@@ -162,7 +169,7 @@ $(function() {
 
 <label>Benchmarks:
 	<select multiple id='benchmarks'>
-	</select> 
+	</select>
 </label>
 
 

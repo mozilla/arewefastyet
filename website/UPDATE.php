@@ -6,7 +6,7 @@
 if (strpos($_SERVER['SCRIPT_FILENAME'], "UPDATE.php") !== false)
     die("Please rename this file to something more unknown.");
 
-require_once("internals.php");
+require_once("lib/internals.php");
 
 init_database();
 

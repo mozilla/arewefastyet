@@ -1,6 +1,6 @@
 <?php
 
-include "internals.php";
+include "lib/internals.php";
 
 global $config;
 

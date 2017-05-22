@@ -3,7 +3,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require_once("../internals.php");
+require_once("../lib/internals.php");
+check_permissions();
+
 require_once("../lib/RetriggerController.php");
 
 init_database();
@@ -22,4 +24,3 @@ $retrigger = RetriggerController::fromMachine($machine_id, $mode_id);
 $retrigger->convertToRevision($mode_id, $revision, $run_before_id, $run_after_id);
 $retrigger->selectBenchmarks($benchmarks);
 $retrigger->enqueueNow();
-

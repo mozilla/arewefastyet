@@ -3,7 +3,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require_once("../internals.php");
+require_once("../lib/internals.php");
+check_permissions();
+
 init_database();
 
 require_once("../lib/ScoreTools.php");
@@ -24,4 +26,4 @@ else
     $list = ScoreTools::nextList($score, (int)$request->amount);
 
 $last = array_pop($list);
-echo ScoreTools::build($last)->run()->approx_stamp(); 
+echo ScoreTools::build($last)->run()->approx_stamp();

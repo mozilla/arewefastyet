@@ -35,7 +35,7 @@ class Config {
 }
 
 function throw_exception($exception) {
-	throw new Exception($exception);
+    throw new Exception($exception);
 }
 
 function init_database()
@@ -49,8 +49,8 @@ function username()
 {
     if (!isset($_SESSION['persona']))
         return "guest";
-    else
-        return $_SESSION['persona'];
+
+    return $_SESSION['persona'];
 }
 
 function has_permissions()
@@ -61,18 +61,26 @@ function has_permissions()
     # Test here which persons have permission to see all benchmarks
     if (preg_match("/^[0-9A-Za-z.]*@mozilla\.com$/", $_SESSION['persona'])) {
         return true;
-    } else {
-		$split = explode("@", $_SESSION['persona'], 2);
-		if ($split[1] == "gmail.com") {
-			if ($split[0] == "hv1989")
-				return true;
-		} else if ($split[1] == "googlemail.com") {
-			if ($split[0] == "evilpies")
-				return true;
-		}
-	}
+    }
+
+    $split = explode("@", $_SESSION['persona'], 2);
+
+    if ($split[0] == 'hv1989' && split[1] == "gmail.com") {
+        return true;
+    }
+
+    if ($split[0] == "evilpies" && $split[1] == "googlemail.com") {
+        return true;
+    }
 
     return false;
+}
+
+function check_permissions()
+{
+    if (!has_permissions()) {
+        die('You must be logged in to visit this page.');
+    }
 }
 
 function GET_bool($name)
@@ -192,66 +200,66 @@ function awfy_query($query)
     return $result;
 }
 
-if (!function_exists("mysql_connect")){
-	/* warning: fatal error "cannot redeclare" if a function was disabled in php.ini with disable_functions:
-	disable_functions =mysql_connect,mysql_pconnect,mysql_select_db,mysql_ping,mysql_query,mysql_fetch_assoc,mysql_num_rows,mysql_fetch_array,mysql_error,mysql_insert_id,mysql_close,mysql_real_escape_string,mysql_data_seek,mysql_result
-	*/
+if (!function_exists("mysql_connect")) {
+    /* warning: fatal error "cannot redeclare" if a function was disabled in php.ini with disable_functions:
+    disable_functions =mysql_connect,mysql_pconnect,mysql_select_db,mysql_ping,mysql_query,mysql_fetch_assoc,mysql_num_rows,mysql_fetch_array,mysql_error,mysql_insert_id,mysql_close,mysql_real_escape_string,mysql_data_seek,mysql_result
+     */
 
-	function mysql_connect($host, $username, $password){
+    function mysql_connect($host, $username, $password){
         global $dbconnect;
         $dbconnect = mysqli_connect($host, $username, $password);
         return $dbconnect;
-	}
+    }
     function mysql_pconnect($host, $username, $password){
         global $dbconnect;
         $dbconnect = mysqli_connect("p:".$host, $username, $password);
         return $dbconnect;
-	}
+    }
     function mysql_select_db($db){
         global $dbconnect;
         return mysqli_select_db ( $dbconnect,$db );
-	}
+    }
     function mysql_ping($dbconnect){
         return mysqli_ping ( $dbconnect );
-	}
+    }
     function mysql_query($stmt){
-		global $dbconnect;
+        global $dbconnect;
         return mysqli_query ($dbconnect, $stmt );
-	}
+    }
     function mysql_fetch_assoc($erg){
         return mysqli_fetch_assoc ($erg );
-	}
+    }
     function mysql_num_rows($e){
         return mysqli_num_rows ($e );
-	}
+    }
     function mysql_affected_rows($e=NULL){
         return mysqli_affected_rows ($e );
-	}
+    }
     function mysql_fetch_array($e){
         return mysqli_fetch_array ($e );
-	}
+    }
     function mysql_error(){
-		global $dbconnect;
+        global $dbconnect;
         return mysqli_error ($dbconnect);
-	}
+    }
     function mysql_insert_id(){
-		global $dbconnect;
+        global $dbconnect;
         return mysqli_insert_id ($dbconnect);
-	}
+    }
     function mysql_close(){
         return true;
-	}
+    }
     function mysql_escape_string($s){
-		global $dbconnect;
+        global $dbconnect;
         return mysqli_real_escape_string($dbconnect,$s);
-	}
+    }
     function mysql_real_escape_string($s){
-		global $dbconnect;
+        global $dbconnect;
         return mysqli_real_escape_string($dbconnect,$s);
-	}
+    }
     function mysql_data_seek($re,$row){
         return mysqli_data_seek($re,$row);
-	}
+    }
     function mysql_result($res,$row=0,$col=0){
         $numrows = mysqli_num_rows($res);
         if ($numrows && $row <= ($numrows-1) && $row >=0){
