@@ -26,7 +26,7 @@
     <h1><a href='#'>AreWeFastYet</a></h1>
     <div class='rightSide'>
 	  <div><a href="/"><span>Graphs</span></a></div>
-	  <div><a href="http://h4writer.com"><span>Blog</span></a></div>
+	  <div><a href="http://blog.mozilla.org/javascript"><span>Blog</span></a></div>
 	  <div><a href="/overview"><span>Overview</span></a></div>
       <div class='userMenu'>
 	    <div class="g-signin2" data-onsuccess="onSignIn"></div>
