@@ -108,8 +108,10 @@ def Shell(string):
 
 class TimeException(Exception):
     pass
+
 def timeout_handler(signum, frame):
     raise TimeException()
+
 class Handler():
     def __init__(self, signum, lam):
         self.signum = signum
@@ -120,10 +122,10 @@ class Handler():
     def __exit__(self, type, value, traceback):
         signal.signal(self.signum, self.old)
 
-
 def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenargs):
     if timeout is None:
         timeout = config.Timeout
+
     print('Running: "'+ '" "'.join(args) + '" with timeout: ' + str(timeout)+'s')
     print("with: " + str(env))
     p = subprocess.Popen(args, env = env, stdout=subprocess.PIPE, **popenargs)
@@ -171,19 +173,23 @@ def run_realtime(cmd, shell=False, env=None):
 
 def unzip(directory, name):
     if "tar.bz2" in name:
+        print "Running: untar " + name
         tar = tarfile.open(directory + "/" + name)
         tar.extractall(directory + "/")
         tar.close()
     else:
+        print "Running: unzip " + name
         zip = zipfile.ZipFile(directory + "/" + name)
         zip.extractall(directory + "/")
         zip.close()
 
 def chmodx(file):
+    print "Running: chmodx" + file
     st = os.stat(file)
     os.chmod(file, st.st_mode | stat.S_IEXEC)
 
 def fetch_json(url):
+    print "Fetching JSON at " + url
     # TODO: Replace urllib2 with requests.
     headers = {
         'Accept': 'application/json',

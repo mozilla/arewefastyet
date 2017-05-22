@@ -3,6 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import os
 import re
 import urllib
 import urllib2
@@ -20,13 +21,13 @@ class Submitter(object):
             self.urls[i] = self.urls[i].strip()
             self.runIds.append(0)
 
-    def setModeRules(self, rules):
+    def set_mode_rules(self, rules):
         self.rules = {}
         for rule in rules:
             rule = rule.split(":")
             self.rules[rule[0]] = rule[1]
 
-    def setSession(self, session):
+    def set_session(self, session):
         self.runIds = session
 
     def mode(self, engine_type, config):
@@ -36,12 +37,12 @@ class Submitter(object):
         else:
             return name
 
-    def assertMachine(self):
+    def assert_machine(self):
         if not hasattr(self, "machine"):
             print "please provide the machine number for submitting (--submitter-machine)"
             exit()
 
-    def setMachine(self, machine):
+    def set_machine(self, machine):
         self.machine = machine
 
 class RemoteSubmitter(Submitter):
@@ -50,7 +51,7 @@ class RemoteSubmitter(Submitter):
         return self.rules[engine_type + "," + config]
 
     def start(self, timestamp=None):
-        self.assertMachine()
+        self.assert_machine()
         for i in range(len(self.urls)):
             try:
                 url = self.urls[i]
@@ -68,8 +69,8 @@ class RemoteSubmitter(Submitter):
             except urllib2.URLError:
                 self.runIds[i] = None
 
-    def startOutOfOrder(self, mode, revision, run_before, run_after):
-        self.assertMachine()
+    def start_out_of_order(self, mode, revision, run_before, run_after):
+        self.assert_machine()
         for i in range(len(self.urls)):
             try:
                 url = self.urls[i]
@@ -89,7 +90,7 @@ class RemoteSubmitter(Submitter):
             except urllib2.URLError:
                 self.runIds[i] = None
 
-    def createBuild(self, engine_type, config, cset):
+    def create_build(self, engine_type, config, cset):
         mode = self.mode(engine_type, config)
         for i in range(len(self.urls)):
             if not self.runIds[i]:
@@ -105,7 +106,7 @@ class RemoteSubmitter(Submitter):
                 pass
         return mode
 
-    def addTests(self, tests, suite, suiteversion, mode, extra_info = ""):
+    def add_tests(self, tests, suite, suiteversion, mode, extra_info = ""):
         for i in range(len(self.urls)):
             if not self.runIds[i]:
                 continue
@@ -115,16 +116,16 @@ class RemoteSubmitter(Submitter):
             run = self.runIds[i]
             for test in tests:
                 if test['name'] == "__total__":
-                    score = self.submitTest(submiturl, run, suite, suiteversion, mode, test['time'], extra_info)
+                    score = self.submit_test(submiturl, run, suite, suiteversion, mode, test['time'], extra_info)
                     break
 
             if score is None:
-                score = self.submitTest(submiturl, run, suite, suiteversion, mode, 0, extra_info)
+                score = self.submit_test(submiturl, run, suite, suiteversion, mode, 0, extra_info)
             for test in tests:
                 if test['name'] != "__total__":
                     self.submitBreakdown(submiturl, run, score, test['name'], suite, suiteversion, mode, test['time'])
 
-    def submitTest(self, submiturl, run, suite, suiteversion, mode, time, extra_info = ""):
+    def submit_test(self, submiturl, run, suite, suiteversion, mode, time, extra_info = ""):
         try:
             args = { 'name': '__total__',
                      'run': str(run),
@@ -185,16 +186,16 @@ class PrintSubmitter(Submitter):
             msg += " at timestamp" + str(timestamp)
         self.log(msg)
 
-    def createBuild(self, engine_type, config, cset):
+    def create_build(self, engine_type, config, cset):
         mode = self.mode(engine_type, config)
         self.log("Added mode %s (engine: %s, config: %s, changeset: %s)" % (mode, engine_type, config, cset))
         return mode
 
-    def addTests(self, tests, suite, suiteversion, mode, extra_info = ""):
+    def add_tests(self, tests, suite, suiteversion, mode, extra_info = ""):
         for test in tests:
-            self.submitTest(test['name'], suite, suiteversion, mode, test['time'], extra_info)
+            self.submit_test(test['name'], suite, suiteversion, mode, test['time'], extra_info)
 
-    def submitTest(self, name, suite, suiteversion, mode, time, extra_info = ""):
+    def submit_test(self, name, suite, suiteversion, mode, time, extra_info = ""):
         self.log("%s (%s -- %s): %s" % (name, suiteversion, mode, str(time)))
 
     def finish(self, status = 1):
@@ -202,14 +203,13 @@ class PrintSubmitter(Submitter):
         print self.msg
         self.msg = ''
 
-def getSubmitter(name):
+def get_submitter(name):
     if name == 'remote':
         return RemoteSubmitter()
     elif name == 'print':
         return PrintSubmitter()
     else:
         raise Exception('unknown submitter!')
-
 
 if __name__ == "__main__":
     from optparse import OptionParser
@@ -240,9 +240,9 @@ if __name__ == "__main__":
 
     if options.create:
         submitter = RemoteSubmitter()
-        submitter.setMachine(options.machine)
+        submitter.set_machine(options.machine)
         if options.mode:
-            submitter.startOutOfOrder(options.mode, options.rev, options.run_before, options.run_after)
+            submitter.start_out_of_order(options.mode, options.rev, options.run_before, options.run_after)
         else:
             submitter.start()
 
@@ -252,8 +252,7 @@ if __name__ == "__main__":
         fp = open(options.session, "r")
         session = json.load(fp)
         submitter = RemoteSubmitter()
-        submitter.setSession(session)
+        submitter.set_session(session)
         submitter.finish()
 
-        import os
         os.remove(options.session)

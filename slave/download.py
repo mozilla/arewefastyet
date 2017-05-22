@@ -6,50 +6,55 @@ import platform
 import re
 import shutil
 import socket
+import sys
 import tarfile
 import urllib
 import urllib2
 import zipfile
+
+from optparse import OptionParser
 
 socket.setdefaulttimeout(120)
 
 import url_creator
 import utils
 
-DEBUG = True
+def download_from_url(url):
+    print "Downloading from URL {}".format(url)
+    if (url.startswith("http://archive.mozilla.org") or
+        url.startswith("https://archive.mozilla.org") or
+        url.startswith("http://ftp.mozilla.org") or
+        url.startswith("https://ftp.mozilla.org") or
+        url.startswith("http://inbound-archive.pub.build.mozilla.org") or
+        url.startswith("https://inbound-archive.pub.build.mozilla.org")):
+        return ArchiveMozillaDownloader(url)
 
-class DownloadTools(object):
+    if url.startswith("https://queue.taskcluster.net/v1/task/"):
+        return TreeherderDownloader(url)
 
-    @classmethod
-    def forSpecificUrl(cls, url):
-        if (url.startswith("http://archive.mozilla.org") or
-            url.startswith("https://archive.mozilla.org") or
-            url.startswith("http://ftp.mozilla.org") or
-            url.startswith("https://ftp.mozilla.org") or
-            url.startswith("http://inbound-archive.pub.build.mozilla.org") or
-            url.startswith("https://inbound-archive.pub.build.mozilla.org")):
-            return ArchiveMozillaDownloader(url)
-        if url.startswith("https://queue.taskcluster.net/v1/task/"):
-            return TreeherderDownloader(url)
-        if url.startswith("http://commondatastorage.googleapis.com"):
-            return GoogleAPISDownloader(url)
-        if (url.startswith("http://builds.nightly.webkit.org") or
-            url.startswith("https://builds.nightly.webkit.org") or
-            url.startswith("http://builds-nightly.webkit.org") or
-            url.startswith("https://builds-nightly.webkit.org")):
-            return BuildsWebkitDownloader(url)
-        raise Exception("Unknown retriever")
+    if url.startswith("http://commondatastorage.googleapis.com"):
+        return GoogleAPISDownloader(url)
 
-    @classmethod
-    def forRepo(cls, config, repo, cset="latest"):
-        urlCreator = url_creator.getUrlCreator(config, repo)
-        urls = urlCreator.find(cset)
-        for url in urls:
-            print "trying: " + url
-            downloader = DownloadTools.forSpecificUrl(url)
-            if downloader.valid():
-                return downloader
-        raise Exception("couldn't find the revision.")
+    if (url.startswith("http://builds.nightly.webkit.org") or
+        url.startswith("https://builds.nightly.webkit.org") or
+        url.startswith("http://builds-nightly.webkit.org") or
+        url.startswith("https://builds-nightly.webkit.org")):
+        return BuildsWebkitDownloader(url)
+
+    raise Exception("Unknown retriever")
+
+def download_for_repo(config, repo, cset="latest"):
+    print "Downloading for repository {}".format(repo, cset)
+    urlCreator = url_creator.getUrlCreator(config, repo)
+
+    urls = urlCreator.find(cset)
+    for url in urls:
+        print "trying: " + url
+        downloader = download_from_url(url)
+        if downloader.valid():
+            return downloader
+
+    raise Exception("couldn't find the revision.")
 
 class Downloader(object):
 
@@ -87,10 +92,6 @@ class Downloader(object):
         os.makedirs(self.folder)
 
     def retrieve(self, filename):
-        #if DEBUG:
-        #    shutil.copy("firefox.tar.bz2", self.folder + filename)
-        #    return
-
         print "Retrieving", self.url + filename
         urllib.urlretrieve(self.url + filename, self.folder + filename)
 
@@ -332,7 +333,6 @@ class BuildsWebkitDownloader(Downloader):
         return info
 
 if __name__ == "__main__":
-    from optparse import OptionParser
     parser = OptionParser(usage="usage: %prog [options]")
     parser.add_option("-o", "--output", dest="output",
                       help="download to DIR, default=output/", metavar="DIR", default='output')
@@ -346,7 +346,6 @@ if __name__ == "__main__":
                       help="auto, 32bit, 64bit", default='auto')
     (options, args) = parser.parse_args()
 
-    import sys
     if ((sys.version_info.major < 2) or
         (sys.version_info.major == 2 and sys.version_info.minor < 7) or
         (sys.version_info.major == 2 and sys.version_info.minor == 7 and sys.version_info.micro < 10)):
@@ -367,11 +366,14 @@ if __name__ == "__main__":
         os.remove(os.path.join(options.output, "info.json"))
 
     if options.url:
-        downloader = DownloadTools.forSpecificUrl(options.url)
+        downloader = download_from_url(options.url)
     elif options.repo:
-        downloader = DownloadTools.forRepo(options.config, options.repo, options.cset)
+        downloader = download_for_repo(options.config, options.repo, options.cset)
     else:
         raise Exception("You'll need to specify at least an url or repo")
 
     downloader.set_output_folder(options.output)
+
+    print("Starting download...")
     downloader.download()
+    print("Download finished, exiting download.py!")

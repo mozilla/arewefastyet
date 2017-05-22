@@ -82,6 +82,7 @@ class EdgeExecutor(BrowserExecutor):
         })
 
         # kill browser
+        print "Killing Edge (before)..."
         process = runner.start("cmd.exe", ["/C", "taskkill", "/IM", "MicrosoftEdge.exe", "/F"], env)
         process.wait()
 
@@ -99,6 +100,7 @@ class EdgeExecutor(BrowserExecutor):
         self.waitForResults(benchmark.timeout)
 
         # kill browser
+        print "Killing Edge (after)..."
         runner.start("cmd.exe", ["/C", "taskkill", "/IM", "MicrosoftEdge.exe", "/F"], env)
 
 class FirefoxExecutor(BrowserExecutor):
@@ -113,6 +115,7 @@ class FirefoxExecutor(BrowserExecutor):
         })
 
         # kill all possible running instances.
+        print "Killing Firefox (before)..."
         runner.killAllInstances()
         runner.killall("plugin-container")
 
@@ -138,6 +141,7 @@ class FirefoxExecutor(BrowserExecutor):
         self.waitForResults(benchmark.timeout)
 
         # kill browser
+        print "Killing Firefox (after)..."
         runner.kill(process)
         runner.killAllInstances()
         runner.killall("plugin-container")
@@ -155,6 +159,7 @@ class ChromeExecutor(BrowserExecutor):
         })
 
         # kill all possible running instances.
+        print "Killing Chrome (before)..."
         runner.killAllInstances()
 
         # if needed install the executable
@@ -188,6 +193,7 @@ class ChromeExecutor(BrowserExecutor):
         self.waitForResults(benchmark.timeout)
 
         # kill browser
+        print "Killing Chrome (after)..."
         runner.kill(process)
         runner.killAllInstances()
 
@@ -202,6 +208,7 @@ class WebKitExecutor(BrowserExecutor):
         })
 
         # kill all possible running instances.
+        print "Killing Webkit (before)..."
         runner.killAllInstances()
 
         # remove the saved tabs.
@@ -220,6 +227,7 @@ class WebKitExecutor(BrowserExecutor):
         self.waitForResults(benchmark.timeout)
 
         # kill browser
+        print "Killing Webkit (after)..."
         runner.kill(process)
         runner.killAllInstances()
 
@@ -228,6 +236,7 @@ class ServoExecutor(BrowserExecutor):
         runner = runners.getRunner(self.engineInfo["platform"], {})
 
         # kill all possible running instances.
+        print "Killing Servo (before)..."
         runner.killall("servo")
 
         # reset the result
@@ -240,6 +249,7 @@ class ServoExecutor(BrowserExecutor):
         self.waitForResults(benchmark.timeout)
 
         # kill browser
+        print "Killing Servo (after)..."
         runner.kill(process)
 
 

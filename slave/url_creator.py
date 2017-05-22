@@ -1,8 +1,8 @@
 import platform
 import urllib2
 import re
-import utils
 
+import utils
 
 class UrlCreator(object):
     def __init__(self, config, repo):

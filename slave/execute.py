@@ -72,19 +72,18 @@ if options.mode_rules is None:
 #TODO:remove
 utils.config.init("awfy.config")
 
-submitter = submitter.getSubmitter(options.submitter)
-submitter.setModeRules(options.mode_rules)
+submitter = submitter.get_submitter(options.submitter)
+submitter.set_mode_rules(options.mode_rules)
 
 if options.session:
     assert not options.machine
     fp = open(options.session, "r")
     session = json.load(fp)
-    submitter.setSession(session)
+    submitter.set_session(session)
 else:
     if options.machine:
-        submitter.setMachine(options.machine)
+        submitter.set_machine(options.machine)
     submitter.start()
-
 
 # Submit the revisions for every build.
 engines = []
@@ -95,7 +94,7 @@ for engine_path in options.engines:
             config = configs.getConfig(config_name, info)
             if config.omit():
                 continue
-            submitter.createBuild(info["engine_type"], config_name, info["revision"])
+            submitter.create_build(info["engine_type"], config_name, info["revision"])
         engines.append(engine_path)
     except Exception as e:
         print('Failed to get info about ' + engine_path + '!')
@@ -107,19 +106,26 @@ class AutoSpawnServer:
         self.server = None
 
     def __enter__(self):
-        print("Starting proxy server.")
+        print("EXECUTE: Starting proxy server.")
         self.server = subprocess.Popen(['python', 'server.py'])
 
     def __exit__(self, type, value, traceback):
-        print("Terminating proxy server.")
+        print("EXECUTE: Terminating proxy server.")
         if self.server:
             self.server.terminate()
             self.server = None
 
 with AutoSpawnServer():
-    # Run every benchmark for every build and config
+    print "EXECUTE: Running each benchmark for each config..."
+
     benchmarks = [benchmarks.getBenchmark(i) for i in options.benchmarks]
     for benchmark in benchmarks:
+
+        try:
+            print "EXECUTE: now trying to run benchmark %s..." % benchmark.suite
+        except:
+            pass
+
         for engine_path in engines:
             info = engineInfo.getInfo(engine_path)
             executor = executors.getExecutor(info)
@@ -141,7 +147,9 @@ with AutoSpawnServer():
                     continue
 
                 mode = submitter.mode(info["engine_type"], config_name)
-                submitter.addTests(results, benchmark.suite, benchmark.version, mode)
+                submitter.add_tests(results, benchmark.suite, benchmark.version, mode)
 
     if not options.session:
         submitter.finish()
+
+    print "EXECUTE: my work is done here!"
