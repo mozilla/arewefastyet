@@ -256,7 +256,7 @@ class Speedometer(Benchmark):
 
 class Speedometer2(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, 4)
+        Benchmark.__init__(self, 40)
         self.url = "http://speedometer-misc.local:8000/"
 
     def process_results(self, results):
@@ -267,14 +267,35 @@ class Speedometer2(Benchmark):
                 ret.append({'name': category+"-"+test+"-async", 'time': results["tests"][category]["tests"][test]["tests"]["Async"]})
 
         ret.append({'name': "__total__", 'time': results["total"]})
+        ret.append({'name': "score", 'time': results["score"]})
         return ret
 
     @staticmethod
     def inject_data(path, data):
-        if path == "/InteractiveRunner.html":
+        if path == "/" or path == "/index.html":
+            # Inject the script that will auto-click the start button.
+            data = data.replace('</body>', """</body>
+<script>
+    setTimeout(function() {
+        document.getElementById('home').getElementsByTagName('button')[0].click();
+    }, 3000);
+</script>""")
+
+        elif path == "/resources/main.js":
+            # When the index.html benchmark is done, continue to InteractiveRunner.html.
+            data = data.replace("var arithmeticMean = sum / values.length;", """
+var arithmeticMean = sum / values.length;
+location.href = "http://speedometer-misc.local:8000/InteractiveRunner.html?score=" + encodeURIComponent(arithmeticMean);
+""")
+
+        elif path.startswith("/InteractiveRunner.html"):
+            # Automatically start the interactive runner.
             data = data.replace("if (parseQueryString['startAutomatically'] !== undefined)", "if (true)")
-            return data.replace('for (var suiteName in measuredValues.tests) {',
+
+            # Submit the results to the final page.
+            data = data.replace('for (var suiteName in measuredValues.tests) {',
                                 """
+                                measuredValues.score = location.search.substr(1).split('=')[1];
                                 location.href = "http://localhost:8000/submit?results="+encodeURIComponent(JSON.stringify(measuredValues))
                                 for (var suiteName in measuredValues.tests) {
                                 """)
@@ -282,8 +303,6 @@ class Speedometer2(Benchmark):
 
     @staticmethod
     def translate_path(path):
-        if path == "" or path == "/":
-            path = "/InteractiveRunner.html"
         return "http", "speedometer2.benj.me", path
 
     @staticmethod
