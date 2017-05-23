@@ -1,6 +1,6 @@
 import json
 
-def getInfo(path):
+def read_info_file(path):
     if not path.endswith("/"):
         path += "/"
 

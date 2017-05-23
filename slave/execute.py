@@ -89,7 +89,7 @@ else:
 engines = []
 for engine_path in options.engines:
     try:
-        info = engineInfo.getInfo(engine_path)
+        info = engineInfo.read_info_file(engine_path)
         for config_name in options.configs:
             config = configs.getConfig(config_name, info)
             if config.omit():
@@ -127,8 +127,8 @@ with AutoSpawnServer():
             pass
 
         for engine_path in engines:
-            info = engineInfo.getInfo(engine_path)
-            executor = executors.getExecutor(info)
+            info = engineInfo.read_info_file(engine_path)
+            executor = executors.make_executor(info)
 
             for config_name in options.configs:
                 config = configs.getConfig(config_name, info)
