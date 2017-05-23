@@ -84,7 +84,7 @@ class ManipulateTask extends Task {
                 if (!isset($mode_rules[$mode]))
                     continue;
                 $rule = $mode_rules[$mode];
-                $rule = split(",", $rule);
+                $rule = explode(",", $rule);
                 $engines[] = $rule[0];
                 $configs[] = $rule[1];
             }

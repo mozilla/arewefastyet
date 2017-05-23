@@ -110,7 +110,7 @@ class Task {
         } else {
             $mode_rules = Array();
             foreach ($mode_matches as $mode_match) {
-                $mode_match = split(":", $mode_match);
+                $mode_match = explode(":", $mode_match);
                 $mode_rules[$mode_match[0]] = $mode_match[1];
             }
         }
