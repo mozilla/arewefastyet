@@ -11,9 +11,9 @@ import utils
 
 class Benchmark:
     """ timeout is in minutes """
-    def __init__(self, version, timeout=2, suite=None):
+    def __init__(self, timeout=2, suite=None):
         self.suite = suite if suite is not None else self.name()
-        self.version = self.suite + " " + version
+        self.version = self.suite + " " + self.static_version()
         self.url = 'http://' + self.suite + ".localhost:8000"
         self.timeout = timeout
 
@@ -21,21 +21,28 @@ class Benchmark:
         return results
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         return data
 
     @staticmethod
-    def translatePath(path):
-        # return "https/http", "host", "path"
+    def translate_path(path):
+        """Returns a triplet of the form (protocol, host, path)"""
         raise Exception("NYI")
 
     @staticmethod
     def name(self):
+        """Returns the string name of the benchmark."""
+        raise Exception("NYI")
+
+    @staticmethod
+    def static_version():
+        """Returns a string version of the current benchmark, reused for
+        caching."""
         raise Exception("NYI")
 
 class Octane(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "2.0.1")
+        Benchmark.__init__(self)
 
     def processResults(self, results):
         ret = []
@@ -47,13 +54,13 @@ class Octane(Benchmark):
         return ret
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         if path == "" or path == "/":
             path = "/octane/index.html"
         return "http", "chromium.github.io", path
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         print "inject"
         if path == "/octane/index.html":
             return data.replace("</body>",
@@ -75,12 +82,16 @@ class Octane(Benchmark):
         return data
 
     @staticmethod
+    def static_version():
+        return "2.0.1"
+
+    @staticmethod
     def name():
         return "octane"
 
 class Dromaeo(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "1.0", 20)
+        Benchmark.__init__(self, 20)
         self.url = 'http://' + self.suite + ".localhost:8000/?recommended"
 
     def processResults(self, results):
@@ -93,7 +104,7 @@ class Dromaeo(Benchmark):
         return ret
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         if path == "/webrunner.js":
             data = data.replace('function init(){',
                                 """
@@ -117,8 +128,12 @@ class Dromaeo(Benchmark):
         return data
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         return "http", "dromaeo.com", path
+
+    @staticmethod
+    def static_version():
+        return "1.0"
 
     @staticmethod
     def name():
@@ -126,7 +141,7 @@ class Dromaeo(Benchmark):
 
 class Massive(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "1.2", 9)
+        Benchmark.__init__(self, 9)
 
     def processResults(self, results):
         ret = []
@@ -140,16 +155,20 @@ class Massive(Benchmark):
         return ret
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         if path == "/Massive/driver.js":
             return data.replace("job.calculate().toFixed(3)","normalize(job)")
         return data
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         if path == "" or path == "/":
             path = "/Massive/?autoRun=true,postToURL=http://localhost:8000/submit"
         return "http", "kripken.github.io", path
+
+    @staticmethod
+    def static_version():
+        return "1.2"
 
     @staticmethod
     def name():
@@ -157,7 +176,7 @@ class Massive(Benchmark):
 
 class JetStream(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "1.0", 5)
+        Benchmark.__init__(self, 5)
 
     def processResults(self, results):
         ret = []
@@ -169,7 +188,7 @@ class JetStream(Benchmark):
         return ret
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         if path == "/JetStream/":
             return data.replace("</body>",
                                 "<script>"
@@ -187,10 +206,14 @@ class JetStream(Benchmark):
         return data
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         if path == "" or path == "/":
             path = "/JetStream/"
         return "http", "browserbench.org", path
+
+    @staticmethod
+    def static_version():
+        return "1.0"
 
     @staticmethod
     def name():
@@ -198,10 +221,10 @@ class JetStream(Benchmark):
 
 class Speedometer(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "1.0", 4)
+        Benchmark.__init__(self, 4)
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         if path == "/Speedometer/":
             return data.replace("</body>",
                                 """
@@ -218,10 +241,14 @@ class Speedometer(Benchmark):
         return data
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         if path == "" or path == "/":
             path = "/Speedometer/"
         return "http", "browserbench.org", path
+
+    @staticmethod
+    def static_version():
+        return "1.0"
 
     @staticmethod
     def name():
@@ -229,7 +256,7 @@ class Speedometer(Benchmark):
 
 class Speedometer2(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "0.2", 4)
+        Benchmark.__init__(self, 4)
         self.url = "http://speedometer-misc.local:8000/"
 
     def processResults(self, results):
@@ -243,7 +270,7 @@ class Speedometer2(Benchmark):
         return ret
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         if path == "/InteractiveRunner.html":
             data = data.replace("if (parseQueryString['startAutomatically'] !== undefined)", "if (true)")
             return data.replace('for (var suiteName in measuredValues.tests) {',
@@ -254,10 +281,14 @@ class Speedometer2(Benchmark):
         return data
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         if path == "" or path == "/":
             path = "/InteractiveRunner.html"
         return "http", "speedometer2.benj.me", path
+
+    @staticmethod
+    def static_version():
+        return "2.0"
 
     @staticmethod
     def name():
@@ -265,7 +296,7 @@ class Speedometer2(Benchmark):
 
 class Kraken(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "1.1")
+        Benchmark.__init__(self)
 
     def processResults(self, results):
         ret = []
@@ -286,17 +317,21 @@ class Kraken(Benchmark):
         return ret
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         if path == "/kraken-1.1/driver.html":
             return data.replace('location = "results.html?" + encodeURI(outputString);',
                                 'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
         return data
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         if path == "" or path == "/":
             path = "/kraken-1.1/driver.html"
         return "http", "krakenbenchmark.mozilla.org", path
+
+    @staticmethod
+    def static_version():
+        return "1.1"
 
     @staticmethod
     def name():
@@ -304,7 +339,7 @@ class Kraken(Benchmark):
 
 class SunSpider(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "1.0.2", 1, suite="ss")
+        Benchmark.__init__(self, 1, suite="ss")
         self.url = "http://sunspider.localhost:8000/"
 
     def processResults(self, results):
@@ -326,17 +361,21 @@ class SunSpider(Benchmark):
         return ret
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         if path == "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html":
             return data.replace('location = "results.html?" + encodeURI(outputString);',
                                 'location.href = "http://localhost:8000/submit?results=" + encodeURI(outputString);');
         return data
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         if path == "" or path == "/":
             path = "/perf/sunspider-1.0.2/sunspider-1.0.2/driver.html"
         return "http", "www.webkit.org", path
+
+    @staticmethod
+    def static_version():
+        return "1.0.2"
 
     @staticmethod
     def name():
@@ -344,7 +383,7 @@ class SunSpider(Benchmark):
 
 class EmberPerf(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "0.2", 20)
+        Benchmark.__init__(self, 20)
 
     def processResults(self, results):
         ret = []
@@ -358,7 +397,7 @@ class EmberPerf(Benchmark):
         return ret
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         if path == "/assets/ember-performance.js":
             return data.replace('this.newFlagName = null;',
                                 """
@@ -397,8 +436,12 @@ class EmberPerf(Benchmark):
         return data
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         return "http", "emberperf.eviltrout.com", path
+
+    @staticmethod
+    def static_version():
+        return "0.2"
 
     @staticmethod
     def name():
@@ -406,11 +449,11 @@ class EmberPerf(Benchmark):
 
 class Browsermark(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "2.1", 5)
+        Benchmark.__init__(self, 5)
         self.url = "http://browsermark.local:8082/"
 
     @staticmethod
-    def injectData(path, data):
+    def inject_data(path, data):
         ret = []
         for item in results["data"]:
             if item[0] == "Overall":
@@ -420,8 +463,12 @@ class Browsermark(Benchmark):
         return ret
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         return "http", "browsermark.local", path
+
+    @staticmethod
+    def static_version():
+        return "2.1"
 
     @staticmethod
     def name():
@@ -429,16 +476,21 @@ class Browsermark(Benchmark):
 
 class WasmMisc(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "0.5", timeout=5)
+        Benchmark.__init__(self, timeout=5)
         self.url = "http://wasm.local:8000"
 
     @staticmethod
-    def translatePath(path):
+    def translate_path(path):
         return "http", "wasm.local", path
+
+    @staticmethod
+    def static_version():
+        return "0.5"
 
     @staticmethod
     def name():
         return "wasm"
+
 
 KnownBenchmarks = [
     Octane,
