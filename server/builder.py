@@ -4,7 +4,7 @@ class LineBuilder:
     def __init__(self, mode_id):
         self.points = []
         self.mode_id = mode_id
-        self.time_occurence = {} 
+        self.time_occurence = {}
 
     def addPoint(self, time, first, last, score, suite_version, id):
         if not score:
@@ -78,8 +78,8 @@ class GraphBuilder:
     def newLine(self, mode_id):
         line = LineBuilder(mode_id)
         self.lines.append(line)
-        return line 
-        
+        return line
+
     def _calculate_max_occurences(self):
         # Returns a dictionary with for every timestamp in
         # all lines the maxium number of times it occurs in one line.
@@ -89,12 +89,12 @@ class GraphBuilder:
             for time in line_occurences:
                 if time not in max_occurences:
                     max_occurences[time] = 0
-                max_occurences[time] = max(max_occurences[time], line_occurences[time]) 
+                max_occurences[time] = max(max_occurences[time], line_occurences[time])
         return max_occurences
 
     def _timelist(self):
         if len(self.lines) == 0:
-            return []    
+            return []
 
         # After fixup, all lines have the same time_occurences.
         # Take the first one to create the timelist.

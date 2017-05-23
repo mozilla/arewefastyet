@@ -2,13 +2,24 @@ import benchmarks_local
 import benchmarks_remote
 import benchmarks_shell
 
-def getBenchmark(benchmark):
-    section, name = benchmark.split(".")
+def all_names():
+    ret =  ["remote.{}".format(b.name()) for b in benchmarks_remote.Known]
+    ret += ["shell.{}".format(b.name()) for b in benchmarks_shell.Known]
+    ret += ["local.{}".format(b.name()) for b in benchmarks_local.Known]
+    return ret
+
+def get(target):
+    section, name = target.split(".")
     if section == "local":
-        return benchmarks_local.getBenchmark(name)
+        known = benchmarks_local.Known
     elif section == "remote":
-        return benchmarks_remote.getBenchmark(name)
+        known = benchmarks_remote.Known
     elif section == "shell":
-        return benchmarks_shell.getBenchmark(name)
+        known = benchmarks_shell.Known
     else:
         raise Exception("Unknown benchmark type")
+
+    for B in known:
+        if name == B.name():
+            return B()
+    raise Exception("Unknown benchmark", name)

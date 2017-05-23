@@ -1,24 +1,25 @@
-import subprocess
-import socket
-import os
-import time
 import json
+import os
+import socket
+import subprocess
 import sys
+import time
+
 import utils
 
 class Benchmark:
     """ timeout is in minutes """
-    def __init__(self, suite, folder, page, timeout=2):
+    def __init__(self, folder, page, timeout=2):
         if folder.endswith("/"):
             folder = folder[:-1]
 
-        self.suite = suite
+        self.suite = self.name()
         self.page = "benchmarks/" + folder + "/" + page
         self.timeout = timeout
 
         with utils.chdir(os.path.join(utils.config.BenchmarkPath, folder)):
             fp = open("VERSION", 'r')
-            self.version = suite + " " + fp.read().strip("\r\n\r\n \t")
+            self.version = self.suite + " " + fp.read().strip("\r\n\r\n \t")
             fp.close()
 
         host = utils.config.get('main', 'serverUrl')
@@ -27,16 +28,15 @@ class Benchmark:
         self.url = host + self.page
 
     def run(self, engine, submit):
-        # Run tests.
-        runOneBenchmark = False
-        for modeInfo in engine.modes:
+        run_at_least_once = False
+        for mode_info in engine.modes:
             if os.path.exists("results"):
                 os.unlink("results")
 
             host = utils.config.get('main', 'serverUrl')
             if host[-1] != "/":
                 host += "/"
-            engine.run(host+self.page, modeInfo)
+            engine.run(host + self.page, mode_info)
 
             timeout = self.timeout * 60
             while not os.path.exists("results") and timeout > 0:
@@ -53,19 +53,28 @@ class Benchmark:
             fp.close()
 
             results = self.process_results(results)
-            submit.AddTests(results, self.suite, self.version, modeInfo["name"])
+            submit.AddTests(results, self.suite, self.version, mode_info["name"])
 
-            runOneBenchmark = True
-        return runOneBenchmark
+            run_at_least_once = True
+        return run_at_least_once
 
     def process_results(self, results):
         return results
 
+    @staticmethod
+    def name():
+        """Returns the string name of the benchmark."""
+        raise Exception("NYI")
+
 class AssortedDOM(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "assorteddom", "misc-desktop/", "hosted/assorted/driver.html", 1)
+        Benchmark.__init__(self, "misc-desktop/", "hosted/assorted/driver.html", 1)
         with utils.FolderChanger(os.path.join(utils.config.BenchmarkPath, "misc-desktop")):
             print subprocess.check_output(["python", "make-hosted.py"])
+
+    @staticmethod
+    def name():
+        return "assorteddom"
 
     def process_results(self, results):
         ret = []
@@ -87,11 +96,15 @@ class AssortedDOM(Benchmark):
 
 class WebGLSamples(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "webglsamples", "webglsamples/", "test.html", 1)
+        Benchmark.__init__(self, "webglsamples/", "test.html", 1)
+
+    @staticmethod
+    def name():
+        return "webglsamples"
 
 class WebAudio(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "webaudio", "webaudio/", "index.html", 2)
+        Benchmark.__init__(self, "webaudio/", "index.html", 2)
 
     def process_results(self, results):
         ret = []
@@ -102,9 +115,17 @@ class WebAudio(Benchmark):
             ret.append({'name': item['name'], 'time': item['duration'] })
         return ret
 
+    @staticmethod
+    def name():
+        return "webaudio"
+
 class UnityWebGL(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, "unity-webgl", "unity-webgl/", "index.html",  6)
+        Benchmark.__init__(self, "unity-webgl/", "index.html",  6)
+
+    @staticmethod
+    def name():
+        return "unity-webgl"
 
     def process_results(self, results):
         ret = []
@@ -115,13 +136,9 @@ class UnityWebGL(Benchmark):
             ret.append({'name': item['benchmark'], 'time': item['result'] })
         return ret
 
-def getBenchmark(name):
-    if name == "webglsamples":
-        return WebGLSamples()
-    if name == "assorteddom":
-        return AssortedDOM()
-    if name == "webaudio":
-        return WebAudio()
-    if name == "unity-webgl":
-        return UnityWebGL()
-    raise Exception("Unknown benchmark")
+Known = [
+    AssortedDOM,
+    WebGLSamples,
+    WebAudio,
+    UnityWebGL,
+]

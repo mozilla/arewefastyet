@@ -11,11 +11,11 @@ import submitter
 import utils
 
 class Benchmark(object):
-    def __init__(self, suite, folder):
+    def __init__(self, folder, suite=None):
         if folder.endswith("/"):
             folder = folder[:-1]
 
-        self.suite = suite
+        self.suite = suite if suite is not None else self.name()
         self.folder_ = folder
 
         with utils.chdir(os.path.join(utils.config.BenchmarkPath, self.folder_)):
@@ -26,9 +26,19 @@ class Benchmark(object):
     def folder(self):
         return self.folder_
 
+    @staticmethod
+    def name():
+        """Returns the string name of the benchmark."""
+        raise Exception("NYI")
+
+
 class Octane(Benchmark):
     def __init__(self):
-        super(Octane, self).__init__('octane', 'octane/')
+        super(Octane, self).__init__('octane/')
+
+    @staticmethod
+    def name():
+        return "octane"
 
     def getCommand(self, shell, args):
         full_args = [shell]
@@ -56,8 +66,8 @@ class Octane(Benchmark):
         return tests
 
 class SunSpiderBased(Benchmark):
-    def __init__(self, suite, folder, runs):
-        super(SunSpiderBased, self).__init__(suite, folder)
+    def __init__(self, folder, runs, suite=None):
+        super(SunSpiderBased, self).__init__(folder, suite=suite)
         self.runs = runs
 
     def getCommand(self, shell, args):
@@ -95,19 +105,31 @@ class SunSpiderBased(Benchmark):
 
 class SunSpider(SunSpiderBased):
     def __init__(self):
-        super(SunSpider, self).__init__('ss', 'SunSpider/', 20)
+        super(SunSpider, self).__init__('SunSpider/', 20, suite='ss')
+
+    @staticmethod
+    def name():
+        return 'sunspider'
 
 class Kraken(SunSpiderBased):
     def __init__(self):
-        super(Kraken, self).__init__('kraken', 'kraken/', 5)
+        super(Kraken, self).__init__('kraken/', 5)
+
+    @staticmethod
+    def name():
+        return 'kraken'
 
 class Assorted(SunSpiderBased):
     def __init__(self):
-        super(Assorted, self).__init__('misc', 'misc/', 3)
+        super(Assorted, self).__init__('misc/', 3, suite='misc')
+
+    @staticmethod
+    def name():
+        return 'assorted'
 
 class AsmJSBased(Benchmark):
-    def __init__(self, suite, folder):
-        super(AsmJSBased, self).__init__(suite, folder)
+    def __init__(self, folder, suite=None):
+        super(AsmJSBased, self).__init__(folder, suite=suite)
 
     def getCommand(self, shell, args):
         full_args = ['./harness.sh', shell + " " + " ".join(args)]
@@ -129,15 +151,27 @@ class AsmJSBased(Benchmark):
 
 class AsmJSMicro(AsmJSBased):
     def __init__(self):
-        super(AsmJSMicro, self).__init__('asmjs-ubench', 'asmjs-ubench/')
+        super(AsmJSMicro, self).__init__('asmjs-ubench/', suite='asmjs-ubench')
+
+    @staticmethod
+    def name():
+        return 'asmjsmicro'
 
 class AsmJSApps(AsmJSBased):
     def __init__(self):
-        super(AsmJSApps, self).__init__('asmjs-apps', 'asmjs-apps/')
+        super(AsmJSApps, self).__init__('asmjs-apps/', suite='asmjs-apps')
+
+    @staticmethod
+    def name():
+        return 'asmjsapps'
 
 class Dart(Benchmark):
     def __init__(self):
-        super(Dart, self).__init__('dart', 'dart/')
+        super(Dart, self).__init__('dart/')
+
+    @staticmethod
+    def name():
+        return 'dart'
 
     def getCommand(self, shell, args):
         full_args = [shell]
@@ -167,7 +201,11 @@ class Dart(Benchmark):
 
 class SixSpeed(Benchmark):
     def __init__(self):
-        super(SixSpeed, self).__init__('six-speed', 'six-speed/')
+        super(SixSpeed, self).__init__('six-speed/', suite='six-speed')
+
+    @staticmethod
+    def name():
+        return 'sixspeed'
 
     def getCommand(self, shell, args):
         full_args = [shell]
@@ -196,21 +234,13 @@ class SixSpeed(Benchmark):
 
         return tests
 
-def getBenchmark(name):
-    if name == "octane":
-        return Octane()
-    if name == "sunspider":
-        return SunSpider()
-    if name == "kraken":
-        return Kraken()
-    if name == "assorted":
-        return Assorted()
-    if name == "asmjsapps":
-        return AsmJSApps()
-    if name == "asmjsmicro":
-        return AsmJSMicro()
-    if name == "dart":
-        return Dart()
-    if name == "sixspeed":
-        return SixSpeed()
-    raise Exception("Unknown benchmark")
+Known = [
+    Octane,
+    SunSpider,
+    Kraken,
+    Assorted,
+    AsmJSApps,
+    AsmJSMicro,
+    Dart,
+    SixSpeed
+]

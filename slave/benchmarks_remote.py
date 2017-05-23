@@ -30,7 +30,7 @@ class Benchmark:
         raise Exception("NYI")
 
     @staticmethod
-    def name(self):
+    def name():
         """Returns the string name of the benchmark."""
         raise Exception("NYI")
 
@@ -510,7 +510,7 @@ class WasmMisc(Benchmark):
         return "wasm"
 
 
-KnownBenchmarks = [
+Known = [
     Octane,
     Dromaeo,
     Massive,
@@ -523,13 +523,3 @@ KnownBenchmarks = [
     WasmMisc,
     EmberPerf,
 ]
-
-# TODO use this when showing execute.py's help.
-def get_all_known_benchmark_names():
-    return [b.name() for b in KnownBenchmarks]
-
-def getBenchmark(name):
-    for b in KnownBenchmarks:
-        if name == b.name():
-            return b()
-    raise Exception("Unknown benchmark")

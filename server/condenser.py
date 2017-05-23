@@ -36,7 +36,7 @@ def export(name, j):
 def find_all_months(cx, prefix, name):
     pattern = prefix + 'raw-' + name + '-*-*.json'
     re_pattern = prefix + 'raw-' + name + '-(\d\d\d\d)-(\d+)\.json'
-    
+
     with FolderChanger(awfy.path):
         files = []
         for file in glob.glob(pattern):

@@ -16,8 +16,11 @@ import utils
 
 parser = OptionParser(usage="usage: %prog url [options]")
 
+benchmark_help = "Benchmark to run (the local ones are deprecated): " \
+                 + ', '.join(benchmarks.all_names())
+
 parser.add_option("-b", "--benchmark", action="append", dest="benchmarks",
-                  help="Benchmark to run (the local ones are deprecated): remote.octane, remote.dromaeo, remote.massive, remote.jetstream, remote.speedometer, remote.kraken, remote.sunspider, remote.browsermark, remote.wasm, shell.octane, shell.sunspider, shell.kraken, shell.assorted, shell.asmjsapps, shell.asmjsmicro, shell.shumway, shell.dart, shell.sixspeed, local.octane, local.sunspider, local.kraken, local.weglsamples, local.assorteddom")
+                  help=benchmark_help)
 
 parser.add_option("-s", "--submitter", dest="submitter", type="string", default="print",
                   help="Submitter class ('remote' or 'print')")
@@ -46,7 +49,9 @@ if options.configs is None:
     options.configs = ["default"]
 
 if options.benchmarks is None:
-    print "Please provide a benchmark to run."
+    print "Please provide a benchmark to run"
+    print ""
+    parser.print_help()
     exit()
 
 if options.mode_rules is None:
@@ -118,7 +123,7 @@ class AutoSpawnServer:
 with AutoSpawnServer():
     print "EXECUTE: Running each benchmark for each config..."
 
-    benchmarks = [benchmarks.getBenchmark(i) for i in options.benchmarks]
+    benchmarks = [benchmarks.get(name) for name in options.benchmarks]
     for benchmark in benchmarks:
 
         try:

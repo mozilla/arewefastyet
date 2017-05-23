@@ -129,7 +129,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
         path = None
         version = None
 
-        for benchmark in benchmarks.KnownBenchmarks:
+        for benchmark in benchmarks.Known:
             if old_host.startswith(benchmark.name()+"."):
                 protocol, host, path = benchmark.translate_path(old_path)
                 version = benchmark.static_version()
@@ -240,7 +240,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
     def inject_data(self, host, path, data):
         global benchmarks
-        for benchmark in benchmarks.KnownBenchmarks:
+        for benchmark in benchmarks.Known:
             if host.startswith(benchmark.name()+"."):
                 return benchmark.inject_data(path, data)
 
