@@ -54,14 +54,14 @@ def fetch_test_scores(machine_id, suite_id, name,
       suite_ids.append(str(row[0]))
 
     with Profiler() as p:
-        query = "SELECT id                                                              \
-                 FROM awfy_run                                                          \
-                 WHERE status > 0                                                       \
-                 AND machine = %s                                                       \
-                 AND approx_stamp >= "+str(approx_stamp[0])+"                           \
-                 AND approx_stamp <= "+str(approx_stamp[1])+"                           \
-                 AND finish_stamp >= "+str(finish_stamp[0])+"                           \
-                 AND finish_stamp <= "+str(finish_stamp[1])+"                           \
+        query = "SELECT id                                    \
+                 FROM awfy_run                                \
+                 WHERE status > 0                             \
+                 AND machine = %s                             \
+                 AND approx_stamp >= "+str(approx_stamp[0])+" \
+                 AND approx_stamp <= "+str(approx_stamp[1])+" \
+                 AND finish_stamp >= "+str(finish_stamp[0])+" \
+                 AND finish_stamp <= "+str(finish_stamp[1])+" \
                  "
         c.execute(query, [machine_id])
         run_ids = ['0']
@@ -70,17 +70,17 @@ def fetch_test_scores(machine_id, suite_id, name,
         diff = p.time()
     print('found ' + str(len(run_ids)) + ' rows in ' + diff)
 
-    query = "SELECT r.id, r.approx_stamp, bu.cset, s.score, bu.mode_id, v.id, s.id   \
-             FROM awfy_suite_version v                                              \
-             JOIN awfy_suite_test t ON v.id = t.suite_version_id                    \
-             JOIN awfy_breakdown s ON s.suite_test_id = t.id                        \
-             JOIN awfy_score s1 ON s.score_id = s1.id                               \
-             JOIN awfy_build bu ON s1.build_id = bu.id                                \
-		     JOIN awfy_run r ON r.id = bu.run_id                                     \
-             WHERE v.suite_id = %s                                                  \
-             AND t.id in ("+(",".join(suite_ids))+")                                \
-             AND r.id in ("+(",".join(run_ids))+")                                  \
-             ORDER BY r.sort_order ASC                                              \
+    query = "SELECT r.id, r.approx_stamp, bu.cset, s.score, bu.mode_id, v.id, s.id \
+             FROM awfy_suite_version v                                             \
+             JOIN awfy_suite_test t ON v.id = t.suite_version_id                   \
+             JOIN awfy_breakdown s ON s.suite_test_id = t.id                       \
+             JOIN awfy_score s1 ON s.score_id = s1.id                              \
+             JOIN awfy_build bu ON s1.build_id = bu.id                             \
+             JOIN awfy_run r ON r.id = bu.run_id                                   \
+             WHERE v.suite_id = %s                                                 \
+             AND t.id in ("+(",".join(suite_ids))+")                               \
+             AND r.id in ("+(",".join(run_ids))+")                                 \
+             ORDER BY r.sort_order ASC                                             \
              "
     c.execute(query, [suite_id])
     return c.fetchall()
@@ -88,19 +88,19 @@ def fetch_test_scores(machine_id, suite_id, name,
 def fetch_suite_scores(machine_id, suite_id,
                        finish_stamp = (0, "UNIX_TIMESTAMP()"),
                        approx_stamp = (0, "UNIX_TIMESTAMP()")):
-    query = "SELECT STRAIGHT_JOIN r.id, r.approx_stamp, b.cset, s.score, b.mode_id, v.id, s.id   \
-             FROM awfy_run r                                                        \
-             JOIN awfy_build b ON r.id = b.run_id                                   \
-             JOIN awfy_score s ON s.build_id = b.id                                 \
-             JOIN awfy_suite_version v ON v.id = s.suite_version_id                 \
-             WHERE v.suite_id = %s                                                  \
-             AND r.status > 0                                                       \
-             AND r.machine = %s                                                     \
-             AND r.approx_stamp >= "+str(approx_stamp[0])+"                         \
-             AND r.approx_stamp <= "+str(approx_stamp[1])+"                         \
-             AND r.finish_stamp >= "+str(finish_stamp[0])+"                         \
-             AND r.finish_stamp <= "+str(finish_stamp[1])+"                         \
-             ORDER BY r.sort_order ASC                                              \
+    query = "SELECT STRAIGHT_JOIN r.id, r.approx_stamp, b.cset, s.score, b.mode_id, v.id, s.id \
+             FROM awfy_run r                                                                   \
+             JOIN awfy_build b ON r.id = b.run_id                                              \
+             JOIN awfy_score s ON s.build_id = b.id                                            \
+             JOIN awfy_suite_version v ON v.id = s.suite_version_id                            \
+             WHERE v.suite_id = %s                                                             \
+             AND r.status > 0                                                                  \
+             AND r.machine = %s                                                                \
+             AND r.approx_stamp >= "+str(approx_stamp[0])+"                                    \
+             AND r.approx_stamp <= "+str(approx_stamp[1])+"                                    \
+             AND r.finish_stamp >= "+str(finish_stamp[0])+"                                    \
+             AND r.finish_stamp <= "+str(finish_stamp[1])+"                                    \
+             ORDER BY r.sort_order ASC                                                         \
              "
     c = awfy.db.cursor()
     c.execute(query, [suite_id, machine_id])
@@ -166,8 +166,8 @@ def update_cache(cx, suite, prefix, when, rows):
     for i, oldline in enumerate(cache['lines']):
         cache_modes[int(oldline['modeid'])] = oldline
 
-    # Test that there are only datapoints added at the end. 
-    # Else report to fully renew cache. 
+    # Test that there are only datapoints added at the end.
+    # Else report to fully renew cache.
     if len(cache['timelist']) and len(new_data['timelist']):
         if new_data['timelist'][0] < cache['timelist'][-1]:
             return False
@@ -239,7 +239,7 @@ def renew_cache(cx, machine, suite, prefix, when, fetch):
     new_rows = len(rows)
     print('found ' + str(new_rows) + ' rows in ' + diff)
 
-    update_cache(cx, suite, name, when, rows) 
+    update_cache(cx, suite, name, when, rows)
 
 def perform_update(cx, machine, suite, prefix, fetch):
     # Fetch the actual data.
@@ -340,7 +340,7 @@ def export_master(cx):
     with open(path, 'w') as fp:
         fp.write(text)
 
-	j["suites"] = cx.exportSuitesAll()
+    j["suites"] = cx.exportSuitesAll()
     text = "var AWFYMaster = " + json.dumps(j) + ";\n"
 
     path = os.path.join(awfy.path, 'auth-master.js')
