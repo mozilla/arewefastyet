@@ -471,8 +471,7 @@ class Browsermark(Benchmark):
         Benchmark.__init__(self, 5)
         self.url = "http://browsermark.local:8082/"
 
-    @staticmethod
-    def inject_data(path, data):
+    def process_results(self, results):
         ret = []
         for item in results["data"]:
             if item[0] == "Overall":
