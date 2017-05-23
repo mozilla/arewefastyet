@@ -17,7 +17,7 @@ class Benchmark:
         self.url = 'http://' + self.suite + ".localhost:8000"
         self.timeout = timeout
 
-    def processResults(self, results):
+    def process_results(self, results):
         return results
 
     @staticmethod
@@ -44,7 +44,7 @@ class Octane(Benchmark):
     def __init__(self):
         Benchmark.__init__(self)
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         for key in results:
             if key == "total":
@@ -94,7 +94,7 @@ class Dromaeo(Benchmark):
         Benchmark.__init__(self, 20)
         self.url = 'http://' + self.suite + ".localhost:8000/?recommended"
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         for key in results:
             if key == "total":
@@ -143,7 +143,7 @@ class Massive(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, 9)
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         for item in results:
             if item == None:
@@ -178,7 +178,7 @@ class JetStream(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, 5)
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         for item in results:
             if item == "geomean":
@@ -259,7 +259,7 @@ class Speedometer2(Benchmark):
         Benchmark.__init__(self, 4)
         self.url = "http://speedometer-misc.local:8000/"
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         for category in results["tests"]:
             for test in results["tests"][category]["tests"]:
@@ -298,7 +298,7 @@ class Kraken(Benchmark):
     def __init__(self):
         Benchmark.__init__(self)
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         total = 0
         for item in results:
@@ -342,7 +342,7 @@ class SunSpider(Benchmark):
         Benchmark.__init__(self, 1, suite="ss")
         self.url = "http://sunspider.localhost:8000/"
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         total = 0
         for item in results:
@@ -385,7 +385,7 @@ class EmberPerf(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, 20)
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         total = 0
         for item in results["results"]:

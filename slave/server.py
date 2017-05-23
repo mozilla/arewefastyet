@@ -18,6 +18,8 @@ import utils
 utils.config.init("awfy.config")
 translates = utils.config.benchmarkTranslates()
 
+seen_cachedirs = {}
+
 class FakeHandler(SimpleHTTPRequestHandler):
 
     def handle_one_request(self):
@@ -108,9 +110,9 @@ class FakeHandler(SimpleHTTPRequestHandler):
         return True
 
     def capture_results(self, query):
-        queryParsed = urlparse.parse_qs(query)
+        parsed_query = urlparse.parse_qs(query)
         fp = open("slave/results", "w")
-        fp.write(queryParsed["results"][0])
+        fp.write(parsed_query["results"][0])
         fp.close()
 
         content = "Results successfully captured!"
@@ -189,8 +191,10 @@ class FakeHandler(SimpleHTTPRequestHandler):
 
         # One-off migration: if there's a cache dir with the previous name
         # format, assume it's the latest version and rename it.
-        if os.path.exists("cache/" + host + "/"):
-            os.rename("cache/" + host, "cache/" + bench_dir_name)
+        if seen_cachedirs.get(bench_dir_name, None) is None:
+            if os.path.exists("cache/" + host + "/"):
+                os.rename("cache/" + host, "cache/" + bench_dir_name)
+            seen_cachedirs[bench_dir_name] = True
 
         if os.path.exists(cached_path):
             # Reuse the cached version.

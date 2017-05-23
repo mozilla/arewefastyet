@@ -38,7 +38,7 @@ class Octane(Benchmark):
 
         return full_args
 
-    def processResults(self, output):
+    def process_results(self, output):
         tests = []
         lines = output.splitlines()
 
@@ -68,7 +68,7 @@ class SunSpiderBased(Benchmark):
 
         return ["sunspider", "--shell=" + shell, "--runs=" + str(self.runs), args]
 
-    def processResults(self, output):
+    def process_results(self, output):
         tests = []
 
         lines = output.splitlines()
@@ -113,7 +113,7 @@ class AsmJSBased(Benchmark):
         full_args = ['./harness.sh', shell + " " + " ".join(args)]
         return full_args
 
-    def processResults(self, output):
+    def process_results(self, output):
         total = 0.0
         tests = []
         for line in output.splitlines():
@@ -147,7 +147,7 @@ class Dart(Benchmark):
 
         return full_args
 
-    def processResults(self, output):
+    def process_results(self, output):
         tests = []
         lines = output.splitlines()
 
@@ -177,7 +177,7 @@ class SixSpeed(Benchmark):
 
         return full_args
 
-    def processResults(self, output):
+    def process_results(self, output):
         tests = []
         lines = output.splitlines()
 

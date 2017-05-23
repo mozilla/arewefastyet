@@ -52,13 +52,13 @@ class Benchmark:
             results = json.loads(fp.read())
             fp.close()
 
-            results = self.processResults(results)
+            results = self.process_results(results)
             submit.AddTests(results, self.suite, self.version, modeInfo["name"])
 
             runOneBenchmark = True
         return runOneBenchmark
 
-    def processResults(self, results):
+    def process_results(self, results):
         return results
 
 class AssortedDOM(Benchmark):
@@ -67,7 +67,7 @@ class AssortedDOM(Benchmark):
         with utils.FolderChanger(os.path.join(utils.config.BenchmarkPath, "misc-desktop")):
             print subprocess.check_output(["python", "make-hosted.py"])
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         total = 0
         for item in results:
@@ -93,7 +93,7 @@ class WebAudio(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "webaudio", "webaudio/", "index.html", 2)
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         total = 0
         for item in results:
@@ -106,7 +106,7 @@ class UnityWebGL(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "unity-webgl", "unity-webgl/", "index.html",  6)
 
-    def processResults(self, results):
+    def process_results(self, results):
         ret = []
         total = 0
         for item in results:

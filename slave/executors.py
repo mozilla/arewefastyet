@@ -37,7 +37,7 @@ class ShellExecutor(object):
         command = benchmark.getCommand(binary, args)
         output = runner.execute(command, env, benchmarkDir)
 
-        return benchmark.processResults(output)
+        return benchmark.process_results(output)
 
 class BrowserExecutor(object):
 
@@ -59,7 +59,7 @@ class BrowserExecutor(object):
         results = json.loads(fp.read())
         fp.close()
 
-        return benchmark.processResults(results)
+        return benchmark.process_results(results)
 
     def resetResults(self):
         if not os.path.exists("results"):
