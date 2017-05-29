@@ -81,7 +81,7 @@ class Downloader(object):
         self.retrieve(filename)
         self.extract(filename)
 
-        info = self.retrieveInfo()
+        info = self.retrieve_info()
         fp = open(self.folder + "info.json", "w")
         json.dump(info, fp)
         fp.close()
@@ -114,7 +114,7 @@ class TreeherderDownloader(Downloader):
     def getfilename(self):
         return self.filename
 
-    def retrieveInfo(self):
+    def retrieve_info(self):
         infoname = self.getinfoname()
 
         response = urllib2.urlopen(self.url + infoname)
@@ -177,7 +177,7 @@ class ArchiveMozillaDownloader(Downloader):
 
         return None
 
-    def retrieveInfo(self):
+    def retrieve_info(self):
         infoname = self.getinfoname()
 
         response = urllib2.urlopen(self.url + infoname)
@@ -294,7 +294,7 @@ class GoogleAPISDownloader(Downloader):
             return self.folder + "chrome-android/apks/ChromeShell.apk"
         assert False
 
-    def retrieveInfo(self):
+    def retrieve_info(self):
         response = urllib2.urlopen(self.url + "REVISIONS")
         cset = re.findall('"v8_revision_git": "([a-z0-9]*)",', response.read())[0]
 
@@ -319,7 +319,7 @@ class BuildsWebkitDownloader(Downloader):
     def getfilename(self):
         return self.file
 
-    def retrieveInfo(self):
+    def retrieve_info(self):
         print self.file
         cset = re.findall('-r([a-z0-9]*)\.dmg', self.file)[0]
 

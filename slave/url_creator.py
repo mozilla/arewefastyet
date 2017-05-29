@@ -91,7 +91,7 @@ class MozillaUrlCreator(UrlCreator):
             return ["osx-10-7"]
 
     def latest(self):
-        url = "https://treeherder.mozilla.org/api/project/"+self.repo+"/resultset/?count=10"
+        url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/resultset/?count=10"
         data = utils.fetch_json(url)
 
         revisions = [i["revision"] for i in data["results"]]
@@ -110,7 +110,7 @@ class MozillaUrlCreator(UrlCreator):
     def _urlForRevision(self, cset):
         # here we use a detour using treeherder to find the build_id,
         # corresponding to a revision.
-        url = "https://treeherder.mozilla.org/api/project/"+self.repo+"/resultset/?full=false&revision="+cset
+        url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/resultset/?full=false&revision=" + cset
         data = utils.fetch_json(url)
 
         # No corresponding build found given revision
@@ -124,10 +124,15 @@ class MozillaUrlCreator(UrlCreator):
 
         id = str(data["results"][0]["id"])
 
-        url = "https://treeherder.mozilla.org/api/project/"+self.repo+"/jobs/?count=2000&result_set_id="+str(id)+""
+        url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/jobs/?count=2000&result_set_id=" + str(id)
         data = utils.fetch_json(url)
         builds = data["results"]
-        builds = [i for i in builds if i["build_system_type"] == "taskcluster"]
+
+        if self._platform() != "macosx64":
+            builds = [i for i in builds if i["build_system_type"] == "taskcluster"]
+        else:
+            builds = [i for i in builds if i["build_system_type"] == "buildbot"]
+
         builds = [i for i in builds if i["job_type_symbol"] == "B" or i["job_type_symbol"] == "Bo"] # Builds
         builds = [i for i in builds if i["platform_option"] == "opt"] # opt / debug / pgo
         builds = [i for i in builds if i["platform"] in self.treeherder_platform()] # platform
@@ -140,7 +145,19 @@ class MozillaUrlCreator(UrlCreator):
             print "Found multiple builds. Couldn't decide."
             return []
 
-        url = "https://treeherder.mozilla.org/api/jobdetail/?job_guid="+str(builds[0]["job_guid"])
+        if self._platform() == "macosx64":
+            url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/job-log-url/?job_id=" + str(builds[0]["id"])
+            data = utils.fetch_json(url)
+
+            if len(data) == 0:
+                return []
+
+            # The URL is the full path to the text log archive. Remove the file
+            # name so as to keep the build directory URL.
+            build_dir = '/'.join(data[0]["url"].split('/')[:-1])
+            return [build_dir]
+
+        url = "https://treeherder.mozilla.org/api/jobdetail/?job_guid=" + str(builds[0]["job_guid"])
         data = utils.fetch_json(url)
 
         urls = [item["url"] for item in data["results"] if item["url"]]
@@ -171,4 +188,4 @@ def getUrlCreator(config, name):
         return ChromeUrlCreator(config, name)
     if "webkit" in name:
         return WebKitUrlCreator(config, name)
-    raise Exception("Unkown vendor")
+    raise Exception("Unknown vendor")

@@ -115,7 +115,7 @@ class Builder(object):
 
         assert self.successfullyBuild()
 
-        info = self.retrieveInfo()
+        info = self.retrieve_info()
         info["revision"] = puller.identify()
         # Default 'shell' to True only if it isn't set yet!
         if 'shell' not in info:
@@ -135,7 +135,7 @@ class MozillaBuilder(Builder):
             self.env.add("CROSS_COMPILE", '1')
             self.env.addCCOption("-m32")
 
-    def retrieveInfo(self):
+    def retrieve_info(self):
         info = {}
         info["engine_type"] = "firefox"
         if self.config.startswith("android"):
@@ -198,7 +198,7 @@ class MozillaBuilder(Builder):
         utils.run_realtime("make -j6 -C " + os.path.join(self.folder, 'js', 'src', 'Opt'), shell=True)
 
 class WebkitBuilder(Builder):
-    def retrieveInfo(self):
+    def retrieve_info(self):
         info = {}
         info["engine_type"] = "webkit"
         return info
@@ -257,7 +257,7 @@ class V8Builder(Builder):
                 with open(folder + "/.gclient", "a") as myfile:
                     myfile.write("target_os = ['android']")
 
-    def retrieveInfo(self):
+    def retrieve_info(self):
         info = {}
         info["engine_type"] = "chrome"
         info["args"] = ['--expose-gc']
@@ -314,7 +314,7 @@ class ServoBuilder(Builder):
         super(ServoBuilder, self).__init__(config, folder)
         # Some other config here
 
-    def retrieveInfo(self):
+    def retrieve_info(self):
         info = {}
         info["engine_type"] = "servo"
         info['shell'] = False
