@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 import sys
 import json
 import urllib2
@@ -267,44 +269,46 @@ class V8Builder(Builder):
 
     def make(self):
         if self.config == "android":
-            objdir = os.path.realpath(self.objdir())
-            if not os.path.isdir(objdir):
-                os.mkdir(objdir)
-            with utils.FolderChanger(os.path.join(self.folder, 'v8')):
-                config = [
-                    'is_component_build = false',
-                    'is_debug = false',
-                    'symbol_level = 1',
-                    'target_cpu = "arm"',
-                    'target_os = "android"',
-                    'v8_android_log_stdout = true',
-                    'v8_test_isolation_mode = "prepare"',
-                ]
-                args = 'gn gen '+objdir+' --args=\''+" ".join(config)+'\''
-                Run(args, self.env.get(), shell=True)
-                Run(["ninja", "-C", objdir], self.env.get())
-            return
-
-        args = ['make', '-j6']
-        if self.config == '32bit':
-            args += ['ia32.release']
-        elif self.config == '64bit':
-            args += ['x64.release']
+            target_cpu = "arm"
+        elif self.config == "32bit":
+            target_cpu = "x86"
+        elif self.config == "64bit":
+            target_cpu = "x64"
         else:
-            assert True
+            raise Exception("Unknown config in V8Builder.make!")
+
+        objdir = os.path.realpath(self.objdir())
+        if not os.path.isdir(objdir):
+            os.mkdir(objdir)
 
         with utils.FolderChanger(os.path.join(self.folder, 'v8')):
-            Run(args, self.env.get())
+            config = [
+                'is_component_build = false',
+                'is_debug = false',
+                'symbol_level = 1',
+                'target_cpu = "{}"'.format(target_cpu),
+                'v8_test_isolation_mode = "prepare"',
+            ]
+
+            if self.config == "arm":
+                config += [
+                    'v8_android_log_stdout = true',
+                    'target_os = "android"'
+                ]
+
+            args = 'gn gen ' + objdir + ' --args=\'' + " ".join(config) + '\''
+            Run(args, self.env.get(), shell=True)
+
+            Run(["ninja", "-C", objdir], self.env.get())
 
     def objdir(self):
         if self.config == 'android':
             return os.path.join(self.folder, 'v8', 'out', 'android_arm.release')
         if self.config == '64bit':
             return os.path.join(self.folder, 'v8', 'out', 'x64.release')
-        elif self.config == '32bit':
+        if self.config == '32bit':
             return os.path.join(self.folder, 'v8', 'out', 'ia32.release')
-        else:
-            assert False
+        raise "Unknown configuration in V8Builder.objdir!"
 
     def binary(self):
         return os.path.join(self.objdir(), 'd8')

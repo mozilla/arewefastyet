@@ -120,6 +120,11 @@ class GIT(Puller):
             return m.group(1)
 
 class V8GIT(GIT):
+    def make_env(self):
+        env = os.environ.copy()
+        env["PATH"] = os.path.join(self.folder, 'depot_tools') + ':' + env["PATH"]
+        return env
+
     def clone(self):
         os.mkdir(self.folder)
         with FolderChanger(self.folder):
@@ -127,8 +132,7 @@ class V8GIT(GIT):
             Run(['git', 'clone', 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'])
 
             # get actual v8 source
-            env = os.environ.copy()
-            Run(['fetch', 'v8'], {"PATH": "depot_tools/:"+env["PATH"]})
+            Run(['fetch', 'v8'], env=self.make_env())
 
         #TODO: not needed?
         #with FolderChanger(self.path()):
@@ -149,7 +153,7 @@ class V8GIT(GIT):
 
         env = os.environ.copy()
         with FolderChanger(self.path()):
-            Run(['gclient', 'sync'], {"PATH": os.path.abspath("../depot_tools/")+":"+env["PATH"]})
+            Run(['gclient', 'sync'], self.make_env())
 
 class MozillaTry(HG):
     """
