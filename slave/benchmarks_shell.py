@@ -20,7 +20,7 @@ class Benchmark(object):
 
         with utils.chdir(os.path.join(utils.config.BenchmarkPath, self.folder_)):
             fp = open("VERSION", 'r')
-            self.version = suite + " " + fp.read().strip("\r\n\r\n \t")
+            self.version = self.suite + " " + fp.read().strip("\r\n\r\n \t")
             fp.close()
 
     def folder(self):

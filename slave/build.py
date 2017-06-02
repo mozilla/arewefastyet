@@ -128,6 +128,8 @@ class Builder(object):
         json.dump(info, fp)
         fp.close()
 
+        print "Build done!"
+
 class MozillaBuilder(Builder):
     def __init__(self, config, folder):
         super(MozillaBuilder, self).__init__(config, folder);
