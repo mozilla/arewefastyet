@@ -225,12 +225,12 @@ class FakeHandler(SimpleHTTPRequestHandler):
             "Accept-Language": self.headers.get("Accept-Language", ""),
         }
 
-        url = protocol+"://"+host+path
+        url = protocol + "://" + host + path
 
         if not postdata:
             response = requests.get(url=url, headers=headers, verify=False)
         else:
-            headers["Content-Length"] = len(postdata)
+            headers["Content-Length"] = str(len(postdata))
             response = requests.post(url=url, data=postdata, headers=headers, verify=False)
 
         headers = [[key, response.headers[key]] for key in response.headers]

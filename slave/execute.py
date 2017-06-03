@@ -56,6 +56,7 @@ if options.benchmarks is None:
 
 if options.mode_rules is None:
     options.mode_rules = [
+        "edge,default:edge",
         "firefox,default:jmim",
         "firefox,noasmjs:noasmjs",
         "firefox,unboxedobjects:unboxedobjects",
