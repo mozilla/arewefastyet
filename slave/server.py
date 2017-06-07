@@ -25,7 +25,9 @@ class FakeHandler(SimpleHTTPRequestHandler):
         """ This sometimes times out. Don't block """
         with utils.Handler(signal.SIGALRM, utils.timeout_handler):
             try:
-                signal.alarm(20)
+                timeout = int(utils.config.getDefault('main', 'serverTimeout', 20))
+
+                signal.alarm(timeout)
                 SimpleHTTPRequestHandler.handle_one_request(self)
             except utils.TimeException:
                 print "Server - timeout"
