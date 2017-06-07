@@ -97,10 +97,11 @@ class Runner(object):
 class LinuxRunner(Runner):
     def killall(self, name):
         print "killall", name
-        process = subprocess.Popen(["killall", name])
+        process = subprocess.Popen(["pkill", name])
         # Wait for killall to finish
         while process.poll() is None:
             time.sleep(0.5)
+        time.sleep(1)
 
     def killAllInstances(self):
         print "killallinstances"
