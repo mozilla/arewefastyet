@@ -234,6 +234,73 @@ class SixSpeed(Benchmark):
 
         return tests
 
+class Ares6(Benchmark):
+    def __init__(self):
+        super(Ares6, self).__init__('ares6/')
+
+    @staticmethod
+    def name():
+        return 'ares6'
+
+    def getCommand(self, shell, args):
+        full_args = [shell]
+        if args:
+            full_args.extend(args)
+        full_args.append('cli.js')
+
+        return full_args
+
+    def _try_find_score(self, score_name, bench_name, line, scores):
+        m = re.search(score_name + ':\s*(\d+\.?\d*?) (\+-)?.+', line)
+        if not m:
+            return False
+
+        score = m.group(1)
+        scores[bench_name] = scores.get(bench_name, {})
+        scores[bench_name][score_name] = scores[bench_name].get(score_name, [])
+        scores[bench_name][score_name].append(float(score))
+        return True
+
+    def process_results(self, output):
+        tests = []
+        lines = output.splitlines()
+
+        bench_name = None
+        last_summary = None
+        scores = {}
+
+        total = 0
+        for line in lines:
+            m = re.search("Running... (.+) \(.+\)", line)
+            if m:
+                bench_name = m.group(1)
+                continue
+
+            if self._try_find_score('firstIteration', bench_name, line, scores):
+                continue
+
+            if self._try_find_score('averageWorstCase', bench_name, line, scores):
+                continue
+
+            if self._try_find_score('steadyState', bench_name, line, scores):
+                continue
+
+            m = re.search('summary:\s*(\d+\.?\d*?) (\+-)?.+', line)
+            if m:
+                last_summary = float(m.group(1))
+
+        for bench in scores:
+            for key in scores[bench]:
+                total = sum(scores[bench][key]) / len(scores[bench][key])
+                test_name = "{}-{}".format(bench, key)
+                tests.append({ 'name': test_name, 'time': total })
+
+        if last_summary:
+            tests.append({ 'name': '__total__', 'time': last_summary })
+
+        return tests
+
+
 Known = [
     Octane,
     SunSpider,
@@ -242,5 +309,6 @@ Known = [
     AsmJSApps,
     AsmJSMicro,
     Dart,
-    SixSpeed
+    SixSpeed,
+    Ares6
 ]
