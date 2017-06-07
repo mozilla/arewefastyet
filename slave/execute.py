@@ -108,54 +108,58 @@ for engine_path in options.engines:
         traceback.print_exc(file=sys.stdout)
 
 class AutoSpawnServer:
-    def __init__(self):
+    def __init__(self, log):
         self.server = None
+        self.log = log
 
     def __enter__(self):
-        print("EXECUTE: Starting proxy server.")
+        self.log("Starting proxy server.")
         self.server = subprocess.Popen(['python', 'server.py'])
 
     def __exit__(self, type, value, traceback):
-        print("EXECUTE: Terminating proxy server.")
+        self.log("Terminating proxy server.")
         if self.server:
             self.server.terminate()
             self.server = None
 
-with AutoSpawnServer():
-    print "EXECUTE: Running each benchmark for each config..."
+if __name__ == '__main__':
+    utils.log_banner("EXECUTE")
+    log = utils.make_log('EXECUTE')
 
-    benchmarks = [benchmarks.get(name) for name in options.benchmarks]
-    for benchmark in benchmarks:
+    with AutoSpawnServer(log):
+        log("Running each benchmark for each config...")
 
-        try:
-            print "EXECUTE: now trying to run benchmark %s..." % benchmark.suite
-        except:
-            pass
+        benchmarks = [benchmarks.get(name) for name in options.benchmarks]
+        for benchmark in benchmarks:
+            try:
+                log("now trying to run benchmark %s..." % benchmark.suite)
+            except:
+                pass
 
-        for engine_path in engines:
-            info = engineInfo.read_info_file(engine_path)
-            executor = executors.make_executor(info)
+            for engine_path in engines:
+                info = engineInfo.read_info_file(engine_path)
+                executor = executors.make_executor(info)
 
-            for config_name in options.configs:
-                config = configs.getConfig(config_name, info)
-                if config.omit():
-                    continue
-
-                try:
-                    results = executor.run(benchmark, config)
-                    if not results:
+                for config_name in options.configs:
+                    config = configs.getConfig(config_name, info)
+                    if config.omit():
                         continue
-                except Exception as e:
-                    print('Failed to run ' + engine_path + ' - ' + benchmark.version + ' - ' + config_name + '!')
-                    print('Exception: ' +  repr(e))
-                    import traceback
-                    traceback.print_exc()
-                    continue
 
-                mode = submitter.mode(info["engine_type"], config_name)
-                submitter.add_tests(results, benchmark.suite, benchmark.version, mode)
+                    try:
+                        results = executor.run(benchmark, config)
+                        if not results:
+                            continue
+                    except Exception as e:
+                        log('Failed to run ' + engine_path + ' - ' + benchmark.version + ' - ' + config_name + '!')
+                        log('Exception: ' +  repr(e))
+                        import traceback
+                        traceback.print_exc()
+                        continue
 
-    if not options.session:
-        submitter.finish()
+                    mode = submitter.mode(info["engine_type"], config_name)
+                    submitter.add_tests(results, benchmark.suite, benchmark.version, mode)
 
-    print "EXECUTE: my work is done here!"
+        if not options.session:
+            submitter.finish()
+
+        log("my work is done here!")

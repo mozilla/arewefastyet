@@ -83,13 +83,21 @@ class FolderChanger:
 def chdir(folder):
     return FolderChanger(folder)
 
-def Run(vec, env = os.environ.copy(), shell=False):
-    print(">> Executing in " + os.getcwd())
-    if shell:
-        print(vec)
-    else:
-        print(' '.join(vec))
-    print("with: " + str(env))
+def diff_env(env):
+    """
+    Returns only the keys in env that are not in the default environment.
+    """
+    env_copy = os.environ.copy()
+    return { k: env[k] for k in env if k not in env_copy or env_copy[k] != env[k] }
+
+def Run(vec, env = os.environ.copy(), shell=False, silent=False):
+    print_cmd = vec if shell else ' '.join(vec)
+    print(">> Executing in " + os.getcwd() + ': ' + print_cmd)
+
+    print_env = diff_env(env)
+    if len(print_env):
+        print("with: " + str(print_env))
+
     try:
         o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env, shell=shell)
     except subprocess.CalledProcessError as e:
@@ -97,7 +105,10 @@ def Run(vec, env = os.environ.copy(), shell=False):
         print e
         raise e
     o = o.decode("utf-8")
-    print(o)
+
+    if not silent:
+        print(o)
+
     return o
 
 def Shell(string):
@@ -215,3 +226,13 @@ def getOrDownload(directory, prefix, revision, file, output):
         fp.write(revision)
         fp.close()
 
+def log_banner(text):
+    line = "*******************************************************************************\n"
+    line += (" " * ((len(line) - 1 - len(text)) / 2)) + text + '\n'
+    line += "*******************************************************************************"
+    print line
+
+def make_log(name):
+    def log(*args):
+        print "{} -- ".format(name) + ' '.join(args)
+    return log

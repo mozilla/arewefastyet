@@ -76,7 +76,6 @@ class Runner(object):
         return path
 
     def set_exec_bit(self, path):
-        print "chmod u+x", path
         st = os.stat(path)
         os.chmod(path, st.st_mode | stat.S_IEXEC)
 
@@ -108,13 +107,15 @@ class LinuxRunner(Runner):
         self.killall(self.info["linux_processname"])
 
     def start(self, exe, args = [], env = {}):
-        print "start", exe, args, env
+        print "start", exe, args, utils.diff_env(env)
         return subprocess.Popen([exe] + args, env=env)
 
     def install(self, exe):
         path = os.path.dirname(exe)
         paths = subprocess.check_output(["find", path])
         paths = [path.rstrip() for path in paths.splitlines()]
+
+        print "Setting executable bit for {} and children.".format(path)
         for path in paths:
             self.set_exec_bit(path)
 
@@ -138,6 +139,8 @@ class WindowsRunner(LinuxRunner):
         path = os.path.dirname(exe)
         paths = subprocess.check_output(["find", path])
         paths = [path.rstrip() for path in paths.splitlines()]
+
+        print "Setting executable bit for {} and children.".format(path)
         for path in paths:
             self.set_exec_bit(path)
 
@@ -169,7 +172,7 @@ class OSXRunner(Runner):
             pass
 
     def start(self, exe, args = [], env = {}):
-        print "start", exe, args, env
+        print "start", exe, args, utils.diff_env(env)
         return subprocess.Popen([exe] + args, env=env)
 
     def install(self, exe):
@@ -181,6 +184,8 @@ class OSXRunner(Runner):
             path = os.path.dirname(exe)
             paths = subprocess.check_output(["find", path])
             paths = [path.rstrip() for path in paths.splitlines()]
+
+            print "Setting executable bit for {} and children.".format(path)
             for path in paths:
                 self.set_exec_bit(path)
 
@@ -271,7 +276,7 @@ class AndroidRunner(Runner):
         for i in env:
             env_flags += i+"="+env[i]+" "
 
-        print env_flags
+        print "ENV: " + utils.diff_env(env)
         print "adb shell ... " + " ".join(command) + " ..."
         return utils.run_realtime(["adb", "shell", "cd "+path+";"+env_flags+" " + " ".join(command) + "; exit"])
 

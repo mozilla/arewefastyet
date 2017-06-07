@@ -1,19 +1,19 @@
+#!/usr/bin/env python2
+
 import json
-import urllib2
-import urllib
-import re
 import os
 import shutil
 import socket
-import utils
-import platform
 
-import tarfile
-import zipfile
+from optparse import OptionParser
+
 socket.setdefaulttimeout(120)
 
+import utils
+
 if __name__ == "__main__":
-    from optparse import OptionParser
+    utils.log_banner('EDGE')
+
     parser = OptionParser(usage="usage: %prog [options]")
     parser.add_option("-o", "--output", dest="output",
                       help="download to DIR, default=output/", metavar="DIR", default='output')
@@ -35,4 +35,3 @@ if __name__ == "__main__":
     fp = open(options.output + "info.json", "w")
     json.dump(info, fp)
     fp.close()
-

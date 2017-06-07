@@ -21,7 +21,6 @@ translates = utils.config.benchmarkTranslates()
 seen_cachedirs = {}
 
 class FakeHandler(SimpleHTTPRequestHandler):
-
     def handle_one_request(self):
         """ This sometimes times out. Don't block """
         with utils.Handler(signal.SIGALRM, utils.timeout_handler):
@@ -29,7 +28,7 @@ class FakeHandler(SimpleHTTPRequestHandler):
                 signal.alarm(20)
                 SimpleHTTPRequestHandler.handle_one_request(self)
             except utils.TimeException:
-                print "timeout"
+                print "Server - timeout"
             finally:
                 signal.alarm(0)
 

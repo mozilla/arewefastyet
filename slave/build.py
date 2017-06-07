@@ -78,7 +78,7 @@ class Builder(object):
 
             print "installing"
             urllib.urlretrieve("https://dl.google.com/android/repository/android-ndk-r12-linux-x86_64.zip", "./android-ndk.zip")
-            Run(["unzip", "android-ndk.zip"])
+            Run(["unzip", "android-ndk.zip"], silent=True)
 
     def unlinkBinary(self):
         try:
@@ -188,7 +188,7 @@ class MozillaBuilder(Builder):
                 assert False
 
         with utils.chdir(os.path.join(self.folder, 'js', 'src', 'Opt')):
-            utils.Run(['../configure'] + args, self.env.get())
+            Run(['../configure'] + args, self.env.get())
         return True
 
     def make(self):
@@ -344,6 +344,8 @@ def getBuilder(config, path):
     raise Exception("Unknown builder")
 
 if __name__ == "__main__":
+    utils.log_banner("BUILD")
+
     from optparse import OptionParser
     parser = OptionParser(usage="usage: %prog [options]")
 

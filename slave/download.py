@@ -102,7 +102,7 @@ class Downloader(object):
             tar.close()
         elif "zip" in filename:
             with utils.chdir(self.folder):
-                utils.Run(["unzip", filename]);
+                utils.Run(["unzip", filename], silent=True)
 
 class TreeherderDownloader(Downloader):
 
@@ -333,6 +333,8 @@ class BuildsWebkitDownloader(Downloader):
         return info
 
 if __name__ == "__main__":
+    utils.log_banner('DOWNLOAD')
+
     parser = OptionParser(usage="usage: %prog [options]")
     parser.add_option("-o", "--output", dest="output",
                       help="download to DIR, default=output/", metavar="DIR", default='output')

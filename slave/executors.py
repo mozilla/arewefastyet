@@ -42,8 +42,11 @@ class ShellExecutor(object):
 class BrowserExecutor(object):
     def __init__(self, engineInfo):
         self.engineInfo = engineInfo
+        self.benchmark = None
 
     def run(self, benchmark, config):
+        self.benchmark = benchmark
+
         env = os.environ.copy()
         env.update(config.env())
         env.update(self.engineInfo["env"])
@@ -74,7 +77,12 @@ class BrowserExecutor(object):
             timeout -= 10
 
         if not os.path.exists("results"):
-            print "TIMEOUT!"
+            suite = ""
+            try:
+                suite = " when running {}".format(self.benchmark.suite)
+            except:
+                pass
+            print "TIMEOUT (executor){}".format(suite)
 
 class EdgeExecutor(BrowserExecutor):
     def execute(self, benchmark, env, args, profile):
