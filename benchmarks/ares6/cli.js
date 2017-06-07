@@ -28,7 +28,7 @@ const isInBrowser = false;
 var readFile = readFile || read;
 var runString = runString ||
         // spidermonkey shim
-        typeof newGlobal === 'function' ? function(source) {
+        (typeof newGlobal === 'function' ? function(source) {
             var g = newGlobal();
             g.eval(source);
             return g;
@@ -36,7 +36,7 @@ var runString = runString ||
         // v8 shim
         : function(source) {
             return eval(source + '\n;this;');
-        };
+        });
 
 function makeBenchmarkRunner(sources, benchmarkConstructor, numIterations = 200) {
     let source = "'use strict';"
