@@ -137,6 +137,7 @@ class MozillaBuilder(Builder):
     def retrieve_info(self):
         info = {}
         info["engine_type"] = "firefox"
+        info["args"] = ['--no-async-stacks']
         if self.config.startswith("android"):
             info["platform"] = "android"
         return info
