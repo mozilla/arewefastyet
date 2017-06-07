@@ -285,15 +285,13 @@ class V8Builder(Builder):
 
         with utils.FolderChanger(os.path.join(self.folder, 'v8')):
             config = [
-                'is_component_build = false',
                 'is_debug = false',
-                'symbol_level = 1',
-                'target_cpu = "{}"'.format(target_cpu),
-                'v8_test_isolation_mode = "prepare"',
+                'target_cpu = "{}"'.format(target_cpu)
             ]
 
             if self.config == "arm":
                 config += [
+                    'symbol_level = 1',
                     'v8_android_log_stdout = true',
                     'target_os = "android"'
                 ]
@@ -301,7 +299,7 @@ class V8Builder(Builder):
             args = 'gn gen ' + objdir + ' --args=\'' + " ".join(config) + '\''
             Run(args, self.env.get(), shell=True)
 
-            Run(["ninja", "-C", objdir], self.env.get())
+            Run(["ninja", "-C", objdir, "d8"], self.env.get())
 
     def objdir(self):
         if self.config == 'android':
