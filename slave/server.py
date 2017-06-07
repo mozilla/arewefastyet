@@ -19,6 +19,7 @@ utils.config.init("awfy.config")
 translates = utils.config.benchmarkTranslates()
 
 seen_cachedirs = {}
+prev_host = None
 
 class FakeHandler(SimpleHTTPRequestHandler):
     def handle_one_request(self):
@@ -34,7 +35,17 @@ class FakeHandler(SimpleHTTPRequestHandler):
             finally:
                 signal.alarm(0)
 
+    def maybe_flush(self):
+        global prev_host
+
+        new_host = self.headers.get("Host", "")
+        if prev_host != new_host:
+            utils.flush()
+            prev_host = new_host
+
     def do_GET(self):
+        self.maybe_flush()
+
         if self.remote_benchmark():
             return
 
@@ -45,6 +56,8 @@ class FakeHandler(SimpleHTTPRequestHandler):
         self.send_error(404, "File not found")
 
     def do_POST(self):
+        self.maybe_flush()
+
         length = int(self.headers.getheader('content-length', 0))
         postdata = self.rfile.read(length)
 

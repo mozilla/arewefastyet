@@ -236,3 +236,7 @@ def make_log(name):
     def log(*args):
         print "{} -- ".format(name) + ' '.join(args)
     return log
+
+def flush():
+    sys.stdout.flush()
+    sys.stderr.flush()

@@ -159,7 +159,11 @@ if __name__ == '__main__':
                     mode = submitter.mode(info["engine_type"], config_name)
                     submitter.add_tests(results, benchmark.suite, benchmark.version, mode)
 
+                    # Try to preserve order of logs.
+                    utils.flush()
+
         if not options.session:
             submitter.finish()
 
         log("my work is done here!")
+        utils.flush()
