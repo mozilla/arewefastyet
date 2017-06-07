@@ -1,22 +1,17 @@
 #!/usr/bin/env python2
 
-import sys
 import json
-import urllib2
 import urllib
-import re
 import os
 import shutil
 import socket
-import utils
-import puller
 import platform
-import subprocess
-import stat
+
+import utils
 from utils import Run
 
-import tarfile
-import zipfile
+import puller
+
 socket.setdefaulttimeout(120)
 
 class Environment(object):
@@ -76,7 +71,7 @@ class Builder(object):
         assert platform.system() == "Linux"
         assert platform.architecture()[0] == "64bit"
 
-        with utils.FolderChanger(self.folder):
+        with utils.chdir(self.folder):
             if os.path.exists("android-ndk-r12"):
                 print "already installed: ", os.path.join(self.folder, "android-ndk-r12")
                 return
@@ -161,7 +156,7 @@ class MozillaBuilder(Builder):
             self.installNdk()
 
         # Step 1. autoconf.
-        with utils.FolderChanger(os.path.join(self.folder, 'js', 'src')):
+        with utils.chdir(os.path.join(self.folder, 'js', 'src')):
             if platform.system() == "Darwin":
                 utils.run_realtime("autoconf213", shell=True)
             elif platform.system() == "Linux":
@@ -192,7 +187,7 @@ class MozillaBuilder(Builder):
             else:
                 assert False
 
-        with utils.FolderChanger(os.path.join(self.folder, 'js', 'src', 'Opt')):
+        with utils.chdir(os.path.join(self.folder, 'js', 'src', 'Opt')):
             utils.Run(['../configure'] + args, self.env.get())
         return True
 
@@ -208,7 +203,7 @@ class WebkitBuilder(Builder):
         return info
 
     def patch(self):
-        with utils.FolderChanger(self.folder):
+        with utils.chdir(self.folder):
             # Hack 1: Remove reporting errors for warnings that currently are present.
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/JavaScriptCore/Configurations/Base.xcconfig"])
             Run(["sed","-i.bac","s/GCC_TREAT_WARNINGS_AS_ERRORS = YES;/GCC_TREAT_WARNINGS_AS_ERRORS=NO;/","Source/bmalloc/Configurations/Base.xcconfig"])
@@ -220,7 +215,7 @@ class WebkitBuilder(Builder):
             os.remove("Tools/Scripts/check-for-weak-vtables-and-externals")
 
     def clean(self):
-        with utils.FolderChanger(self.folder):
+        with utils.chdir(self.folder):
             Run(["svn","revert","Tools/Scripts/check-for-weak-vtables-and-externals"])
 
             Run(["svn","revert","Source/JavaScriptCore/Configurations/Base.xcconfig"])
@@ -232,7 +227,7 @@ class WebkitBuilder(Builder):
     def make(self):
         try:
             self.patch()
-            with utils.FolderChanger(os.path.join(self.folder, 'Tools', 'Scripts')):
+            with utils.chdir(os.path.join(self.folder, 'Tools', 'Scripts')):
                 args = ['/usr/bin/perl', 'build-jsc']
                 if self.config == '32bit':
                     args += ['--32-bit']
@@ -283,7 +278,7 @@ class V8Builder(Builder):
         if not os.path.isdir(objdir):
             os.mkdir(objdir)
 
-        with utils.FolderChanger(os.path.join(self.folder, 'v8')):
+        with utils.chdir(os.path.join(self.folder, 'v8')):
             config = [
                 'is_debug = false',
                 'target_cpu = "{}"'.format(target_cpu)
@@ -331,7 +326,7 @@ class ServoBuilder(Builder):
         return os.path.join(self.objdir(), 'release', 'servo')
 
     def make(self):
-        with utils.FolderChanger(self.folder):
+        with utils.chdir(self.folder):
             args = [os.path.join('.', 'mach'), 'build' ,'--release']
             Run(args, self.env.get())
 

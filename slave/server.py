@@ -263,7 +263,7 @@ Port = 8000
 ServerAddress = ('', Port)
 
 path = os.path.abspath(os.path.join(os.path.dirname(__file__),".."))
-with utils.FolderChanger(path):
+with utils.chdir(path):
     HandlerClass.protocol_version = Protocol
     httpd = ServerClass(ServerAddress, HandlerClass)
 

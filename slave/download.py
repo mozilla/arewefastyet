@@ -101,7 +101,7 @@ class Downloader(object):
             tar.extractall(self.folder)
             tar.close()
         elif "zip" in filename:
-            with utils.FolderChanger(self.folder):
+            with utils.chdir(self.folder):
                 utils.Run(["unzip", filename]);
 
 class TreeherderDownloader(Downloader):

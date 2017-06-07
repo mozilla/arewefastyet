@@ -1,10 +1,8 @@
 import re
 import os
-import sys
-import subprocess
-from utils import Run
-from utils import FolderChanger
 import shutil
+
+from utils import Run, chdir
 
 class Puller(object):
     def __init__(self, repo, folder):
@@ -61,7 +59,7 @@ class SVN(Puller):
         Run(['svn', 'co', self.repo, self.folder])
 
     def sameRepo(self):
-        with FolderChanger(self.path()):
+        with chdir(self.path()):
             try:
                 output = Run(['svn', 'info'])
             except:
@@ -74,7 +72,7 @@ class SVN(Puller):
             return False
 
     def update(self, rev = None):
-        with FolderChanger(self.path()):
+        with chdir(self.path()):
             if not rev:
                 output = Run(['svn', 'update'])
                 return
@@ -85,7 +83,7 @@ class SVN(Puller):
             return
 
     def identify(self):
-        with FolderChanger(self.path()):
+        with chdir(self.path()):
             output = Run(['svn', 'info'])
             m = re.search("Revision: ([0-9]+)", output)
             if m == None:
@@ -108,11 +106,11 @@ class GIT(Puller):
     def update(self, rev = None):
         assert rev == None
 
-        with FolderChanger(self.path()):
+        with chdir(self.path()):
             output = Run(['git', 'pull'])
 
     def identify(self):
-        with FolderChanger(self.path()):
+        with chdir(self.path()):
             output = Run(['git', 'log', '-1'])
             m = re.match("commit ([0-9a-z]+)\s*", output)
             if m == None:
@@ -127,7 +125,7 @@ class V8GIT(GIT):
 
     def clone(self):
         os.mkdir(self.folder)
-        with FolderChanger(self.folder):
+        with chdir(self.folder):
             # get depot_tools
             Run(['git', 'clone', 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'])
 
@@ -135,7 +133,7 @@ class V8GIT(GIT):
             Run(['fetch', 'v8'], env=self.make_env())
 
         #TODO: not needed?
-        #with FolderChanger(self.path()):
+        #with chdir(self.path()):
         #    Run(['git', 'checkout', 'master'])
 
     def path(self):
@@ -148,11 +146,11 @@ class V8GIT(GIT):
     def update(self, rev = None):
         assert rev == None
 
-        with FolderChanger(self.path()):
+        with chdir(self.path()):
             Run(['git', 'pull', 'origin', 'master'])
 
         env = os.environ.copy()
-        with FolderChanger(self.path()):
+        with chdir(self.path()):
             Run(['gclient', 'sync'], self.make_env())
 
 class MozillaTry(HG):

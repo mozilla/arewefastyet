@@ -69,7 +69,7 @@ class Benchmark:
 class AssortedDOM(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "misc-desktop/", "hosted/assorted/driver.html", 1)
-        with utils.FolderChanger(os.path.join(utils.config.BenchmarkPath, "misc-desktop")):
+        with utils.chdir(os.path.join(utils.config.BenchmarkPath, "misc-desktop")):
             print subprocess.check_output(["python", "make-hosted.py"])
 
     @staticmethod
