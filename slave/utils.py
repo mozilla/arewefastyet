@@ -14,6 +14,7 @@ import urllib
 import urllib2
 import tarfile
 import zipfile
+import zlib
 import stat
 
 class ConfigState:
@@ -201,6 +202,7 @@ def chmodx(file):
 
 def fetch_json(url):
     print "Fetching JSON at " + url
+
     # TODO: Replace urllib2 with requests.
     headers = {
         'Accept': 'application/json',
@@ -208,7 +210,15 @@ def fetch_json(url):
     }
     request = urllib2.Request(url, headers=headers)
     response = urllib2.urlopen(request)
-    return json.load(response)
+
+    read = response.read()
+    if response.headers.get('Content-Encoding', None) == 'gzip':
+        try:
+            read = zlib.decompress(read, 16 + zlib.MAX_WBITS)
+        except:
+            pass
+
+    return json.loads(read)
 
 def getOrDownload(directory, prefix, revision, file, output):
     rev_file = directory + "/" + prefix + "-revision"

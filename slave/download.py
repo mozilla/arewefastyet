@@ -117,8 +117,7 @@ class TreeherderDownloader(Downloader):
     def retrieve_info(self):
         infoname = self.getinfoname()
 
-        response = urllib2.urlopen(self.url + infoname)
-        raw_info = json.loads(response.read())
+        raw_info = utils.fetch_json(self.url + infoname)
 
         info = {}
         info["revision"] = raw_info["moz_source_stamp"]
