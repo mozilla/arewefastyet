@@ -117,7 +117,7 @@ class MozillaUrlCreator(UrlCreator):
         if len(data["results"]) != 1:
             return []
 
-        # The revision is not pushed seperately. It is not the top commit
+        # The revision is not pushed separately. It is not the top commit
         # of a list of pushes that were done at the same time.
         if not data["results"][0]["revision"].startswith(cset):
             return []
@@ -161,23 +161,7 @@ class MozillaUrlCreator(UrlCreator):
         data = utils.fetch_json(url)
 
         urls = [item["url"] for item in data["results"] if item["url"]]
-        urls = [i for i in urls if "info" not in i]
-        urls = [i for i in urls if "testpackages" not in i]
-        urls = [i for i in urls if "json" not in i]
-        urls = [i for i in urls if "log" not in i]
-        urls = [i for i in urls if "crash" not in i]
-        urls = [i for i in urls if "test" not in i]
-        urls = [i for i in urls if "mar" not in i]
-        urls = [i for i in urls if "one-click-loaner" not in i]
-        urls = [i for i in urls if "task-inspector" not in i]
-        urls = [i for i in urls if "mbsdiff" not in i]
-        urls = [i for i in urls if "checksums" not in i]
-        urls = [i for i in urls if "xpi" not in i]
-        urls = [i for i in urls if "txt" not in i]
-        urls = [i for i in urls if "jsshell" not in i]
-        urls = [i for i in urls if "mozharness" not in i]
-        urls = [i for i in urls if "sdk" not in i]
-        urls = [i for i in urls if "installer" not in i]
+        urls = [url for url in urls if 'target.zip' in url or 'target.tar.bz2' in url]
 
         return urls
 
