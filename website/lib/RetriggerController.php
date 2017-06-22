@@ -179,9 +179,9 @@ class RetriggerController {
 
         foreach ($this->tasks as $task) {
             mysql_query("INSERT INTO control_task_queue
-                         (control_unit_id, control_tasks_id, task)
+                         (control_unit_id, control_tasks_id, task, output, error, email)
                          VALUES ({$this->unit_id}, ".$tasks->control_tasks_id().",
-                                 '".mysql_escape_string($task->task())."')") or throw_exception(mysql_error());
+                                 '".mysql_escape_string($task->task())."', '', '', '')") or throw_exception(mysql_error());
             if ($this->control_tasks_id != 0) {
                 $available_at = $task->available_at();
 				if ($available_at < time()) 
@@ -202,10 +202,10 @@ class RetriggerController {
 			if ($available_at < time()) 
 				$available_at = "UNIX_TIMESTAMP()";
             mysql_query("INSERT INTO control_task_queue
-                         (control_unit_id, control_tasks_id, task, available_at)
+                         (control_unit_id, control_tasks_id, task, available_at, output, error, email)
                          VALUES ({$this->unit_id}, ".$task->control_tasks_id().",
                                  '".mysql_escape_string($task->task())."',".
-                                 $available_at.")") or throw_exception(mysql_error());
+                                 $available_at.", '', '', '')") or throw_exception(mysql_error());
             if ($task->control_tasks_id != 0) {
 				$control_tasks = new ControlTasks($task->control_tasks_id());
 				$control_tasks->updateLastScheduled($available_at);

@@ -81,9 +81,9 @@ class QueuedTask extends DB {
 		$email = mysql_real_escape_string($email);
 
 		mysql_query("INSERT INTO control_task_queue
-					 (control_unit_id, task, email)
+					 (control_unit_id, task, email, output, error)
 					 VALUES
-					 ($control_unit_id, '$task', '$email')");
+					 ($control_unit_id, '$task', '$email', '', '')");
 		return mysql_insert_id();
 	}
 }
