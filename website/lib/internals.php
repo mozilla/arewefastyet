@@ -176,7 +176,9 @@ function find_or_add_suite_version($suite, $version)
     $query = "select id from awfy_suite_version where suite_id = $suite_id and name = '$version'";
     $results = awfy_query($query);
     if (!$results || mysql_num_rows($results) < 1) {
-        $query = "insert into awfy_suite_version (suite_id, name) values($suite_id, '$version')";
+        $query = "INSERT INTO awfy_suite_version
+                  (suite_id, name)
+                  VALUES($suite_id, '$version')";
         awfy_query($query);
         return mysql_insert_id();
     }
@@ -192,7 +194,9 @@ function find_or_add_test($suite_version_id, $name)
     $query = "select id from awfy_suite_test where suite_version_id = $suite_version_id and name = '$name'";
     $results = awfy_query($query);
     if (!$results || mysql_num_rows($results) < 1) {
-        $query = "insert into awfy_suite_test (suite_version_id, name) values($suite_version_id, '$name')";
+        $query = "INSERT INTO awfy_suite_test
+                  (suite_version_id, name)
+                  VALUES($suite_version_id, '$name')";
         awfy_query($query);
         return mysql_insert_id();
     }
