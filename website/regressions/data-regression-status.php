@@ -12,10 +12,10 @@ $postdata = file_get_contents("php://input");
 $request = json_decode($postdata);
 
 
-$query = mysql_query("SELECT *
-                      FROM awfy_regression_status
-                      WHERE regression_id = '".(int)$request->id."'
-                      ORDER BY stamp DESC") or die(mysql_error());
+$query = awfy_query("SELECT *
+                     FROM awfy_regression_status
+                     WHERE regression_id = '".(int)$request->id."'
+                     ORDER BY stamp DESC");
 
 $data = array();
 while ($output = mysql_fetch_assoc($query)) {

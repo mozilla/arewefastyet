@@ -1,5 +1,6 @@
 <?php
 
+require_once("../internals.php");
 require_once("Vendor.php");
 require_once("DB.php");
 
@@ -14,7 +15,7 @@ class Mode extends DB {
     public static function FromMode($mode) {
         $query = "SELECT id FROM awfy_mode
                   WHERE mode = '" . mysql_real_escape_string($mode) . "'";
-        $results = mysql_query($query) or die(mysql_error());
+        $results = awfy_query($query);
         if (!$results || mysql_num_rows($results) < 1)
             return null;
         $row = mysql_fetch_array($results);

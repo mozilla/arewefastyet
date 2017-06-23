@@ -17,12 +17,12 @@ if (!isset($request->subtest))
 	$request->subtest = false;
 
 if ($request->subtest == 1 || $request->subtest == 'true') {
-	$query = mysql_query("SELECT mode_id, machine, finish_stamp as stamp, awfy_breakdown.score, suite_test_id, sort_order
-                          FROM `awfy_breakdown`
-                          LEFT JOIN awfy_score ON awfy_score.id = score_id
-                          LEFT JOIN awfy_build ON awfy_build.id = awfy_score.build_id
-                          LEFT JOIN awfy_run ON awfy_run.id = run_id
-                          WHERE awfy_breakdown.id = ".$request->id) or die(mysql_error());
+	$query = awfy_query("SELECT mode_id, machine, finish_stamp as stamp, awfy_breakdown.score, suite_test_id, sort_order
+                         FROM `awfy_breakdown`
+                         LEFT JOIN awfy_score ON awfy_score.id = score_id
+                         LEFT JOIN awfy_build ON awfy_build.id = awfy_score.build_id
+                         LEFT JOIN awfy_run ON awfy_run.id = run_id
+                         WHERE awfy_breakdown.id = ".$request->id);
     $data = mysql_fetch_assoc($query);
 
 	$prev = prev_suite_test($data["sort_order"], $data["machine"],
@@ -35,11 +35,11 @@ if ($request->subtest == 1 || $request->subtest == 'true') {
 
 	die(json_encode($data));
 } else {
-	$query = mysql_query("SELECT mode_id, machine, finish_stamp as stamp, score, suite_version_id, sort_order
-                          FROM `awfy_score`
-                          LEFT JOIN awfy_build ON awfy_build.id = build_id
-                          LEFT JOIN awfy_run ON awfy_run.id = run_id
-                          WHERE awfy_score.id = ".$request->id) or die(mysql_error());
+	$query = awfy_query("SELECT mode_id, machine, finish_stamp as stamp, score, suite_version_id, sort_order
+                         FROM `awfy_score`
+                         LEFT JOIN awfy_build ON awfy_build.id = build_id
+                         LEFT JOIN awfy_run ON awfy_run.id = run_id
+                         WHERE awfy_score.id = ".$request->id);
     $data = mysql_fetch_assoc($query);
 
 	$prev = prev_($data["sort_order"], $data["machine"],

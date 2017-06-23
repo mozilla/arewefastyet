@@ -16,23 +16,23 @@ if ($subtest) {
     $prev_breakdown_id = imm_prev_suite_test($id);
     $prev_score_id = get("breakdown", $prev_breakdown_id, "score_id");
     $prev_build_id = get("score", $prev_score_id, "build_id");
-    $query = mysql_query("SELECT awfy_regression.id, noise, status
-                          FROM `awfy_regression_breakdown`
-                          LEFT JOIN awfy_regression
-                          ON awfy_regression.id = awfy_regression_breakdown.regression_id
-                          WHERE breakdown_id = ".$id." AND
-                                prev_build_id = ".$prev_build_id);
+    $query = awfy_query("SELECT awfy_regression.id, noise, status
+                         FROM `awfy_regression_breakdown`
+                         LEFT JOIN awfy_regression
+                         ON awfy_regression.id = awfy_regression_breakdown.regression_id
+                         WHERE breakdown_id = ".$id." AND
+                               prev_build_id = ".$prev_build_id);
 } else {
     $score_id = $id;
 
     $prev_score_id = imm_prev_($id);
     $prev_build_id = get("score", $prev_score_id, "build_id");
-    $query = mysql_query("SELECT awfy_regression.id, noise, status
-                          FROM `awfy_regression_score`
-                          LEFT JOIN awfy_regression
-                          ON awfy_regression.id = awfy_regression_score.regression_id
-                          WHERE score_id = ".$id." AND
-                                prev_build_id = ".$prev_build_id);
+    $query = awfy_query("SELECT awfy_regression.id, noise, status
+                         FROM `awfy_regression_score`
+                         LEFT JOIN awfy_regression
+                         ON awfy_regression.id = awfy_regression_score.regression_id
+                         WHERE score_id = ".$id." AND
+                               prev_build_id = ".$prev_build_id);
 }
 
 $data = Array("regression" => Array());

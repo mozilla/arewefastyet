@@ -15,8 +15,8 @@ $regression_id = mysql_real_escape_string($request->regression_id);
 $name = mysql_real_escape_string($_SESSION['persona']);
 $extra = mysql_real_escape_string($request->extra);
 
-$query = mysql_query("INSERT INTO awfy_regression_status
-                      (regression_id, name, extra, stamp)
-					  VALUES
-					  ('$regression_id', '$name', '$extra', UNIX_TIMESTAMP())
-                      ") or die(mysql_error());
+$query = awfy_query("INSERT INTO awfy_regression_status
+                     (regression_id, name, extra, stamp)
+					 VALUES
+					 ('$regression_id', '$name', '$extra', UNIX_TIMESTAMP())
+                     ");

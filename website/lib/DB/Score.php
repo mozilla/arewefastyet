@@ -1,5 +1,6 @@
 <?php
 
+require_once("../internals.php");
 require_once("DB.php");
 require_once("Build.php");
 
@@ -12,10 +13,10 @@ class Score extends DB {
     }
 
     public static function withBuildAndSuiteVersion($build_id, $suite_version_id) {
-        $qScore = mysql_query("SELECT id FROM awfy_score
-                               WHERE build_id = $build_id AND
-                                     suite_version_id = $suite_version_id
-                               LIMIT 1") or die(mysql_error());
+        $qScore = awfy_query("SELECT id FROM awfy_score
+                              WHERE build_id = $build_id AND
+                                    suite_version_id = $suite_version_id
+                              LIMIT 1");
         if (mysql_num_rows($qScore) == 0)
             return null;
         $score = mysql_fetch_object($qScore);
@@ -43,17 +44,17 @@ class Score extends DB {
         $build = $this->build();
         $run = $build->run();
 
-        $qPrev = mysql_query("SELECT awfy_score.id
-                              FROM awfy_score
-                              INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id
-                              INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id
-                              WHERE awfy_run.sort_order < ".$run->sort_order()." AND
-                                    awfy_run.machine = ".$run->machine_id()." AND
-                                    awfy_run.status = 1 AND
-                                    awfy_build.mode_id = ".$build->mode_id()." AND
-                                    awfy_score.suite_version_id = ".$this->suite_version_id()."
-                              ORDER BY sort_order DESC
-                              LIMIT 1") or throw_exception(mysql_error());
+        $qPrev = awfy_query("SELECT awfy_score.id
+                             FROM awfy_score
+                             INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id
+                             INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id
+                             WHERE awfy_run.sort_order < ".$run->sort_order()." AND
+                                   awfy_run.machine = ".$run->machine_id()." AND
+                                   awfy_run.status = 1 AND
+                                   awfy_build.mode_id = ".$build->mode_id()." AND
+                                   awfy_score.suite_version_id = ".$this->suite_version_id()."
+                             ORDER BY sort_order DESC
+                             LIMIT 1");
         if (mysql_num_rows($qPrev) == 0)
             return null;
         $prev = mysql_fetch_object($qPrev);
@@ -64,17 +65,17 @@ class Score extends DB {
         $build = $this->build();
         $run = $build->run();
 
-        $qNext = mysql_query("SELECT awfy_score.id
-                              FROM awfy_score
-                              INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id
-                              INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id
-                              WHERE awfy_run.sort_order > ".$run->sort_order()." AND
-                                    awfy_run.machine = ".$run->machine_id()." AND
-                                    awfy_run.status = 1 AND
-                                    awfy_build.mode_id = ".$build->mode_id()." AND
-                                    awfy_score.suite_version_id = ".$this->suite_version_id()."
-                              ORDER BY sort_order ASC
-                              LIMIT 1") or throw_exception(mysql_error());
+        $qNext = awfy_query("SELECT awfy_score.id
+                             FROM awfy_score
+                             INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id
+                             INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id
+                             WHERE awfy_run.sort_order > ".$run->sort_order()." AND
+                                   awfy_run.machine = ".$run->machine_id()." AND
+                                   awfy_run.status = 1 AND
+                                   awfy_build.mode_id = ".$build->mode_id()." AND
+                                   awfy_score.suite_version_id = ".$this->suite_version_id()."
+                             ORDER BY sort_order ASC
+                             LIMIT 1");
         if (mysql_num_rows($qNext) == 0)
             return null;
         $next = mysql_fetch_object($qNext);

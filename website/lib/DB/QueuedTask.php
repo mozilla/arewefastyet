@@ -1,5 +1,6 @@
 <?php
 
+require_once("../internals.php");
 require_once("DB.php");
 
 class QueuedTask extends DB {
@@ -80,10 +81,10 @@ class QueuedTask extends DB {
 		$task = mysql_real_escape_string($task);
 		$email = mysql_real_escape_string($email);
 
-		mysql_query("INSERT INTO control_task_queue
-					 (control_unit_id, task, email, output, error)
-					 VALUES
-					 ($control_unit_id, '$task', '$email', '', '')");
+		awfy_query("INSERT INTO control_task_queue
+					(control_unit_id, task, email, output, error)
+					VALUES
+					($control_unit_id, '$task', '$email', '', '')");
 		return mysql_insert_id();
 	}
 }

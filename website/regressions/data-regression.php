@@ -57,8 +57,8 @@ for ($i=0; $i < count($ids); $i++) {
 															  $db_build->mode_id())
 	);
 
-	$qScores = mysql_query("SELECT * FROM awfy_regression_score
-						    WHERE regression_id = '".$regression["id"]."'") or die(mysql_error());
+	$qScores = awfy_query("SELECT * FROM awfy_regression_score
+						   WHERE regression_id = '".$regression["id"]."'");
 	while ($scores = mysql_fetch_assoc($qScores)) {
 		$suite_version_id = get("score", $scores["score_id"], "suite_version_id");
 		$score = array(
@@ -68,11 +68,11 @@ for ($i=0; $i < count($ids); $i++) {
             "noise" => $scores["noise"]
 		);
 
-		$qPrevScore = mysql_query("SELECT score
-								   FROM awfy_score
-								   WHERE build_id = ".$db_prev_build->id." AND
-										 suite_version_id = ".$suite_version_id."
-								   LIMIT 1") or die(mysql_error());
+		$qPrevScore = awfy_query("SELECT score
+								  FROM awfy_score
+								  WHERE build_id = ".$db_prev_build->id." AND
+									 suite_version_id = ".$suite_version_id."
+								  LIMIT 1");
 		if (mysql_num_rows($qPrevScore) == 1) {
 			$prevScore = mysql_fetch_assoc($qPrevScore);
 			$score["prev_score"] = $prevScore["score"];
@@ -81,8 +81,8 @@ for ($i=0; $i < count($ids); $i++) {
 
 		$regression["scores"][] = $score;
 	}
-	$qScores = mysql_query("SELECT * FROM awfy_regression_breakdown
-						    WHERE regression_id = '".$db_regression->id."'") or die(mysql_error());
+	$qScores = awfy_query("SELECT * FROM awfy_regression_breakdown
+						   WHERE regression_id = '".$db_regression->id."'");
 	while ($scores = mysql_fetch_assoc($qScores)) {
 		$suite_test_id = get("breakdown", $scores["breakdown_id"], "suite_test_id");
 		$suite_version_id = get("suite_test", $suite_test_id, "suite_version_id");
@@ -94,12 +94,12 @@ for ($i=0; $i < count($ids); $i++) {
             "noise" => $scores["noise"]
 		);
 
-		$qPrevScore = mysql_query("SELECT awfy_breakdown.score
-								   FROM awfy_breakdown
-								   LEFT JOIN awfy_score ON score_id = awfy_score.id
-								   WHERE awfy_score.build_id = ".$db_prev_build->id." AND
-										 suite_test_id = ".$suite_test_id."
-								   LIMIT 1") or die(mysql_error());
+		$qPrevScore = awfy_query("SELECT awfy_breakdown.score
+								  FROM awfy_breakdown
+								  LEFT JOIN awfy_score ON score_id = awfy_score.id
+								  WHERE awfy_score.build_id = ".$db_prev_build->id." AND
+									 suite_test_id = ".$suite_test_id."
+								  LIMIT 1");
 		if (mysql_num_rows($qPrevScore) == 1) {
 			$prevScore = mysql_fetch_assoc($qPrevScore);
 			$score["prev_score"] = $prevScore["score"];
@@ -109,10 +109,10 @@ for ($i=0; $i < count($ids); $i++) {
 		$regression["scores"][] = $score;
 	}
 	if (!$minimal) {
-		$qStatus = mysql_query("SELECT * FROM awfy_regression_status
-								WHERE regression_id = '".$db_prev_build->id."'
-								ORDER BY stamp DESC
-								LIMIT 1") or die(mysql_error());
+        $qStatus = awfy_query("SELECT * FROM awfy_regression_status
+                               WHERE regression_id = '".$db_prev_build->id."'
+                               ORDER BY stamp DESC
+                               LIMIT 1");
 		$status = mysql_fetch_assoc($qStatus);
 		$regression["status_extra"] = $status["extra"];
 	}

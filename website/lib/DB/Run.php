@@ -1,5 +1,6 @@
 <?php
 
+require_once("../internals.php");
 require_once("DB.php");
 
 class Run extends DB {
@@ -11,10 +12,10 @@ class Run extends DB {
     }
 
     public static function withMachineAndSortOrder($machine_id, $sort_order) {
-        $qRun = mysql_query("SELECT id FROM awfy_run
-                               WHERE machine = $machine_id AND
-                                     sort_order = $sort_order
-                               LIMIT 1") or die(mysql_error());
+        $qRun = awfy_query("SELECT id FROM awfy_run
+                            WHERE machine = $machine_id AND
+                                  sort_order = $sort_order
+                            LIMIT 1");
         if (mysql_num_rows($qRun) == 0)
             return null;
         $run = mysql_fetch_object($qRun);
@@ -26,11 +27,10 @@ class Run extends DB {
         if ($approx_stamp == 0)
             $approx_stamp = "UNIX_TIMESTAMP()";
 
-        mysql_query("INSERT INTO awfy_run
-                     (machine, sort_order, approx_stamp)
-                     VALUES
-                     ($machine_id, $sort_order, $approx_stamp)")
-                     or die("ERROR: " . mysql_error());
+        awfy_query("INSERT INTO awfy_run
+                    (machine, sort_order, approx_stamp)
+                    VALUES
+                    ($machine_id, $sort_order, $approx_stamp)");
         return new Run(mysql_insert_id());
     }
 
@@ -45,15 +45,15 @@ class Run extends DB {
 			$revs .= "'".$revisions[$i]->revision()."'";
 		}
 
-        $qRun = mysql_query("SELECT awfy_run.id FROM awfy_run
-			     			 LEFT JOIN awfy_build ON run_id = awfy_run.id
-                             WHERE cset IN (".$revs.") AND
-                                   machine = $machine_id AND
-                                   mode_id = $mode_id AND
-                                   status = 1 AND
-                                   error = ''
+        $qRun = awfy_query("SELECT awfy_run.id FROM awfy_run
+			     			LEFT JOIN awfy_build ON run_id = awfy_run.id
+                            WHERE cset IN (".$revs.") AND
+                                  machine = $machine_id AND
+                                  mode_id = $mode_id AND
+                                  status = 1 AND
+                                  error = ''
                             ORDER BY sort_order DESC
-                            LIMIT 1") or die(mysql_error());
+                            LIMIT 1");
         if (mysql_num_rows($qRun) == 0)
             return null;
         $run = mysql_fetch_object($qRun);
@@ -66,12 +66,11 @@ class Run extends DB {
         else
             $error = "'" . mysql_real_escape_string($error) . "'";
 
-        mysql_query("UPDATE awfy_run
-                     SET status = $status,
-                         error = $error,
-                         finish_stamp = UNIX_TIMESTAMP()
-                     WHERE id = {$this->id}")
-            or die("ERROR: " . mysql_error());
+        awfy_query("UPDATE awfy_run
+                    SET status = $status,
+                        error = $error,
+                        finish_stamp = UNIX_TIMESTAMP()
+                    WHERE id = {$this->id}");
     }
 
     public function isFinished() {
@@ -116,11 +115,11 @@ class Run extends DB {
     public function next() {
         $sort_order = $this->sort_order();
         $machine = $this->machine_id();
-        $qRun = mysql_query("SELECT id from awfy_run
-                             WHERE sort_order > {$sort_order} AND
-                                   machine = {$machine}
-                             ORDER BY sort_order ASC
-                             LIMIT 1") or throw_exception(mysql_error());
+        $qRun = awfy_query("SELECT id from awfy_run
+                            WHERE sort_order > {$sort_order} AND
+                                  machine = {$machine}
+                            ORDER BY sort_order ASC
+                            LIMIT 1");
         if (mysql_num_rows($qRun) == 0)
             return null;
         $run = mysql_fetch_object($qRun);
@@ -130,11 +129,11 @@ class Run extends DB {
     public function prev() {
         $sort_order = $this->sort_order();
         $machine = $this->machine_id();
-        $qRun = mysql_query("SELECT id from awfy_run
-                             WHERE sort_order < {$sort_order} AND
-                                   machine = {$machine}
-                             ORDER BY sort_order DESC
-                             LIMIT 1") or throw_exception(mysql_error());
+        $qRun = awfy_query("SELECT id from awfy_run
+                            WHERE sort_order < {$sort_order} AND
+                                  machine = {$machine}
+                            ORDER BY sort_order DESC
+                            LIMIT 1");
         $run = mysql_fetch_object($qRun);
         return new Run($run->id);
     }

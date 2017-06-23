@@ -1,11 +1,12 @@
 <?php
 
+require_once("../internals.php");
+
 class DB {
 
     public static function FromId($id) {
         $id = (int) $id;
-        $qField = mysql_query("SELECT id from ".static::$db."
-                               WHERE id = {$id}") or throw_exception(mysql_error());
+        $qField = awfy_query("SELECT id from ".static::$db." WHERE id = {$id}");
         if (mysql_num_rows($qField) == 0)
             return null;
         $field = mysql_fetch_object($qField);
@@ -14,8 +15,7 @@ class DB {
     }
 
     public function select($field) {
-        $qField = mysql_query("SELECT $field as field from {$this::$db}
-                               WHERE id = {$this->id}") or throw_exception(mysql_error());
+        $qField = awfy_query("SELECT $field as field from {$this::$db} WHERE id = {$this->id}");
         $field = mysql_fetch_object($qField);
         if (!isset($field->field))
             throw new Exception("Unknown field or non existed id.");
@@ -33,9 +33,9 @@ class DB {
     }
 
     public function updateRaw($field, $value) {
-        mysql_query("UPDATE {$this::$db}
-                     SET $field = $value
-                     WHERE id = {$this->id}") or throw_exception(mysql_error());
+        awfy_query("UPDATE {$this::$db}
+                    SET $field = $value
+                    WHERE id = {$this->id}");
     }
 }
 

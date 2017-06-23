@@ -116,11 +116,11 @@ echo "<th>Status";
 echo "<th>Queue";
 echo "<th>Last finished task";
 echo "</thead>";
-$qUnits = mysql_query("SELECT * FROM control_unit");
+$qUnits = awfy_query("SELECT * FROM control_unit");
 while($unit = mysql_fetch_object($qUnits)) {
 	echo "<tr><td>".$unit->id;
 
-	$qTasks = mysql_query("SELECT * FROM control_tasks WHERE control_unit_id =".$unit->id) or die(mysql_error());
+	$qTasks = awfy_query("SELECT * FROM control_tasks WHERE control_unit_id =".$unit->id);
 	if (mysql_num_rows($qTasks) == 0) {
 		echo "<td>/";
 	} else {

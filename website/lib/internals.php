@@ -104,11 +104,17 @@ function GET_string($name)
     return "";
 }
 
+function awfy_query($query)
+{
+    $result = mysql_query($query) or throw_exception("SQL Error: " . mysql_error());
+    return $result;
+}
+
 function find_vendor_of_mode_id($mode_id)
 {
     $query = "SELECT vendor_id FROM awfy_mode
               WHERE id = $mode_id";
-    $results = mysql_query($query);
+    $results = awfy_query($query);
     if (!$results || mysql_num_rows($results) < 1)
         return 0;
     $row = mysql_fetch_array($results);
@@ -119,7 +125,7 @@ function find_mode($mode)
 {
     $query = "SELECT id FROM awfy_mode
               WHERE mode = '" . mysql_real_escape_string($mode) . "'";
-    $results = mysql_query($query);
+    $results = awfy_query($query);
     if (!$results || mysql_num_rows($results) < 1)
         return -1;
     $row = mysql_fetch_array($results);
@@ -130,7 +136,7 @@ function find_build($run_id, $mode_id)
 {
     $query = "SELECT id FROM awfy_build
               WHERE run_id = $run_id and mode_id = $mode_id";
-    $results = mysql_query($query);
+    $results = awfy_query($query);
     if (!$results || mysql_num_rows($results) < 1)
         return 0;
     $row = mysql_fetch_array($results);
@@ -141,7 +147,7 @@ function find_suite($suite)
 {
     $query = "SELECT id FROM awfy_suite
               WHERE name = '" . mysql_real_escape_string($suite) . "'";
-    $results = mysql_query($query);
+    $results = awfy_query($query);
     if (!$results || mysql_num_rows($results) < 1)
         return -1;
     $row = mysql_fetch_array($results);
@@ -168,10 +174,10 @@ function find_or_add_suite_version($suite, $version)
     if ($suite == "kraken" && $version == "kraken")
         $version = "kraken 1.1";
     $query = "select id from awfy_suite_version where suite_id = $suite_id and name = '$version'";
-    $results = mysql_query($query);
+    $results = awfy_query($query);
     if (!$results || mysql_num_rows($results) < 1) {
         $query = "insert into awfy_suite_version (suite_id, name) values($suite_id, '$version')";
-        mysql_query($query);
+        awfy_query($query);
         return mysql_insert_id();
     }
     $row = mysql_fetch_array($results);
@@ -184,20 +190,14 @@ function find_or_add_test($suite_version_id, $name)
 
     $name = mysql_real_escape_string($name);
     $query = "select id from awfy_suite_test where suite_version_id = $suite_version_id and name = '$name'";
-    $results = mysql_query($query);
+    $results = awfy_query($query);
     if (!$results || mysql_num_rows($results) < 1) {
         $query = "insert into awfy_suite_test (suite_version_id, name) values($suite_version_id, '$name')";
-        mysql_query($query);
+        awfy_query($query);
         return mysql_insert_id();
     }
     $row = mysql_fetch_array($results);
     return intval($row[0]);
-}
-
-function awfy_query($query)
-{
-    $result = mysql_query($query) or die(mysql_error());
-    return $result;
 }
 
 if (!function_exists("mysql_connect")) {

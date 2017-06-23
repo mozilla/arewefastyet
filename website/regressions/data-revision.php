@@ -17,31 +17,30 @@ $request->mode = (int) $request->mode;
 
 if (isset($request->rev)) {
 	$request->rev = preg_replace("/[^A-Za-z0-9]/", "", $request->rev);
-	$query = mysql_query("SELECT awfy_build.id 
-						  FROM `awfy_build`
-						  LEFT JOIN awfy_run ON awfy_run.id = run_id
-						  WHERE machine = ".$request->machine." AND
-								mode_id = ".$request->mode." AND
-								rev = ".$request->rev."
-						  LIMIT 1
-						 ") or die(mysql_error());
+	$query = awfy_query("SELECT awfy_build.id 
+						 FROM `awfy_build`
+						 LEFT JOIN awfy_run ON awfy_run.id = run_id
+						 WHERE machine = ".$request->machine." AND
+							mode_id = ".$request->mode." AND
+							rev = ".$request->rev."
+						 LIMIT 1 ");
 	$data = mysql_fetch_assoc($query);
 } else {
-	$query = mysql_query("SELECT awfy_build.id 
+	$query = awfy_query("SELECT awfy_build.id 
 						  FROM `awfy_build`
 						  LEFT JOIN awfy_run ON awfy_run.id = run_id
 						  WHERE machine = ".$request->machine." AND
 								mode_id = ".$request->mode." AND
                                 status = 1
 						  ORDER BY sort_order DESC
-						  LIMIT 1") or die(mysql_error());
+						  LIMIT 1");
 	$data = mysql_fetch_assoc($query);
 }
 
 $all_scores = Array();
-$qScores = mysql_query("SELECT *
-                        FROM awfy_score
-			            WHERE build_id = ".$data["id"]) or die(mysql_error());
+$qScores = awfy_query("SELECT *
+                       FROM awfy_score
+			           WHERE build_id = ".$data["id"]);
 while ($scores = mysql_fetch_assoc($qScores)) {
 	$score = array(
 		"suite_version" => $scores["suite_version_id"],
@@ -51,10 +50,11 @@ while ($scores = mysql_fetch_assoc($qScores)) {
 	$all_scores[] = $score;
 }
 
-$qScores = mysql_query("SELECT awfy_breakdown.*
-                        FROM awfy_breakdown
-                        LEFT JOIN awfy_score ON awfy_score.id = score_id
-			            WHERE build_id = ".$data["id"]) or die(mysql_error());
+$qScores = awfy_query("SELECT awfy_breakdown.*
+                       FROM awfy_breakdown
+                       LEFT JOIN awfy_score ON awfy_score.id = score_id
+			           WHERE build_id = ".$data["id"]);
+
 while ($scores = mysql_fetch_assoc($qScores)) {
 	$suite_version_id = get("suite_test", $scores["suite_test_id"], "suite_version_id");
 	$score = array(

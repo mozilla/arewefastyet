@@ -16,17 +16,15 @@ $regression_id = (int)$request->regression_id;
 foreach($request->noise->score as $score_id => $noise) {
   $noise = (int)$noise;
   $score_id = (int)$score_id;
-  $query = mysql_query("UPDATE awfy_regression_score SET noise = $noise
-                        WHERE regression_id = $regression_id AND
-                              score_id = $score_id
-                       ") or die(mysql_error());
+  $query = awfy_query("UPDATE awfy_regression_score SET noise = $noise
+                       WHERE regression_id = $regression_id
+                       AND score_id = $score_id");
 }
 
 foreach($request->noise->breakdown as $score_id => $noise) {
   $noise = (int)$noise;
   $score_id = (int)$score_id;
-  $query = mysql_query("UPDATE awfy_regression_breakdown SET noise = $noise
-                        WHERE regression_id = $regression_id AND
-                              breakdown_id = $score_id
-                       ") or die(mysql_error());
+  $query = awfy_query("UPDATE awfy_regression_breakdown SET noise = $noise
+                        WHERE regression_id = $regression_id
+                        AND breakdown_id = $score_id ");
 }

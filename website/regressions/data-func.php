@@ -26,7 +26,7 @@ function prev_($sort_order_id, $machine, $mode, $suite, $limit = 1) {
 	$query_n = str_replace("$1", $sort_order_id, $query);
 	$query_n = str_replace("$2", $sort_order_n , $query_n);
 	$query_n = str_replace("$3", $limit , $query_n);
-	$q = mysql_query($query_n) or die(mysql_error());
+	$q = awfy_query($query_n);
 	while ($prevs = mysql_fetch_assoc($q)) {
 		$output[] = $prevs;
 	}
@@ -39,7 +39,7 @@ function prev_($sort_order_id, $machine, $mode, $suite, $limit = 1) {
 	$query_n = str_replace("$1", $sort_order_id, $query);
 	$query_n = str_replace("$2", $sort_order_n , $query_n);
 	$query_n = str_replace("$3", $limit - count($output) , $query_n);
-	$q = mysql_query($query_n) or die(mysql_error());
+	$q = awfy_query($query_n);
 	while ($prevs = mysql_fetch_assoc($q)) {
 		$output[] = $prevs;
 	}
@@ -52,7 +52,7 @@ function prev_($sort_order_id, $machine, $mode, $suite, $limit = 1) {
 	$query_n = str_replace("$1", $sort_order_id, $query);
 	$query_n = str_replace("$2", $sort_order_n , $query_n);
 	$query_n = str_replace("$3", $limit - count($output) , $query_n);
-	$q = mysql_query($query_n) or die(mysql_error());
+	$q = awfy_query($query_n);
 	while ($prevs = mysql_fetch_assoc($q)) {
 		$output[] = $prevs;
 	}
@@ -81,7 +81,7 @@ function prev_suite_test($sort_order_id, $machine, $mode, $suite_test, $limit = 
 	$query_n = str_replace("$1", $sort_order_id , $query);
 	$query_n = str_replace("$2", $sort_order_n , $query_n);
 	$query_n = str_replace("$3", $limit , $query_n);
-	$q = mysql_query($query_n) or die(mysql_error());
+	$q = awfy_query($query_n);
 	while ($prevs = mysql_fetch_assoc($q)) {
 		$output[] = $prevs;
 	}
@@ -94,7 +94,7 @@ function prev_suite_test($sort_order_id, $machine, $mode, $suite_test, $limit = 
 	$query_n = str_replace("$1", $sort_order_id , $query);
 	$query_n = str_replace("$2", $sort_order_n , $query_n);
 	$query_n = str_replace("$3", $limit - count($output) , $query_n);
-	$q = mysql_query($query_n) or die(mysql_error());
+	$q = awfy_query($query_n);
 	while ($prevs = mysql_fetch_assoc($q)) {
 		$output[] = $prevs;
 	}
@@ -107,7 +107,7 @@ function prev_suite_test($sort_order_id, $machine, $mode, $suite_test, $limit = 
 	$query_n = str_replace("$1", $sort_order_id , $query);
 	$query_n = str_replace("$2", $sort_order_n , $query_n);
 	$query_n = str_replace("$3", $limit - count($output) , $query_n);
-	$q = mysql_query($query_n) or die(mysql_error());
+	$q = awfy_query($query_n);
 	while ($prevs = mysql_fetch_assoc($q)) {
 		$output[] = $prevs;
 	}
@@ -116,17 +116,17 @@ function prev_suite_test($sort_order_id, $machine, $mode, $suite_test, $limit = 
 }
 
 function next_($sort_order_id, $machine, $mode, $suite, $limit = 1) {
-    $query = mysql_query("SELECT awfy_score.id, score, cset
-					      FROM awfy_score
-					      INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id
-					      INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id
-					      WHERE sort_order > ".(int)$sort_order_id." AND
-					       	 machine = ".(int)$machine." AND
-					       	 mode_id = ".(int)$mode." AND
-					       	 suite_version_id = ".(int)$suite." AND
-					       	 status = 1
-					      ORDER BY sort_order ASC
-					      LIMIT ".(int)$limit) or die(mysql_error());
+    $query = awfy_query("SELECT awfy_score.id, score, cset
+					     FROM awfy_score
+					     INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id
+					     INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id
+					     WHERE sort_order > ".(int)$sort_order_id." AND
+					      	 machine = ".(int)$machine." AND
+					      	 mode_id = ".(int)$mode." AND
+					      	 suite_version_id = ".(int)$suite." AND
+					      	 status = 1
+					     ORDER BY sort_order ASC
+					     LIMIT ".(int)$limit);
 	$output = array();
 	while ($nexts = mysql_fetch_assoc($query)) {
 		$output[] = $nexts;
@@ -135,18 +135,18 @@ function next_($sort_order_id, $machine, $mode, $suite, $limit = 1) {
 }
 
 function next_suite_test($sort_order_id, $machine, $mode, $suite_test, $limit = 1) {
-    $query = mysql_query("SELECT awfy_breakdown.id, awfy_breakdown.score, cset
-					      FROM awfy_breakdown
-					      INNER JOIN awfy_score ON awfy_score.id = score_id
-					      INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id
-					      INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id
-					      WHERE sort_order > ".(int)$sort_order_id." AND
-					       	 machine = ".(int)$machine." AND
-					       	 mode_id = ".(int)$mode." AND
-					       	 suite_test_id = ".(int)$suite_test." AND
-					       	 status = 1
-					      ORDER BY sort_order ASC
-					      LIMIT ".(int)$limit) or die(mysql_error());
+    $query = awfy_query("SELECT awfy_breakdown.id, awfy_breakdown.score, cset
+					     FROM awfy_breakdown
+					     INNER JOIN awfy_score ON awfy_score.id = score_id
+					     INNER JOIN awfy_build ON awfy_build.id = awfy_score.build_id
+					     INNER JOIN awfy_run ON awfy_run.id = awfy_build.run_id
+					     WHERE sort_order > ".(int)$sort_order_id." AND
+					      	 machine = ".(int)$machine." AND
+					      	 mode_id = ".(int)$mode." AND
+					      	 suite_test_id = ".(int)$suite_test." AND
+					      	 status = 1
+					     ORDER BY sort_order ASC
+					     LIMIT ".(int)$limit);
 	$output = array();
 	while ($nexts = mysql_fetch_assoc($query)) {
 		$output[] = $nexts;
@@ -155,20 +155,20 @@ function next_suite_test($sort_order_id, $machine, $mode, $suite_test, $limit = 
 }
 
 function get($db, $id, $field) {
-	$query = mysql_query("SELECT $field FROM awfy_$db
-						  WHERE id = $id
-						  LIMIT 1");
+	$query = awfy_query("SELECT $field FROM awfy_$db
+						 WHERE id = $id
+						 LIMIT 1");
 	$output = mysql_fetch_assoc($query) or die(mysql_error());
 	return $output[$field];
 }
 
 function imm_prev_suite_test($breakdown_id) {
-	$query = mysql_query("SELECT mode_id, machine, sort_order, suite_test_id
-                          FROM `awfy_breakdown`
-                          LEFT JOIN awfy_score ON awfy_score.id = score_id
-                          LEFT JOIN awfy_build ON awfy_build.id = awfy_score.build_id
-                          LEFT JOIN awfy_run ON awfy_run.id = run_id
-                          WHERE awfy_breakdown.id = ".$breakdown_id) or die(mysql_error());
+	$query = awfy_query("SELECT mode_id, machine, sort_order, suite_test_id
+                         FROM `awfy_breakdown`
+                         LEFT JOIN awfy_score ON awfy_score.id = score_id
+                         LEFT JOIN awfy_build ON awfy_build.id = awfy_score.build_id
+                         LEFT JOIN awfy_run ON awfy_run.id = run_id
+                         WHERE awfy_breakdown.id = ".$breakdown_id);
     $data = mysql_fetch_assoc($query);
 
 	$prev = prev_suite_test($data["sort_order"], $data["machine"],
@@ -180,11 +180,11 @@ function imm_prev_suite_test($breakdown_id) {
 }
 
 function imm_prev_($score_id) {
-	$query = mysql_query("SELECT mode_id, machine, sort_order, suite_version_id
-                          FROM `awfy_score`
-                          LEFT JOIN awfy_build ON awfy_build.id = build_id
-                          LEFT JOIN awfy_run ON awfy_run.id = run_id
-                          WHERE awfy_score.id = ".$score_id) or die(mysql_error());
+	$query = awfy_query("SELECT mode_id, machine, sort_order, suite_version_id
+                         FROM `awfy_score`
+                         LEFT JOIN awfy_build ON awfy_build.id = build_id
+                         LEFT JOIN awfy_run ON awfy_run.id = run_id
+                         WHERE awfy_score.id = ".$score_id);
     $data = mysql_fetch_assoc($query);
 
 	$prev = prev_($data["sort_order"], $data["machine"],

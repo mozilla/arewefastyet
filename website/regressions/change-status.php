@@ -14,12 +14,10 @@ $request = json_decode($postdata);
 $regression_id = (int)$request->regression_id;
 $status = mysql_real_escape_string($request->status);
 $name = mysql_real_escape_string($request->name);
-$query = mysql_query("UPDATE awfy_regression SET status = '$status' WHERE id = $regression_id
-                      ") or die(mysql_error());
+$query = awfy_query("UPDATE awfy_regression SET status = '$status' WHERE id = $regression_id");
 
 $extra = "Changed status to ".$status;
-$query = mysql_query("INSERT INTO awfy_regression_status
-                      (regression_id, name, extra, stamp)
-                      VALUES
-                      ('$regression_id', '$name', '$extra', UNIX_TIMESTAMP())
-                      ") or die(mysql_error());
+$query = awfy_query("INSERT INTO awfy_regression_status
+                     (regression_id, name, extra, stamp)
+                     VALUES
+                     ('$regression_id', '$name', '$extra', UNIX_TIMESTAMP())");

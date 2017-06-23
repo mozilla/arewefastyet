@@ -4,8 +4,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-error_reporting(-1);
-
 include "../lib/internals.php";
 
 init_database();
@@ -19,7 +17,7 @@ $query = "SELECT finish_stamp, sort_order FROM `awfy_run`
                 status = 1
           ORDER BY sort_order DESC
           LIMIT 1";
-$results = mysql_query($query);
+$results = awfy_query($query);
 if (!$results || mysql_num_rows($results) != 1)
     die();
 $row = mysql_fetch_array($results);
@@ -33,7 +31,7 @@ $query = "SELECT mode_id
 		  LEFT JOIN awfy_run ON run_id = awfy_run.id
 		  WHERE machine = $machine
 		  GROUP BY mode_id";
-$results = mysql_query($query);
+$results = awfy_query($query);
 if (!$results || mysql_num_rows($results) < 1)
     die();
 $buildIds = Array();
@@ -52,7 +50,7 @@ while($row = mysql_fetch_array($results)) {
 				    status = 1
 			  ORDER BY sort_order DESC
               LIMIT 1";
-	$buildInfo = mysql_query($query) or die(mysql_error());
+	$buildInfo = awfy_query($query) or die(mysql_error());
 	if (!$buildInfo || mysql_num_rows($buildInfo) != 1)
 		continue;
 	$buildRow = mysql_fetch_array($buildInfo);
@@ -64,7 +62,7 @@ while($row = mysql_fetch_array($results)) {
 $query = "SELECT suite_version_id FROM `awfy_score`
           WHERE build_id IN (".implode(",", $buildIds).")
           GROUP BY suite_version_id";
-$results = mysql_query($query);
+$results = awfy_query($query);
 if (!$results || mysql_num_rows($results) < 1)
     die();
 $suiteIds = Array();
@@ -75,7 +73,7 @@ while($row = mysql_fetch_array($results)) {
 				  WHERE awfy_suite_version.id = ".$row[0]." AND
 						awfy_suite.visible = 1
 				  LIMIT 1";
-		$perm = mysql_query($query);
+		$perm = awfy_query($query);
 		if (!$perm || mysql_num_rows($perm) != 1)
 			continue;
 	}
@@ -90,7 +88,7 @@ for ($i=0; $i < count($suiteIds); $i++) {
                   WHERE suite_version_id = ".$suiteIds[$i]." AND
                         build_id = ".$buildIds[$j]."
                   LIMIT 1";
-        $results = mysql_query($query);
+        $results = awfy_query($query);
         if (!$results || mysql_num_rows($results) != 1)
             continue;
         $row = mysql_fetch_array($results);

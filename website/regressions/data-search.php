@@ -42,12 +42,12 @@ if ($bug === 0)
 if (count($where) == 0)
 	die();
 
-$query = mysql_query("SELECT awfy_regression.id
-                      FROM awfy_regression
-                      INNER JOIN awfy_build ON build_id = awfy_build.id
-                      INNER JOIN awfy_run ON run_id = awfy_run.id
-					  WHERE ".(join(" AND ", $where))."
-                      ORDER BY awfy_run.sort_order DESC") or die(mysql_error());
+$query = awfy_query("SELECT awfy_regression.id
+                     FROM awfy_regression
+                     INNER JOIN awfy_build ON build_id = awfy_build.id
+                     INNER JOIN awfy_run ON run_id = awfy_run.id
+					 WHERE ".(join(" AND ", $where))."
+                     ORDER BY awfy_run.sort_order DESC");
 $data = Array();
 while ($output = mysql_fetch_assoc($query)) {
 	$data[] = $output["id"];

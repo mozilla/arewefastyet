@@ -1,5 +1,6 @@
 <?php
 
+require_once("internals.php");
 require_once("ManipulateTask.php");
 require_once("VersionControl.php");
 require_once("DB/Mode.php");
@@ -18,7 +19,7 @@ class RetriggerController {
         $retrigger = new RetriggerController();
         $retrigger->unit_id = $unit_id;
 
-        $qTask = mysql_query("SELECT * FROM control_tasks WHERE control_unit_id = $unit_id");
+        $qTask = awfy_query("SELECT * FROM control_tasks WHERE control_unit_id = $unit_id");
         while ($task = mysql_fetch_object($qTask)) {
 			$available_at = 0;
 			if ($task->delay)
@@ -33,7 +34,7 @@ class RetriggerController {
         $retrigger = new RetriggerController();
         $mode = new Mode($mode_id);
 
-        $qTask = mysql_query("SELECT * FROM control_tasks WHERE machine_id = $machine_id") or die(mysql_error());
+        $qTask = awfy_query("SELECT * FROM control_tasks WHERE machine_id = $machine_id");
         while ($task = mysql_fetch_object($qTask)) {
             if (!($mode_id == 0 || $task->mode_id == 0 || $task->mode_id == $mode_id))
                 continue;
@@ -65,7 +66,7 @@ class RetriggerController {
             return false;
 
         try {
-            VersionControl::forMode($mode_id);    
+            VersionControl::forMode($mode_id);
         } catch(Exception $e) {
             return false;
         }
@@ -80,11 +81,11 @@ class RetriggerController {
         $tasks = $retrigger->tasks;
         $retrigger->tasks = Array();
         foreach ($tasks as $task) {
-            $qTask = mysql_query("SELECT id
-                                  FROM control_task_queue
-                                  WHERE control_tasks_id = {$task->control_tasks_id} AND
-										finish = 0
-                                  ORDER BY id LIMIT 1") or die(mysql_error());
+            $qTask = awfy_query("SELECT id
+                                 FROM control_task_queue
+                                 WHERE control_tasks_id = {$task->control_tasks_id} AND
+								   	finish = 0
+                                 ORDER BY id LIMIT 1");
             if (mysql_num_rows($qTask) == 0)
                 $retrigger->tasks[] = $task;
         }
@@ -178,17 +179,17 @@ class RetriggerController {
             throw new Exception("No control_unit specified.");
 
         foreach ($this->tasks as $task) {
-            mysql_query("INSERT INTO control_task_queue
-                         (control_unit_id, control_tasks_id, task, output, error, email)
-                         VALUES ({$this->unit_id}, ".$tasks->control_tasks_id().",
-                                 '".mysql_escape_string($task->task())."', '', '', '')") or throw_exception(mysql_error());
+            awfy_query("INSERT INTO control_task_queue
+                        (control_unit_id, control_tasks_id, task, output, error, email)
+                        VALUES ({$this->unit_id}, ".$tasks->control_tasks_id().",
+                                '".mysql_escape_string($task->task())."', '', '', '')");
             if ($this->control_tasks_id != 0) {
                 $available_at = $task->available_at();
-				if ($available_at < time()) 
+				if ($available_at < time())
 					$available_at = "UNIX_TIMESTAMP()";
-                mysql_query("UPDATE control_tasks
-                             SET last_scheduled = ".$available_at."
-                             WHERE id = $task->control_tasks_id()") or die(mysql_error());
+                awfy_query("UPDATE control_tasks
+                            SET last_scheduled = ".$available_at."
+                            WHERE id = $task->control_tasks_id()");
             }
         }
     }
@@ -199,13 +200,13 @@ class RetriggerController {
 
         foreach ($this->tasks as $task) {
             $available_at = $task->available_at();
-			if ($available_at < time()) 
+			if ($available_at < time())
 				$available_at = "UNIX_TIMESTAMP()";
-            mysql_query("INSERT INTO control_task_queue
-                         (control_unit_id, control_tasks_id, task, available_at, output, error, email)
-                         VALUES ({$this->unit_id}, ".$task->control_tasks_id().",
-                                 '".mysql_escape_string($task->task())."',".
-                                 $available_at.", '', '', '')") or throw_exception(mysql_error());
+            awfy_query("INSERT INTO control_task_queue
+                        (control_unit_id, control_tasks_id, task, available_at, output, error, email)
+                        VALUES ({$this->unit_id}, ".$task->control_tasks_id().",
+                                '".mysql_escape_string($task->task())."',".
+                                $available_at.", '', '', '')");
             if ($task->control_tasks_id != 0) {
 				$control_tasks = new ControlTasks($task->control_tasks_id());
 				$control_tasks->updateLastScheduled($available_at);

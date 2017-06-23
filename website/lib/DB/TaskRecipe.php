@@ -1,5 +1,6 @@
 <?php
 
+require_once("../internals.php");
 require_once("DB.php");
 require_once("Mode.php");
 require_once("Machine.php");
@@ -118,7 +119,7 @@ class TaskRecipe extends DB {
     }
 
     public static function all() {
-        $qTasks = mysql_query("SELECT id FROM control_task_recipe") or die(mysql_error());
+        $qTasks = awfy_query("SELECT id FROM control_task_recipe");
         $tasks = Array();
         while ($task = mysql_fetch_object($qTasks)) {
             $tasks[] = new TaskRecipe($task->id);

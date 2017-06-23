@@ -1,5 +1,6 @@
 <?php
 
+require_once("internals.php");
 require_once("DB/Run.php");
 require_once("DB/Mode.php");
 require_once("DB/Build.php");
@@ -8,9 +9,9 @@ require_once("VersionControl.php");
 class RunReporter {
 
     public static function createForMachine($machine_id) {
-        $query = mysql_query("SELECT max(sort_order) as maximum
-                              FROM awfy_run
-                              WHERE machine = $machine_id") or die(mysql_error());
+        $query = awfy_query("SELECT max(sort_order) as maximum
+                             FROM awfy_run
+                             WHERE machine = $machine_id");
         $run = mysql_fetch_object($query);
 
         return Run::insert($machine_id, $run->maximum+1);
@@ -67,7 +68,7 @@ class RunReporter {
 
             if (!$run->isBuildInfoComplete())
                 throw new Exception("Encountered an incomplete run.");
-                
+
             $build = Build::withRunAndMode($run->id, $mode_id);
 
             // We can safely ignore runs that have no results with the requested mode_id
@@ -94,9 +95,9 @@ class RunReporter {
     }
 
     private static function increaseNextSortOrder($machine_id, $sort_order) {
-        mysql_query("UPDATE awfy_run
-                     SET sort_order = sort_order + 1
-                     WHERE machine = $machine_id AND
-                     sort_order >= $sort_order") or die(mysql_error());
+        awfy_query("UPDATE awfy_run
+                    SET sort_order = sort_order + 1
+                    WHERE machine = $machine_id AND
+                    sort_order >= $sort_order");
     }
 }

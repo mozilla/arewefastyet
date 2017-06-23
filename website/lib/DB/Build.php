@@ -1,5 +1,6 @@
 <?php
 
+require_once("../internals.php");
 require_once("DB.php");
 require_once("Run.php");
 require_once("Score.php");
@@ -13,10 +14,10 @@ class Build extends DB {
     }
 
     public static function withRunAndMode($run_id, $mode_id) {
-        $qBuild = mysql_query("SELECT id FROM awfy_build
-                               WHERE run_id = $run_id AND
-                                     mode_id = $mode_id
-                               LIMIT 1") or die(mysql_error());
+        $qBuild = awfy_query("SELECT id FROM awfy_build
+                              WHERE run_id = $run_id AND
+                                    mode_id = $mode_id
+                              LIMIT 1");
         if (mysql_num_rows($qBuild) == 0)
             return null;
         $build = mysql_fetch_object($qBuild);
@@ -27,17 +28,16 @@ class Build extends DB {
         if ($run->isFinished())
             throw new Exception("Cannot info to a run that is finished.");
 
-        mysql_query("INSERT INTO awfy_build
-                     (run_id, mode_id, cset)
-                     VALUES
-                     ({$run->id}, $mode_id, '".mysql_real_escape_string($revision)."')")
-                     or die("ERROR: " . mysql_error());
+        awfy_query("INSERT INTO awfy_build
+                    (run_id, mode_id, cset)
+                    VALUES
+                    ({$run->id}, $mode_id, '".mysql_real_escape_string($revision)."')");
         return new Build(mysql_insert_id());
     }
 
     public function scores() {
-        $qScore = mysql_query("SELECT id FROM awfy_score
-                               WHERE build_id = {$this->id}") or die(mysql_error());
+        $qScore = awfy_query("SELECT id FROM awfy_score
+                              WHERE build_id = {$this->id}");
 		$scores = Array();
 		while ($score = mysql_fetch_object($qScore)) {
 			$scores[] = new Score($score->id);

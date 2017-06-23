@@ -82,10 +82,9 @@ if (GET_string("run") == 'addEngine') {
 // to send.
 if (GET_string('awake') == 'yes') {
     $MACHINE = GET_int('MACHINE');
-    mysql_query("UPDATE awfy_machine
+    awfy_query("UPDATE awfy_machine
                  SET last_checked = UNIX_TIMESTAMP()
-                 WHERE id = $MACHINE")
-        or die("ERROR: " . mysql_error());
+                 WHERE id = $MACHINE");
     die();
 }
 
@@ -105,17 +104,15 @@ if (isset($_GET['version']))
 $suite_version_id = find_or_add_suite_version(GET_string('suite'), $version);
 if (GET_string('name') == '__total__') {
     $extra_info = htmlspecialchars(GET_string('extra_info'), ENT_QUOTES);
-    mysql_query("INSERT INTO awfy_score
-                 (build_id, suite_version_id, score, extra_info)
-                 VALUES
-                 ($build, $suite_version_id, $time, '$extra_info')")
-        or die("ERROR: " . mysql_error());
+    awfy_query("INSERT INTO awfy_score
+               (build_id, suite_version_id, score, extra_info)
+               VALUES
+               ($build, $suite_version_id, $time, '$extra_info')");
     print("id=" . mysql_insert_id());
 } else {
     $test_id = find_or_add_test($suite_version_id, GET_string('name'));
-    mysql_query("INSERT INTO awfy_breakdown
-                 (score_id, suite_test_id, score)
-                 VALUES
-                 ($score, $test_id, $time)")
-        or die("ERROR: " . mysql_error());
+    awfy_query("INSERT INTO awfy_breakdown
+               (score_id, suite_test_id, score)
+               VALUES
+               ($score, $test_id, $time)");
 }

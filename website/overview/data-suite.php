@@ -16,7 +16,7 @@ $query = "SELECT id, finish_stamp, sort_order FROM `awfy_run`
                 status = 1
           ORDER BY sort_order DESC
           LIMIT 1";
-$results = mysql_query($query);
+$results = awfy_query($query);
 if (!$results || mysql_num_rows($results) != 1)
     die();
 $row = mysql_fetch_array($results);
@@ -31,7 +31,7 @@ if (!has_permissions()) {
               WHERE awfy_suite_version.id = $suiteVersion AND
 				    visible = 1
               LIMIT 1";
-	$results = mysql_query($query);
+	$results = awfy_query($query);
 	if (!$results || mysql_num_rows($results) != 1)
 		die();
 }
@@ -42,7 +42,7 @@ $query = "SELECT mode_id
 		  LEFT JOIN awfy_run ON run_id = awfy_run.id
 		  WHERE machine = $machine
 		  GROUP BY mode_id";
-$results = mysql_query($query);
+$results = awfy_query($query);
 if (!$results || mysql_num_rows($results) < 1)
     die();
 $buildIds = Array();
@@ -61,7 +61,7 @@ while($row = mysql_fetch_array($results)) {
 				    status = 1
 			  ORDER BY sort_order DESC
               LIMIT 1";
-	$buildInfo = mysql_query($query) or die(mysql_error());
+	$buildInfo = awfy_query($query);
 	if (!$buildInfo || mysql_num_rows($buildInfo) != 1)
 		continue;
 	$buildRow = mysql_fetch_array($buildInfo);
@@ -75,7 +75,7 @@ $data = Array();
 $query = "SELECT id, name FROM `awfy_suite_test`
           WHERE suite_version_id = $suiteVersion AND
                 visible = 1";
-$tests = mysql_query($query);
+$tests = awfy_query($query);
 if (!$results || mysql_num_rows($tests) < 1)
     die();
 while($row = mysql_fetch_array($tests)) {
@@ -88,7 +88,7 @@ while($row = mysql_fetch_array($tests)) {
                   WHERE suite_test_id = ".$suiteTestId." AND
                         awfy_score.build_id = ".$buildIds[$j]."
                   LIMIT 1";
-        $results = mysql_query($query) or die(mysql_error());
+        $results = awfy_query($query);
         if (!$results || mysql_num_rows($results) != 1)
             continue;
         $row = mysql_fetch_array($results);
