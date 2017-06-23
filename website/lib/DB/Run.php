@@ -28,9 +28,9 @@ class Run extends DB {
             $approx_stamp = "UNIX_TIMESTAMP()";
 
         awfy_query("INSERT INTO awfy_run
-                    (machine, sort_order, approx_stamp)
+                    (machine, approx_stamp, error, detector, sort_order, out_of_order, treeherder)
                     VALUES
-                    ($machine_id, $sort_order, $approx_stamp)");
+                    ($machine_id, $approx_stamp, '', 0, $sort_order, 0, 0)");
         return new Run(mysql_insert_id());
     }
 
