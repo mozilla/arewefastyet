@@ -3,10 +3,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require_once("../lib/internals.php");
+require_once(__DIR__."/../lib/internals.php");
 check_permissions();
 
-require_once("../lib/RetriggerController.php");
+require_once(__DIR__."/../lib/RetriggerController.php");
 
 init_database();
 

@@ -1,6 +1,6 @@
 <?php
 
-require_once("../lib/ManipulateTask.php");
+require_once(__DIR__."/../lib/ManipulateTask.php");
 
 $task_text = '
 

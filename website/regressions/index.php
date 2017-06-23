@@ -1,6 +1,6 @@
 <?php
 
-require_once("../lib/internals.php");
+require_once(__DIR__."/../lib/internals.php");
 check_permissions();
 
 ?>

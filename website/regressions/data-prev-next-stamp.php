@@ -3,14 +3,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-require_once("../lib/internals.php");
+require_once(__DIR__."/../lib/internals.php");
 check_permissions();
 
 init_database();
 
-require_once("../lib/ScoreTools.php");
-require_once("../lib/DB/Score.php");
-require_once("../lib/DB/Breakdown.php");
+require_once(__DIR__."/../lib/ScoreTools.php");
+require_once(__DIR__."/../lib/DB/Score.php");
+require_once(__DIR__."/../lib/DB/Breakdown.php");
 
 $postdata = file_get_contents("php://input");
 $request = json_decode($postdata);

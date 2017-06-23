@@ -1,6 +1,6 @@
 <?php
 
-require_once("../internals.php");
+require_once(__DIR__."/../internals.php");
 require_once("DB.php");
 require_once("Build.php");
 
