@@ -28,10 +28,16 @@ class Build extends DB {
         if ($run->isFinished())
             throw new Exception("Cannot info to a run that is finished.");
 
+        $maybeBuild = Build::withRunAndMode($run->id, $mode_id);
+        if ($maybeBuild != null) {
+            return $maybeBuild;
+        }
+
         awfy_query("INSERT INTO awfy_build
                     (run_id, mode_id, cset)
                     VALUES
                     ({$run->id}, $mode_id, '".mysql_real_escape_string($revision)."')");
+
         return new Build(mysql_insert_id());
     }
 

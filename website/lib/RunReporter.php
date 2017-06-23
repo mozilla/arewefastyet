@@ -39,7 +39,7 @@ class RunReporter {
 
         $run = Run::insert($machine_id, $sort_order, $approx_stamp);
         $run->updateInt("out_of_order", 1);
-        $build = Build::insert($run, $mode_id, $revision);
+        Build::insert($run, $mode_id, $revision);
         return $run;
     }
 
