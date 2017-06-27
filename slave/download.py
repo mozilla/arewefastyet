@@ -43,11 +43,11 @@ def download_from_url(url):
 
     raise Exception("Unknown retriever")
 
-def download_for_repo(config, repo, cset="latest"):
+def download_for_repo(config, repo, cset="latest", buildtype='opt'):
     print "Downloading for repository {}".format(repo, cset)
     urlCreator = url_creator.getUrlCreator(config, repo)
 
-    urls = urlCreator.find(cset)
+    urls = urlCreator.find(cset, buildtype=buildtype)
     for url in urls:
         print "trying: " + url
         downloader = download_from_url(url)
@@ -345,6 +345,9 @@ if __name__ == "__main__":
                       help="Specify the revision to download. Defaults to 'latest'. (Note: this is currently only supported when using a mozilla repo)", default='latest')
     parser.add_option("-c", "--config", dest="config",
                       help="auto, 32bit, 64bit", default='auto')
+    parser.add_option("-b", "--buildtype", dest="buildtype",
+                      help="Specify build type to use (opt, debug, pgo). The default is 'opt'.",
+                      default="opt")
     (options, args) = parser.parse_args()
 
     if ((sys.version_info.major < 2) or
@@ -371,7 +374,8 @@ if __name__ == "__main__":
     if options.url:
         downloader = download_from_url(options.url)
     elif options.repo:
-        downloader = download_for_repo(options.config, options.repo, options.cset)
+        downloader = download_for_repo(options.config, options.repo,
+                                       options.cset, options.buildtype)
     else:
         raise Exception("You'll need to specify at least an url or repo")
 

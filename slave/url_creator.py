@@ -9,11 +9,11 @@ class UrlCreator(object):
         self.repo = repo
         self.config = config
 
-    def find(self, cset = 'latest'):
+    def find(self, cset = 'latest', **kwargs):
         if cset == 'latest':
-            urls = self.latest()[0:5]
+            urls = self.latest(**kwargs)[0:5]
         else:
-            urls = self.urlForRevision(cset)
+            urls = self.urlForRevision(cset, **kwargs)
         return urls
 
 class ChromeUrlCreator(UrlCreator):
@@ -38,7 +38,7 @@ class ChromeUrlCreator(UrlCreator):
                 return "Win_x64"
         raise Exception("Unknown platform: " + platform.system())
 
-    def latest(self):
+    def latest(self, **kwargs):
         response = urllib2.urlopen(self._url_base() + "LAST_CHANGE")
         chromium_rev = response.read()
 
@@ -49,7 +49,7 @@ class ChromeUrlCreator(UrlCreator):
 
 class WebKitUrlCreator(UrlCreator):
 
-    def latest(self):
+    def latest(self, **kwargs):
         response = urllib2.urlopen("https://webkit.org/downloads/")
         html = response.read()
 
@@ -90,24 +90,29 @@ class MozillaUrlCreator(UrlCreator):
         if platform == "macosx64":
             return ["osx-10-7"]
 
-    def latest(self):
+    def latest(self, buildtype):
         url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/resultset/?count=10"
         data = utils.fetch_json(url)
 
         revisions = [i["revision"] for i in data["results"]]
         for revision in revisions:
-            urls = self._urlForRevision(revision)
+            urls = self._urlForRevision(revision, buildtype)
             if len(urls) == 1:
                 return [urls[0]]
 
         return []
 
-    def urlForRevision(self, cset):
-        urls = self._urlForRevision(cset)
+    def urlForRevision(self, cset, buildtype):
+        urls = self._urlForRevision(cset, buildtype)
         assert len(urls) == 1
         return urls
 
-    def _urlForRevision(self, cset):
+    def _urlForRevision(self, cset, buildtype):
+        assert buildtype in ('opt', 'debug', 'pgo'), \
+            '{} is not a valid buildtype ("opt", "debug", "pgo").'.format(
+                buildtype
+            )
+
         # here we use a detour using treeherder to find the build_id,
         # corresponding to a revision.
         url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/resultset/?full=false&revision=" + cset
@@ -134,7 +139,7 @@ class MozillaUrlCreator(UrlCreator):
             builds = [i for i in builds if i["build_system_type"] == "buildbot"]
 
         builds = [i for i in builds if i["job_type_symbol"] == "B" or i["job_type_symbol"] == "Bo"] # Builds
-        builds = [i for i in builds if i["platform_option"] == "opt"] # opt / debug / pgo
+        builds = [i for i in builds if i["platform_option"] == buildtype] # opt / debug / pgo
         builds = [i for i in builds if i["platform"] in self.treeherder_platform()] # platform
 
         if len(builds) == 0:
