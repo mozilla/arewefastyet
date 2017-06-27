@@ -359,7 +359,9 @@ if __name__ == "__main__":
     if options.config == "auto":
         options.config, _ = platform.architecture()
 
-    if options.config == "64bit" and platform.architecture()[0] == "32bit":
+    # Using platform.machine() gives you the architecture of the host rather
+    # than the build type of the Python binary
+    if options.config == "64bit" and '32' in platform.machine():
         print "Cannot download a 64bit binary on 32bit architecture"
         exit()
 
