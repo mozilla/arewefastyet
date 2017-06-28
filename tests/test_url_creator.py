@@ -1,27 +1,48 @@
+#!/usr/bin/env python2
+
 import sys
 sys.path.append("../slave")
 
 import url_creator
 
-creators = [
-    url_creator.getUrlCreator("mozilla-inbound"),
-    url_creator.getUrlCreator("mozilla-aurora"),
-    url_creator.getUrlCreator("mozilla-beta"),
-    url_creator.getUrlCreator("mozilla-central"),
-    url_creator.getUrlCreator("mozilla-release"),
-    url_creator.getUrlCreator("chrome"),
-    url_creator.getUrlCreator("webkit")
+repos = [
+    "mozilla-inbound",
+    "mozilla-central",
+    "mozilla-aurora",
+    # "mozilla-beta", # TODO no 32 bits
+    # "mozilla-release", # TODO no 32 bits
+    "chrome",
+    "webkit",
 ]
 
-# Test 1
-for creator in creators:
-    urls = creator.find()
+archs = [
+    '32bits',
+    '64bits'
+]
+
+for repo in repos:
+    for arch in archs:
+        print "Testing optimized download for {} on {}.".format(repo, arch)
+
+        urls = url_creator.get(arch, repo).find(buildtype='opt')
+        assert urls
+        assert len(urls) > 0
+
+        print "PASSED"
+        print ""
+
+for arch in archs:
+    print "Testing PGO download for mozilla-central on {}.".format(arch)
+    urls = url_creator.get(arch, "mozilla-central").find(buildtype='pgo')
     assert urls
     assert len(urls) > 0
+    print "PASSED"
+    print ""
 
-# Test 2
-creator = url_creator.getUrlCreator("mozilla-inbound")
-urls = creator.find("4a38ccb01816")
+print "Testing downloading a specific revision on mozilla-inbound."
+creator = url_creator.get("64-bits", "mozilla-inbound")
+urls = creator.find("dc98dc9e0725", buildtype='opt')
 assert urls
 assert len(urls) > 0
-
+print "PASSED"
+print ""
