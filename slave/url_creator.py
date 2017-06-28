@@ -136,24 +136,32 @@ class MozillaUrlCreator(UrlCreator):
 
         url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/jobs/?count=2000&result_set_id=" + str(id)
         data = utils.fetch_json(url)
-        builds = data["results"]
+        fetched_builds = data["results"]
 
         if self._platform() == "macosx64" and self.repo in MAC_BUILDBOT_REPOSITORIES:
-            builds = [i for i in builds if i["build_system_type"] == "buildbot"]
+            fetched_builds = [i for i in fetched_builds if i["build_system_type"] == "buildbot"]
         else:
-            builds = [i for i in builds if i["build_system_type"] == "taskcluster"]
+            fetched_builds = [i for i in fetched_builds if i["build_system_type"] == "taskcluster"]
 
-        builds = [i for i in builds if i["job_type_symbol"] in ("B", "Bo")] # Builds
-        builds = [i for i in builds if i["platform_option"] == buildtype] # opt / debug / pgo
-        builds = [i for i in builds if i["platform"] in self.treeherder_platform()] # platform
+        def filter_with_symbols(builds, allowed_symbols):
+            filtered = builds
+            filtered = [i for i in filtered if i["job_type_symbol"] in allowed_symbols] # Builds
+            filtered = [i for i in filtered if i["platform_option"] == buildtype] # opt / debug / pgo
+            filtered = [i for i in filtered if i["platform"] in self.treeherder_platform()] # platform
+            return filtered
 
-        if len(builds) == 0:
-            print "Found no builds."
-            return []
+        builds = filter_with_symbols(fetched_builds, ("B", "Bo"))
+        if len(builds) != 1:
+            if len(builds) > 1:
+                print "Job symbols B/Bo yielded {} results, retrying with N symbols.".format(len(builds))
 
-        if len(builds) > 1:
-            print "Found multiple builds. Couldn't decide."
-            return []
+            builds = filter_with_symbols(fetched_builds, ("N"))
+            if len(builds) == 0:
+                print "No jobs found at all, aborting."
+                return []
+            elif len(builds) > 1:
+                print "Job symbols N yielded too many ({}) results, aborting.".format(len(builds))
+                return []
 
         if self._platform() == "macosx64" and self.repo in MAC_BUILDBOT_REPOSITORIES:
             # Buildbot builds are now triggered via TaskCluster/BuildbotBridge
@@ -173,10 +181,12 @@ class MozillaUrlCreator(UrlCreator):
         data = utils.fetch_json(url)
 
         urls = [item["url"] for item in data["results"] if item["url"]]
+
         urls = [url for url in urls
                 if 'target.zip' in url or
                    'target.tar.bz2' in url or
-                   'target.dmg' in url]
+                   'target.dmg' in url or
+                   ('firefox-' in url and url.endswith(self._platform() + '.zip'))]
 
         return urls
 
