@@ -46,9 +46,9 @@ def download_from_url(url):
 
 def download_for_repo(config, repo, cset="latest", buildtype='opt'):
     print "Downloading for repository {}".format(repo, cset)
-    urlCreator = url_creator.getUrlCreator(config, repo)
+    creator = url_creator.get(config, repo)
 
-    urls = urlCreator.find(cset, buildtype=buildtype)
+    urls = creator.find(cset, buildtype=buildtype)
     for url in urls:
         print "trying: " + url
         downloader = download_from_url(url)

@@ -16,7 +16,7 @@ class UrlCreator(object):
         if cset == 'latest':
             urls = self.latest(**kwargs)[0:5]
         else:
-            urls = self.urlForRevision(cset, **kwargs)
+            urls = self.url_for_revision(cset, **kwargs)
         return urls
 
 class ChromeUrlCreator(UrlCreator):
@@ -101,18 +101,18 @@ class MozillaUrlCreator(UrlCreator):
 
         revisions = [i["revision"] for i in data["results"]]
         for revision in revisions:
-            urls = self._urlForRevision(revision, buildtype)
+            urls = self._url_for_revision(revision, buildtype)
             if len(urls) == 1:
                 return [urls[0]]
 
         return []
 
-    def urlForRevision(self, cset, buildtype):
-        urls = self._urlForRevision(cset, buildtype)
+    def url_for_revision(self, cset, buildtype):
+        urls = self._url_for_revision(cset, buildtype)
         assert len(urls) == 1
         return urls
 
-    def _urlForRevision(self, cset, buildtype):
+    def _url_for_revision(self, cset, buildtype):
         assert buildtype in ('opt', 'debug', 'pgo'), \
             '{} is not a valid buildtype ("opt", "debug", "pgo").'.format(
                 buildtype
@@ -180,11 +180,11 @@ class MozillaUrlCreator(UrlCreator):
 
         return urls
 
-def getUrlCreator(config, name):
-    if "mozilla" in name:
-        return MozillaUrlCreator(config, name)
-    if "chrome" in name:
-        return ChromeUrlCreator(config, name)
-    if "webkit" in name:
-        return WebKitUrlCreator(config, name)
+def get(config, repo):
+    if "mozilla" in repo:
+        return MozillaUrlCreator(config, repo)
+    if "chrome" in repo:
+        return ChromeUrlCreator(config, repo)
+    if "webkit" in repo:
+        return WebKitUrlCreator(config, repo)
     raise Exception("Unknown vendor")
