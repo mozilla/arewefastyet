@@ -29,7 +29,8 @@ def download_from_url(url):
         url.startswith("https://inbound-archive.pub.build.mozilla.org")):
         return ArchiveMozillaDownloader(url)
 
-    if url.startswith("https://queue.taskcluster.net/v1/task/"):
+    if (url.startswith("https://queue.taskcluster.net/v1/task/") or
+        url.startswith("https://public-artifacts.taskcluster.net")):
         return TreeherderDownloader(url)
 
     if url.startswith("http://commondatastorage.googleapis.com"):

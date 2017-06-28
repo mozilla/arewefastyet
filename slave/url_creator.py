@@ -4,6 +4,9 @@ import re
 
 import utils
 
+MAC_BUILDBOT_REPOSITORIES = ('mozilla-beta', 'mozilla-release', 'mozilla-esr52')
+
+
 class UrlCreator(object):
     def __init__(self, config, repo):
         self.repo = repo
@@ -88,7 +91,9 @@ class MozillaUrlCreator(UrlCreator):
         if platform == "win64":
             return ["windows8-64", "windows2012-64"]  # LATER??
         if platform == "macosx64":
-            return ["osx-10-7"]
+            # The first value is valid for Buildbot
+            # while the latter is for TaskCluster
+            return ["osx-10-7", "osx-10-10"]
 
     def latest(self, buildtype):
         url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/resultset/?count=10"
@@ -133,12 +138,12 @@ class MozillaUrlCreator(UrlCreator):
         data = utils.fetch_json(url)
         builds = data["results"]
 
-        if self._platform() != "macosx64":
-            builds = [i for i in builds if i["build_system_type"] == "taskcluster"]
-        else:
+        if self._platform() == "macosx64" and self.repo in MAC_BUILDBOT_REPOSITORIES:
             builds = [i for i in builds if i["build_system_type"] == "buildbot"]
+        else:
+            builds = [i for i in builds if i["build_system_type"] == "taskcluster"]
 
-        builds = [i for i in builds if i["job_type_symbol"] == "B" or i["job_type_symbol"] == "Bo"] # Builds
+        builds = [i for i in builds if i["job_type_symbol"] in ("B", "Bo")] # Builds
         builds = [i for i in builds if i["platform_option"] == buildtype] # opt / debug / pgo
         builds = [i for i in builds if i["platform"] in self.treeherder_platform()] # platform
 
@@ -150,23 +155,28 @@ class MozillaUrlCreator(UrlCreator):
             print "Found multiple builds. Couldn't decide."
             return []
 
-        if self._platform() == "macosx64":
-            url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/job-log-url/?job_id=" + str(builds[0]["id"])
-            data = utils.fetch_json(url)
+        if self._platform() == "macosx64" and self.repo in MAC_BUILDBOT_REPOSITORIES:
+            # Buildbot builds are now triggered via TaskCluster/BuildbotBridge
+            # * One task represents a Buildbot job (bbb_task_id)
+            # * The Buildbot job uploads artifacts to another task (upload_task_id)
+            bbb_task_id = builds[0]['reason'].replace('Created by BBB for task ', '')
+            url = "https://public-artifacts.taskcluster.net"
+            data = utils.fetch_json("{}/{}/0/public/properties.json".format(url, bbb_task_id))
 
-            if len(data) == 0:
-                return []
-
-            # The URL is the full path to the text log archive. Remove the file
-            # name so as to keep the build directory URL.
-            build_dir = '/'.join(data[0]["url"].split('/')[:-1])
-            return [build_dir]
+            # data['packageFilename'] == [u'firefox-55.0.en-US.mac.dmg', u'SetProperty Step']
+            # data['upload_to_task_id'] == [u'ZsXNFXZCRfi67CHWeJDGVA', u'bbb']
+            filename = data['packageFilename'][0]
+            upload_task_id = data['upload_to_task_id'][0]
+            return ["{}/{}/0/public/build/{}".format(url, upload_task_id, filename)]
 
         url = "https://treeherder.mozilla.org/api/jobdetail/?job_guid=" + str(builds[0]["job_guid"])
         data = utils.fetch_json(url)
 
         urls = [item["url"] for item in data["results"] if item["url"]]
-        urls = [url for url in urls if 'target.zip' in url or 'target.tar.bz2' in url]
+        urls = [url for url in urls
+                if 'target.zip' in url or
+                   'target.tar.bz2' in url or
+                   'target.dmg' in url]
 
         return urls
 
