@@ -67,7 +67,7 @@ class Downloader(object):
         self.folder = "./"
 
     def valid(self):
-        return self.getfilename() != None
+        return self.get_filename() != None
 
     def set_output_folder(self, folder):
         if not folder.endswith("/"):
@@ -77,7 +77,7 @@ class Downloader(object):
     def download(self):
         self.create_output_folder()
 
-        filename = self.getfilename()
+        filename = self.get_filename()
         assert filename
         self.retrieve(filename)
         self.extract(filename)
@@ -112,11 +112,11 @@ class TreeherderDownloader(Downloader):
         self.url = "/".join(url.split("/")[:-1])+"/"
         self.filename = url.split("/")[-1]
 
-    def getfilename(self):
+    def get_filename(self):
         return self.filename
 
     def retrieve_info(self):
-        infoname = self.getinfoname()
+        infoname = self.get_info_filename()
 
         raw_info = utils.fetch_json(self.url + infoname)
 
@@ -124,13 +124,13 @@ class TreeherderDownloader(Downloader):
         info["revision"] = raw_info["moz_source_stamp"]
         info["engine_type"] = "firefox"
         info["shell"] = False
-        info["binary"] = os.path.abspath(self.getbinary())
+        info["binary"] = os.path.abspath(self.get_binary())
         info["folder"] = os.path.abspath(self.folder)
 
         return info
 
-    def getinfoname(self):
-        filename = self.getfilename()
+    def get_info_filename(self):
+        filename = self.get_filename()
         try:
             filename = os.path.splitext(filename)[0]
             response = urllib2.urlopen(self.url + filename + ".json")
@@ -142,7 +142,7 @@ class TreeherderDownloader(Downloader):
 
         return filename + ".json"
 
-    def getbinary(self):
+    def get_binary(self):
         if os.path.exists(self.folder + "firefox/firefox.exe"):
             return self.folder + "firefox/firefox.exe"
         if os.path.exists(self.folder + "firefox/firefox"):
@@ -157,7 +157,7 @@ class TreeherderDownloader(Downloader):
 
 class ArchiveMozillaDownloader(Downloader):
 
-    def getfilename(self):
+    def get_filename(self):
         try:
             response = urllib2.urlopen(self.url)
             html = response.read()
@@ -167,18 +167,18 @@ class ArchiveMozillaDownloader(Downloader):
         possibles = re.findall(r'<a href=".*((firefox|fennec)-[a-zA-Z0-9._-]*)">', html)
         possibles = [possible[0] for possible in possibles]
 
-        filename = self.getUniqueFileName(possibles)
+        filename = self.get_unique_filename(possibles)
         if filename:
             return filename
 
-        filename = self.getPlatformFileName(possibles, platform.system(), platform.architecture()[0])
+        filename = self.get_platform_filename(possibles, platform.system(), platform.architecture()[0])
         if filename:
             return filename
 
         return None
 
     def retrieve_info(self):
-        infoname = self.getinfoname()
+        infoname = self.get_info_filename()
 
         response = urllib2.urlopen(self.url + infoname)
         raw_info = json.loads(response.read())
@@ -187,7 +187,7 @@ class ArchiveMozillaDownloader(Downloader):
         info["revision"] = raw_info["moz_source_stamp"]
         info["engine_type"] = "firefox"
         info["shell"] = False
-        info["binary"] = os.path.abspath(self.getbinary())
+        info["binary"] = os.path.abspath(self.get_binary())
         info["folder"] = os.path.abspath(self.folder)
 
         return info
@@ -213,13 +213,13 @@ class ArchiveMozillaDownloader(Downloader):
                 possibles2.append(possible)
         return possibles2
 
-    def getUniqueFileName(self, possibles):
+    def get_unique_filename(self, possibles):
         possibles = self._remove_extra_files(possibles)
         if len(possibles) != 1:
             return None
         return possibles[0]
 
-    def getPlatformFileName(self, possibles, platform, arch):
+    def get_platform_filename(self, possibles, platform, arch):
         possibles = self._remove_extra_files(possibles)
         if platform == "Darwin":
             possibles = [possible for possible in possibles if "mac" in possible]
@@ -242,8 +242,8 @@ class ArchiveMozillaDownloader(Downloader):
             return None
         return possibles[0]
 
-    def getinfoname(self):
-        filename = self.getfilename()
+    def get_info_filename(self):
+        filename = self.get_filename()
         try:
             filename = os.path.splitext(filename)[0]
             response = urllib2.urlopen(self.url + filename + ".json")
@@ -255,7 +255,7 @@ class ArchiveMozillaDownloader(Downloader):
 
         return filename + ".json"
 
-    def getbinary(self):
+    def get_binary(self):
         if os.path.exists(self.folder + "firefox/firefox.exe"):
             return self.folder + "firefox/firefox.exe"
         if os.path.exists(self.folder + "firefox/firefox"):
@@ -271,7 +271,7 @@ class ArchiveMozillaDownloader(Downloader):
 
 class GoogleAPISDownloader(Downloader):
 
-    def getfilename(self):
+    def get_filename(self):
         platform = self.url.split("/")[-3]
         if platform.startswith("Linux"):
             return "chrome-linux.zip"
@@ -283,7 +283,7 @@ class GoogleAPISDownloader(Downloader):
             return "chrome-android.zip"
         raise Exception("Unknown platform: " + platform)
 
-    def getbinary(self):
+    def get_binary(self):
         if os.path.exists(self.folder + "chrome-linux/chrome"):
             return self.folder + "chrome-linux/chrome"
         if os.path.exists(self.folder + "chrome-win32/chrome.exe"):
@@ -302,7 +302,7 @@ class GoogleAPISDownloader(Downloader):
         info["revision"] = cset
         info["engine_type"] = "chrome"
         info["shell"] = False
-        info["binary"] = os.path.abspath(self.getbinary())
+        info["binary"] = os.path.abspath(self.get_binary())
         info["folder"] = os.path.abspath(self.folder)
 
         return info
@@ -316,7 +316,7 @@ class BuildsWebkitDownloader(Downloader):
             self.url += "/"
         self.folder = "./"
 
-    def getfilename(self):
+    def get_filename(self):
         return self.file
 
     def retrieve_info(self):
