@@ -47,31 +47,54 @@ def skip(platform, repo, arch):
 
     return False
 
-for platform in platforms:
-    for repo in repos:
-        for arch in archs:
-            if skip(platform, repo, arch):
-                continue
+def main():
+    failures = []
 
-            print "Testing opt download for {} on {} {}.".format(repo, platform, arch)
-            urls = url_creator.get(arch, repo, platform).find(buildtype='opt')
+    for repo in repos:
+        for platform in platforms:
+            for arch in archs:
+                if skip(platform, repo, arch):
+                    continue
+
+                print "Testing opt download for {} on {} {}.".format(repo, platform, arch)
+                try:
+                    urls = url_creator.get(arch, repo, platform).find(buildtype='opt')
+                    assert urls
+                    assert len(urls) > 0
+                    print "PASSED\n"
+                except:
+                    print "FAILED\n"
+                    failures.append(('opt', platform, repo, arch))
+
+    for arch in archs:
+        print "Testing pgo download for mozilla-central on Windows {}.".format(arch)
+        try:
+            urls = url_creator.get(arch, "mozilla-central", 'Windows').find(buildtype='pgo')
             assert urls
             assert len(urls) > 0
-            print "PASSED"
-            print ""
+            print "PASSED\n"
+        except:
+            print "FAILED\n"
+            failures.append(('pgo', 'Windows', 'mozilla-central', arch))
 
-for arch in archs:
-    print "Testing pgo download for mozilla-central on Windows {}.".format(arch)
-    urls = url_creator.get(arch, "mozilla-central", 'Windows').find(buildtype='pgo')
-    assert urls
-    assert len(urls) > 0
-    print "PASSED"
-    print ""
+    print "Testing downloading a specific revision on mozilla-inbound."
+    try:
+        creator = url_creator.get("64-bits", "mozilla-inbound")
+        urls = creator.find("dc98dc9e0725", buildtype='opt')
+        assert urls
+        assert len(urls) > 0
+        print "PASSED\n"
+    except:
+        print "FAILED\n"
+        failures.append(('specific', creator.platform, 'mozilla-inbound', creator.arch))
 
-print "Testing downloading a specific revision on mozilla-inbound."
-creator = url_creator.get("64-bits", "mozilla-inbound")
-urls = creator.find("dc98dc9e0725", buildtype='opt')
-assert urls
-assert len(urls) > 0
-print "PASSED"
-print ""
+    if len(failures) > 0:
+        print "FAILURES:"
+        for test, platform, repo, arch in failures:
+            print "{} {} - {} {}".format(repo, test, platform, arch)
+        exit(1)
+    else:
+        exit(0)
+
+if __name__ == '__main__':
+    main()
