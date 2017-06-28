@@ -8,9 +8,11 @@ MAC_BUILDBOT_REPOSITORIES = ('mozilla-beta', 'mozilla-release', 'mozilla-esr52')
 
 
 class UrlCreator(object):
-    def __init__(self, config, repo):
+    def __init__(self, config, repo, other_platform=None):
         self.repo = repo
-        self.config = config
+
+        self.arch = config[0:2]
+        self.platform = other_platform if other_platform is not None else platform.system()
 
     def find(self, cset = 'latest', **kwargs):
         if cset == 'latest':
@@ -23,23 +25,22 @@ class ChromeUrlCreator(UrlCreator):
 
     def _url_base(self):
         platform = self._platform()
-        return "http://commondatastorage.googleapis.com/chromium-browser-snapshots/"+platform+"/"
+        return "http://commondatastorage.googleapis.com/chromium-browser-snapshots/" + platform + "/"
 
     def _platform(self):
-        arch = self.config[0:2]
-        if platform.system() == "Linux":
-            if arch == '64':
+        if self.platform == "Linux":
+            if self.arch == '64':
                 return "Linux_x64"
-            if arch == '32':
+            if self.arch == '32':
                 return "Linux"
-        if platform.system() == "Darwin":
+        if self.platform == "Darwin":
             return "Mac"
-        if platform.system() == "Windows" or platform.system().startswith("CYGWIN"):
-            if arch == '32':
+        if self.platform == "Windows" or self.platform.startswith("CYGWIN"):
+            if self.arch == '32':
                 return "Win"
-            if arch == '64':
+            if self.arch == '64':
                 return "Win_x64"
-        raise Exception("Unknown platform: " + platform.system())
+        raise Exception("Unknown platform: " + self.platform)
 
     def latest(self, **kwargs):
         response = urllib2.urlopen(self._url_base() + "LAST_CHANGE")
@@ -61,24 +62,21 @@ class WebKitUrlCreator(UrlCreator):
 
 class MozillaUrlCreator(UrlCreator):
 
-    def __init__(self, config, repo):
+    def __init__(self, config, repo, platform=None):
         if repo == "mozilla-try":
             repo = "try";
-        UrlCreator.__init__(self, config, repo)
+        UrlCreator.__init__(self, config, repo, platform)
 
     def _platform(self):
-        arch = self.config[0:2]
-        if platform.system() == "Linux":
-            if arch == "32":
+        if self.platform == "Linux":
+            if self.arch == "32":
                 return "linux"
-            return "linux"+arch
-        if platform.system() == "Darwin":
+            return "linux" + self.arch
+        if self.platform == "Darwin":
             return "macosx64"
-        if platform.system() == "Windows":
-            return "win"+arch
-        if platform.system().startswith("CYGWIN"):
-            return "win"+arch
-        raise Exception("Unknown platform: " + platform.system())
+        if self.platform == "Windows" or self.platform.startswith("CYGWIN"):
+            return "win" + self.arch
+        raise Exception("Unknown platform: " + self.platform)
 
     def treeherder_platform(self):
         platform = self._platform()
@@ -190,11 +188,11 @@ class MozillaUrlCreator(UrlCreator):
 
         return urls
 
-def get(config, repo):
+def get(config, repo, platform=None):
     if "mozilla" in repo:
-        return MozillaUrlCreator(config, repo)
+        return MozillaUrlCreator(config, repo, platform)
     if "chrome" in repo:
-        return ChromeUrlCreator(config, repo)
+        return ChromeUrlCreator(config, repo, platform)
     if "webkit" in repo:
-        return WebKitUrlCreator(config, repo)
+        return WebKitUrlCreator(config, repo, platform)
     raise Exception("Unknown vendor")

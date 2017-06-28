@@ -5,14 +5,19 @@ sys.path.append("../slave")
 
 import url_creator
 
+platforms = [
+    "Windows",
+    "Linux",
+    "Darwin"
+]
+
 repos = [
     "mozilla-inbound",
     "mozilla-central",
-    "mozilla-aurora",
-    # "mozilla-beta", # TODO no 32 bits
-    # "mozilla-release", # TODO no 32 bits
+    "mozilla-beta",
+    "mozilla-release",
     "chrome",
-    "webkit",
+    "webkit"
 ]
 
 archs = [
@@ -20,20 +25,44 @@ archs = [
     '64bits'
 ]
 
-for repo in repos:
-    for arch in archs:
-        print "Testing optimized download for {} on {}.".format(repo, arch)
+KNOWN_FAILURES = [
+    ('Darwin', 'mozilla-release', '64bits') # 403 unauthorized
+]
 
-        urls = url_creator.get(arch, repo).find(buildtype='opt')
-        assert urls
-        assert len(urls) > 0
+def skip(platform, repo, arch):
+    """
+    Returns true if a configuration (triplet of platform/repo/arch) must be
+    skipped, false otherwise.
+    """
+    if platform == 'Darwin' and arch != '64bits':
+        return True
 
-        print "PASSED"
-        print ""
+    if repo == 'webkit' and platform != 'Darwin':
+        return True
+
+    for fplatform, frepo, farch in KNOWN_FAILURES:
+        if platform == fplatform and repo == frepo and arch == farch:
+            print "(skipping known failure {} {} {})".format(platform, repo, arch)
+            return True
+
+    return False
+
+for platform in platforms:
+    for repo in repos:
+        for arch in archs:
+            if skip(platform, repo, arch):
+                continue
+
+            print "Testing opt download for {} on {} {}.".format(repo, platform, arch)
+            urls = url_creator.get(arch, repo, platform).find(buildtype='opt')
+            assert urls
+            assert len(urls) > 0
+            print "PASSED"
+            print ""
 
 for arch in archs:
-    print "Testing PGO download for mozilla-central on {}.".format(arch)
-    urls = url_creator.get(arch, "mozilla-central").find(buildtype='pgo')
+    print "Testing pgo download for mozilla-central on Windows {}.".format(arch)
+    urls = url_creator.get(arch, "mozilla-central", 'Windows').find(buildtype='pgo')
     assert urls
     assert len(urls) > 0
     print "PASSED"
