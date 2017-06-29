@@ -7,6 +7,20 @@ import time
 
 import utils
 
+def make_xhr(results_var_name, is_json=False):
+    encoded = results_var_name
+    if is_json:
+        encoded = 'JSON.stringify({})'.format(encoded)
+
+    return """
+  var xmlHttp = new XMLHttpRequest();
+  xmlHttp.open("POST", "/submit", true);
+  xmlHttp.setRequestHeader("Content-type",
+                            "application/x-www-form-urlencoded");
+  // We need to use encodeURIComponent because of the '&' in benchmark names.
+  xmlHttp.send("results=" + encodeURIComponent({}));
+  """.format(encoded)
+
 class Benchmark:
     """ timeout is in minutes """
     def __init__(self, folder, page, timeout=2):
@@ -62,6 +76,10 @@ class Benchmark:
         return results
 
     @staticmethod
+    def inject_data(path, data):
+        return data
+
+    @staticmethod
     def name():
         """Returns the string name of the benchmark."""
         raise Exception("NYI")
@@ -94,6 +112,17 @@ class AssortedDOM(Benchmark):
         ret.append({'name': "__total__", 'time': total })
         return ret
 
+    @staticmethod
+    def inject_data(full_path, data):
+        _, filename = os.path.split(full_path)
+
+        if filename == "driver.html":
+           return data.replace('location = "results.html?" + encodeURI(outputString);',
+                               make_xhr('outputString'))
+
+        return data
+
+
 class WebGLSamples(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "webglsamples/", "test.html", 1)
@@ -119,6 +148,17 @@ class WebAudio(Benchmark):
     def name():
         return "webaudio"
 
+    @staticmethod
+    def inject_data(path, data):
+        _, filename = os.path.split(path)
+
+        if filename == "webaudio-bench.js":
+            return data.replace('xhr.open("POST", "/results", true);',
+                                'xhr.open("POST", "/submit", true);')
+
+        return data
+
+
 class UnityWebGL(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "unity-webgl/", "index.html",  6)
@@ -135,6 +175,16 @@ class UnityWebGL(Benchmark):
                 item['benchmark'] = "__total__"
             ret.append({'name': item['benchmark'], 'time': item['result'] })
         return ret
+
+    @staticmethod
+    def inject_data(full_path, data):
+        _, filename = os.path.split(full_path)
+
+        if filename == "mozbench.js":
+           return data.replace('xmlHttp.open("POST", "/results", true);',
+                               'xmlHttp.open("POST", "/submit", true);')
+
+        return data
 
 Known = [
     AssortedDOM,

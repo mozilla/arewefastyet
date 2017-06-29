@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 import json
-import subprocess
+import multiprocessing
 import sys
 import traceback
 
@@ -13,6 +13,7 @@ import engineInfo
 import executors
 import submitter
 import utils
+import server
 
 parser = OptionParser(usage="usage: %prog url [options]")
 
@@ -107,14 +108,18 @@ for engine_path in options.engines:
         print('Exception: ' +  repr(e))
         traceback.print_exc(file=sys.stdout)
 
-class AutoSpawnServer:
+class Proxy:
     def __init__(self, log):
         self.server = None
         self.log = log
 
     def __enter__(self):
         self.log("Starting proxy server.")
-        self.server = subprocess.Popen(['python', 'server.py'])
+        self.queue = multiprocessing.Queue()
+        self.server = multiprocessing.Process(target=server.main, args=(self.queue,))
+        self.server.start()
+        self.wait_ack()
+        return self
 
     def __exit__(self, type, value, traceback):
         self.log("Terminating proxy server.")
@@ -122,11 +127,28 @@ class AutoSpawnServer:
             self.server.terminate()
             self.server = None
 
+    def _command(self, query):
+        response = utils.fetch_json('http://localhost:8000/admin/' + query)
+        self.log('Proxy: {} -> {} (message: {})'.format(query,
+                                                        response['status'],
+                                                        response.get('message', 'n/a')))
+
+    def flush(self):
+        self._command('flush')
+
+    def prime_benchmark(self, benchmark):
+        self._command('prime?benchmark=' + benchmark)
+
+    def wait_ack(self):
+        received = self.queue.get()
+        if received != 'ACK':
+            self.log('Proxy - Unexpected queue message: {}'.format(received))
+
 if __name__ == '__main__':
     utils.log_banner("EXECUTE")
     log = utils.make_log('EXECUTE')
 
-    with AutoSpawnServer(log):
+    with Proxy(log) as proxy:
         log("Running each benchmark for each config...")
 
         benchmarks = [benchmarks.get(name) for name in options.benchmarks]
@@ -136,9 +158,11 @@ if __name__ == '__main__':
             except:
                 pass
 
+            proxy.prime_benchmark(benchmark.name())
+
             for engine_path in engines:
                 info = engineInfo.read_info_file(engine_path)
-                executor = executors.make_executor(info)
+                executor = executors.make_executor(info, proxy.queue)
 
                 for config_name in options.configs:
                     config = configs.getConfig(config_name, info)
@@ -152,7 +176,6 @@ if __name__ == '__main__':
                     except Exception as e:
                         log('Failed to run ' + engine_path + ' - ' + benchmark.version + ' - ' + config_name + '!')
                         log('Exception: ' +  repr(e))
-                        import traceback
                         traceback.print_exc()
                         continue
 
@@ -161,6 +184,7 @@ if __name__ == '__main__':
 
                     # Try to preserve order of logs.
                     utils.flush()
+                    proxy.flush()
 
         if not options.session:
             submitter.finish()

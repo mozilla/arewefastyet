@@ -1,4 +1,5 @@
 import json
+import multiprocessing
 import os
 import sys
 import time
@@ -40,9 +41,10 @@ class ShellExecutor(object):
         return benchmark.process_results(output)
 
 class BrowserExecutor(object):
-    def __init__(self, engineInfo):
+    def __init__(self, engineInfo, queue):
         self.engineInfo = engineInfo
         self.benchmark = None
+        self.queue = queue
 
     def run(self, benchmark, config):
         self.benchmark = benchmark
@@ -54,35 +56,20 @@ class BrowserExecutor(object):
 
         self.execute(benchmark, env, args, config.profile())
 
-        if not os.path.exists("results"):
-            return None
+        return benchmark.process_results(self.results)
 
-        fp = open("results", "r")
-        results = json.loads(fp.read())
-        fp.close()
+    def wait_for_results(self):
+        timeout_seconds = self.benchmark.timeout * 60
+        try:
+            self.results = self.queue.get(timeout=timeout_seconds)
+        except multiprocessing.queues.Empty:
+            print "Queue timeout!"
+            self.results = None
+        except Exception as e:
+            raise e
 
-        return benchmark.process_results(results)
-
-    def reset_results(self):
-        if not os.path.exists("results"):
-            return
-
-        os.unlink("results")
-
-    def wait_for_results(self, timeout):
-        timeout = timeout * 60
-
-        while not os.path.exists("results") and timeout > 0:
-            time.sleep(10)
-            timeout -= 10
-
-        if not os.path.exists("results"):
-            suite = ""
-            try:
-                suite = " when running {}".format(self.benchmark.suite)
-            except:
-                pass
-            print "TIMEOUT (executor){}".format(suite)
+    def execute(self):
+        raise Exception('BrowserExecutor.execute NYI')
 
 class EdgeExecutor(BrowserExecutor):
     def execute(self, benchmark, env, args, profile):
@@ -99,13 +86,11 @@ class EdgeExecutor(BrowserExecutor):
         process = runner.start("cmd.exe", ["/C", "del", "/Q", "C:\Users\%username%\AppData\Local\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\User\Default\Recovery\Active"], env)
         process.wait()
 
-        self.reset_results()
-
         # run edge.
         process = runner.start("cmd.exe", ["/C", "start", "microsoft-edge:" + args[0]] + args[1:], env)
 
         # wait for results
-        self.wait_for_results(benchmark.timeout)
+        self.wait_for_results()
 
         # kill browser
         print "Killing Edge (after)..."
@@ -138,13 +123,11 @@ class FirefoxExecutor(BrowserExecutor):
         # Update profile to disable slow script dialog
         runner.write("profile/prefs.js", profile)
 
-        self.reset_results()
-
         # start browser
         process = runner.start(binary, args + ["--no-remote", "--profile", runner.getdir("profile")], env)
 
         # wait for results
-        self.wait_for_results(benchmark.timeout)
+        self.wait_for_results()
 
         # kill browser
         print "Killing Firefox (after)..."
@@ -178,8 +161,6 @@ class ChromeExecutor(BrowserExecutor):
         for helper in helpers:
             runner.set_exec_bit(helper)
 
-        self.reset_results()
-
         # enforce an empty user data directory to clear caches and previous
         # settings
         runner.rm("profile/")
@@ -194,7 +175,7 @@ class ChromeExecutor(BrowserExecutor):
         process = runner.start(binary, effective_args, env)
 
         # wait for results
-        self.wait_for_results(benchmark.timeout)
+        self.wait_for_results()
 
         # kill browser
         print "Killing Chrome (after)..."
@@ -220,13 +201,11 @@ class WebKitExecutor(BrowserExecutor):
         # if needed install the executable
         binary = runner.install(self.engineInfo["binary"])
 
-        self.reset_results()
-
         # start browser
         process = runner.start("open", ["-F", "-a", binary] + args, env)
 
         # wait for results
-        self.wait_for_results(benchmark.timeout)
+        self.wait_for_results()
 
         # kill browser
         print "Killing Webkit (after)..."
@@ -241,23 +220,21 @@ class ServoExecutor(BrowserExecutor):
         print "Killing Servo (before)..."
         runner.killall("servo")
 
-        self.reset_results()
-
         # start browser
         process = runner.start(self.engineInfo["binary"], args, env)
 
         # wait for results
-        self.wait_for_results(benchmark.timeout)
+        self.wait_for_results()
 
         # kill browser
         print "Killing Servo (after)..."
         runner.kill(process)
 
-def make_executor(engineInfo):
+def make_executor(engineInfo, *args):
     if engineInfo["shell"]:
         return ShellExecutor(engineInfo)
     if engineInfo["engine_type"] == "firefox":
-        return FirefoxExecutor(engineInfo)
+        return FirefoxExecutor(engineInfo, *args)
     if engineInfo["engine_type"] == "chrome":
         return ChromeExecutor(engineInfo)
     if engineInfo["engine_type"] == "webkit":
