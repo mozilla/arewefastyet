@@ -111,8 +111,8 @@ class MozillaUrlCreator(UrlCreator):
         return urls
 
     def _url_for_revision(self, cset, buildtype):
-        assert buildtype in ('opt', 'debug', 'pgo'), \
-            '{} is not a valid buildtype ("opt", "debug", "pgo").'.format(
+        assert buildtype in ('opt', 'pgo', 'nightly'), \
+            '{} is not a valid buildtype (opt, pgo, nightly).'.format(
                 buildtype
             )
 
