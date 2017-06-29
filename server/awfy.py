@@ -19,8 +19,9 @@ th_host = None
 th_user = None
 th_secret = None
 
-
 queries = 0
+
+
 class DB:
   def __init__(self, host, user, pw, name):
     self.host = host
@@ -28,19 +29,26 @@ class DB:
     self.pw = pw
     self.name = name
     self.connect()
+
   def connect(self):
     if self.host[0] == '/':
       self.db = mdb.connect(unix_socket=self.host, user=self.user, passwd=self.pw,
                             db=self.name, use_unicode=True)
     else:
       self.db = mdb.connect(self.host, self.user, self.pw, self.name, use_unicode=True)
+
   def cursor(self):
     return DBCursor(self.db.cursor())
+
   def commit(self):
     return self.db.commit()
+
+
 class DBCursor:
+
   def __init__(self, cursor):
     self.cursor = cursor
+
   def execute(self, sql, data=None):
     global queries
     queries+=1
@@ -49,10 +57,13 @@ class DBCursor:
     self.lastrowid = self.cursor.lastrowid
     self.rowcount = self.cursor.rowcount
     return exe
+
   def fetchone(self):
     return self.cursor.fetchone();
+
   def fetchall(self):
     return self.cursor.fetchall();
+
 
 def Startup():
     global db, version, path, th_host, th_user, th_secret

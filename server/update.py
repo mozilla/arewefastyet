@@ -110,7 +110,7 @@ def delete_cache(prefix):
     if os.path.exists(os.path.join(awfy.path, prefix + '.json')):
         os.remove(os.path.join(awfy.path, prefix + '.json'))
 
-def open_cache(suite, prefix):
+def open_cache(direction, prefix):
     try:
         with open(os.path.join(awfy.path, prefix + '.json')) as fp:
             cache = util.json_load(fp)
@@ -118,17 +118,18 @@ def open_cache(suite, prefix):
     except:
         return { 'timelist': [],
                  'lines': [],
-                 'direction': suite.direction
+                 'direction': direction
                }
 
 def save_cache(prefix, cache):
-    j = { 'graph': cache,
-          'version': awfy.version
-        }
+    j = {
+        'graph': cache,
+        'version': awfy.version
+    }
     with open(os.path.join(awfy.path, prefix + '.json'), 'w') as fp:
         util.json_dump(j, fp)
 
-def update_cache(cx, suite, prefix, when, rows):
+def update_cache(cx, direction, prefix, when, rows):
     # Sort everything into separate modes.
     modes = { }
     for row in rows:
@@ -145,7 +146,7 @@ def update_cache(cx, suite, prefix, when, rows):
         line.append(row)
 
     # Build our actual datasets.
-    graph = GraphBuilder(suite.direction)
+    graph = GraphBuilder(direction)
     for modeid in modes:
         line = graph.newLine(modeid)
         for row in modes[modeid]:
@@ -159,7 +160,7 @@ def update_cache(cx, suite, prefix, when, rows):
     new_data = graph.output()
 
     # Open the old cache.
-    cache = open_cache(suite, prefix)
+    cache = open_cache(direction, prefix)
 
     # Build a reverse mode mapping for the cache.
     cache_modes = { }
@@ -210,7 +211,7 @@ def update_cache(cx, suite, prefix, when, rows):
     save_cache(prefix, cache)
     return True
 
-def renew_cache(cx, machine, suite, prefix, when, fetch):
+def renew_cache(cx, machine, direction, prefix, when, fetch):
     delete_cache(prefix + '-' + str(when[0]) + '-' + str(when[1]));
 
     # Delete corresponding condensed graph
@@ -239,9 +240,9 @@ def renew_cache(cx, machine, suite, prefix, when, fetch):
     new_rows = len(rows)
     print('found ' + str(new_rows) + ' rows in ' + diff)
 
-    update_cache(cx, suite, name, when, rows)
+    update_cache(cx, direction, name, when, rows)
 
-def perform_update(cx, machine, suite, prefix, fetch):
+def perform_update(cx, machine, direction, prefix, fetch):
     # Fetch the actual data.
     metadata = load_metadata(prefix)
     last_stamp = metadata['last_stamp']
@@ -283,8 +284,8 @@ def perform_update(cx, machine, suite, prefix, fetch):
         name = prefix + '-' + str(when[0]) + '-' + str(when[1])
 
         with Profiler() as p:
-            if not update_cache(cx, suite, name, when, data):
-                renew_cache(cx, machine, suite, prefix, when, fetch)
+            if not update_cache(cx, direction, name, when, data):
+                renew_cache(cx, machine, direction, prefix, when, fetch)
             diff = p.time()
         sys.stdout.write('Updating cache for ' + name + '...')
         sys.stdout.flush()
@@ -294,7 +295,6 @@ def perform_update(cx, machine, suite, prefix, fetch):
     save_metadata(prefix, metadata)
 
     return new_rows
-# Done
 
 def update(cx, machine, suite):
     def fetch_aggregate(machine, finish_stamp = (0,"UNIX_TIMESTAMP()"), approx_stamp = (0,"UNIX_TIMESTAMP()")):
@@ -305,7 +305,7 @@ def update(cx, machine, suite):
         prefix = "auth-"
 
     prefix += 'raw-' + suite.name + '-' + str(machine.id)
-    new_rows = perform_update(cx, machine, suite, prefix, fetch_aggregate)
+    new_rows = perform_update(cx, machine, suite.direction, prefix, fetch_aggregate)
 
     # This is a little cheeky, but as an optimization we don't bother querying
     # subtests if we didn't find new rows.
@@ -320,8 +320,10 @@ def update(cx, machine, suite):
         if suite.visible == 2:
             prefix = "auth-"
 
+        direction = suite.direction
+
         prefix += 'bk-raw-' + suite.name + '-' + test_name + '-' + str(machine.id)
-        perform_update(cx, machine, suite, prefix, fetch_test)
+        perform_update(cx, machine, direction, prefix, fetch_test)
 
 def export_master(cx):
     j = { "version": awfy.version,

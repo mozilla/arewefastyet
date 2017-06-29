@@ -124,7 +124,7 @@ def condense_graph(graph, regions):
 
     return new_graph
 
-def condense_month(cx, suite, graph, prefix, name):
+def condense_month(cx, graph, prefix, name):
     days = split_into_days(graph['timelist'])
     new_graph = condense_graph(graph, days)
 
@@ -173,7 +173,7 @@ def combine(graphs):
 
     return combined
 
-def aggregate(cx, suite, prefix, name):
+def aggregate(cx, prefix, name):
     with Profiler() as p:
         sys.stdout.write('Aggregating ' + name + '... ')
         sys.stdout.flush()
@@ -248,7 +248,7 @@ def aggregate(cx, suite, prefix, name):
 def file_is_newer(file1, file2):
     return os.path.getmtime(file1) >= os.path.getmtime(file2)
 
-def condense(cx, suite, prefix, name):
+def condense(cx, prefix, name):
     with Profiler() as p:
         sys.stdout.write('Importing all datapoints for ' + name + '... ')
         sys.stdout.flush()
@@ -280,7 +280,7 @@ def condense(cx, suite, prefix, name):
 
             graph = retrieve_graph(cx, raw_file)
 
-            condense_month(cx, suite, graph, prefix, condensed_name)
+            condense_month(cx, graph, prefix, condensed_name)
             diff = p.time()
         print(' took ' + diff)
 
@@ -293,14 +293,16 @@ def condense_suite(cx, machine, suite):
         prefix = "auth-"
 
     # Condense suite
-    change = condense(cx, suite, prefix, name)
+    change = condense(cx, prefix, name)
 
     # Aggregate suite if needed.
     aggregated_file = prefix + 'aggregate-' + name + '.json'
     if change:
-        j = { 'version': awfy.version,
-              'graph': aggregate(cx, suite, prefix, name)
-            }
+        j = {
+            'version': awfy.version,
+            'graph': aggregate(cx, prefix, name)
+        }
+
         export(aggregated_file, j)
 
         # Note: only run the subtest condenser when suite was changed.
@@ -308,13 +310,14 @@ def condense_suite(cx, machine, suite):
             test_path = suite.name + '-' + test_name + '-' + str(machine.id)
 
             # Condense test
-            change = condense(cx, suite, prefix + 'bk-', test_path)
+            change = condense(cx, prefix + 'bk-', test_path)
 
             # Aggregate suite if needed.
             if change:
-                j = { 'version': awfy.version,
-                      'graph': aggregate(cx, suite, prefix + 'bk-', test_path)
-                    }
+                j = {
+                    'version': awfy.version,
+                    'graph': aggregate(cx, prefix + 'bk-', test_path)
+                }
                 export(prefix + 'bk-aggregate-' + test_path + '.json', j)
 
     if not os.path.exists(os.path.join(awfy.path, aggregated_file)):
@@ -341,8 +344,9 @@ def condense_all(cx):
                 continue
             aggregates[suite.name] = suite_aggregate
 
-        j = { 'version': awfy.version,
-              'graphs': aggregates
-            }
-        export('aggregate-' + str(machine.id) + '.json', j)
+        j = {
+            'version': awfy.version,
+            'graphs': aggregates
+        }
 
+        export('aggregate-' + str(machine.id) + '.json', j)
