@@ -60,6 +60,40 @@ class WebKitUrlCreator(UrlCreator):
         url = re.findall("https://builds-nightly.webkit.org/files/trunk/mac/WebKit-SVN-r[0-9]*.dmg", html)
         return url
 
+
+class TaskClusterIndexHelper(object):
+    _index_url = 'https://index.taskcluster.net/v1/task/gecko.v2'
+    _artifacts = 'https://public-artifacts.taskcluster.net'
+
+    @classmethod
+    def _latest_nightly_task_id(cls, repo_name, product, platform):
+        '''Return taskId for the latest nightly task.'''
+        assert product in ('firefox', 'mobile')
+        # Even though it says 'opt' these are PGO nightly builds
+        platform = platform + '-opt'
+        assert platform in ('linux-opt', 'linux64-opt', 'macosx64-opt',
+                            'win32-opt', 'win64-opt')
+        url = '{}.{}.nightly.latest.{}.{}'.format(cls._index_url,
+                                                  repo_name,
+                                                  product,
+                                                  platform)
+        return utils.fetch_json(url)['taskId']
+
+    @classmethod
+    def _properties(cls, task_id):
+        '''Return Buildbot properties for a known Buildbot generated task.'''
+        url = '{}/{}/{}'.format(cls._artifacts,
+                                task_id,
+                                '0/public/build/buildbot_properties.json')
+        return utils.fetch_json(url)['properties']
+
+    @classmethod
+    def latest_nightly_url(cls, repo_name, product, platform):
+        '''Return URL to latest nightly build.'''
+        task_id = cls._latest_nightly_task_id(repo_name, product, platform)
+        return cls._properties(task_id)['packageUrl']
+
+
 class MozillaUrlCreator(UrlCreator):
 
     def __init__(self, config, repo, platform=None):
@@ -111,82 +145,96 @@ class MozillaUrlCreator(UrlCreator):
         return urls
 
     def _url_for_revision(self, cset, buildtype):
-        assert buildtype in ('opt', 'debug', 'pgo'), \
-            '{} is not a valid buildtype ("opt", "debug", "pgo").'.format(
+        def _filter_with_symbols(builds, allowed_symbols):
+            return [i for i in builds
+                    if i["job_type_symbol"] in allowed_symbols  # builds
+                    and i["platform_option"] == buildtype  # opt / debug / pgo
+                    and i["platform"] in self.treeherder_platform()]  # platform
+
+        def _query_treeherder_for_builds():
+            # here we use a detour using treeherder to find the build_id,
+            # corresponding to a revision.
+            url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/resultset/?full=false&revision=" + cset
+            data = utils.fetch_json(url)
+
+            # No corresponding build found given revision
+            if len(data["results"]) != 1:
+                return []
+
+            # The revision is not pushed separately. It is not the top commit
+            # of a list of pushes that were done at the same time.
+            if not data["results"][0]["revision"].startswith(cset):
+                return []
+
+            id = str(data["results"][0]["id"])
+
+            url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/jobs/?count=2000&result_set_id=" + str(id)
+            data = utils.fetch_json(url)
+            fetched_builds = data["results"]
+
+            if self._platform() == "macosx64" and self.repo in MAC_BUILDBOT_REPOSITORIES:
+                fetched_builds = [i for i in fetched_builds if i["build_system_type"] == "buildbot"]
+            else:
+                fetched_builds = [i for i in fetched_builds if i["build_system_type"] == "taskcluster"]
+
+            builds = _filter_with_symbols(fetched_builds, ("B", "Bo"))
+            if len(builds) != 1:
+                if len(builds) > 1:
+                    print "Job symbols B/Bo yielded {} results, retrying with N symbols.".format(len(builds))
+                builds = _filter_with_symbols(fetched_builds, ("N"))
+
+                if len(builds) == 0:
+                    print "No jobs found at all, aborting."
+                    return []
+                elif len(builds) > 1:
+                    print "Job symbols N yielded too many ({}) results, aborting.".format(len(builds))
+                    return []
+
+            return builds
+
+        def _urls_from_treeherder_build(builds):
+            if not builds:
+                return []
+
+            if self._platform() == "macosx64" and self.repo in MAC_BUILDBOT_REPOSITORIES:
+                # Buildbot builds are now triggered via TaskCluster/BuildbotBridge
+                # * One task represents a Buildbot job (bbb_task_id)
+                # * The Buildbot job uploads artifacts to another task (upload_task_id)
+                bbb_task_id = builds[0]['reason'].replace('Created by BBB for task ', '')
+                url = "https://public-artifacts.taskcluster.net"
+                data = utils.fetch_json("{}/{}/0/public/properties.json".format(url, bbb_task_id))
+
+                # data['packageFilename'] == [u'firefox-55.0.en-US.mac.dmg', u'SetProperty Step']
+                # data['upload_to_task_id'] == [u'ZsXNFXZCRfi67CHWeJDGVA', u'bbb']
+                filename = data['packageFilename'][0]
+                upload_task_id = data['upload_to_task_id'][0]
+                return ["{}/{}/0/public/build/{}".format(url, upload_task_id, filename)]
+
+            url = "https://treeherder.mozilla.org/api/jobdetail/?job_guid=" + str(builds[0]["job_guid"])
+            data = utils.fetch_json(url)
+
+            urls = [item["url"] for item in data["results"] if item["url"]]
+
+            urls = [url for url in urls
+                    if 'target.zip' in url or
+                       'target.tar.bz2' in url or
+                       'target.dmg' in url or
+                       ('firefox-' in url and url.endswith(self._platform() + '.zip'))]
+
+            return urls
+
+        assert buildtype in ('opt', 'pgo', 'nightly'), \
+            '{} is not a valid buildtype (opt, pgo, nightly).'.format(
                 buildtype
             )
 
-        # here we use a detour using treeherder to find the build_id,
-        # corresponding to a revision.
-        url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/resultset/?full=false&revision=" + cset
-        data = utils.fetch_json(url)
+        if buildtype == 'nightly':
+            return [TaskClusterIndexHelper().latest_nightly_url(
+                self.repo,
+                'firefox',
+                self._platform())]
 
-        # No corresponding build found given revision
-        if len(data["results"]) != 1:
-            return []
-
-        # The revision is not pushed separately. It is not the top commit
-        # of a list of pushes that were done at the same time.
-        if not data["results"][0]["revision"].startswith(cset):
-            return []
-
-        id = str(data["results"][0]["id"])
-
-        url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/jobs/?count=2000&result_set_id=" + str(id)
-        data = utils.fetch_json(url)
-        fetched_builds = data["results"]
-
-        if self._platform() == "macosx64" and self.repo in MAC_BUILDBOT_REPOSITORIES:
-            fetched_builds = [i for i in fetched_builds if i["build_system_type"] == "buildbot"]
-        else:
-            fetched_builds = [i for i in fetched_builds if i["build_system_type"] == "taskcluster"]
-
-        def filter_with_symbols(builds, allowed_symbols):
-            filtered = builds
-            filtered = [i for i in filtered if i["job_type_symbol"] in allowed_symbols] # Builds
-            filtered = [i for i in filtered if i["platform_option"] == buildtype] # opt / debug / pgo
-            filtered = [i for i in filtered if i["platform"] in self.treeherder_platform()] # platform
-            return filtered
-
-        builds = filter_with_symbols(fetched_builds, ("B", "Bo"))
-        if len(builds) != 1:
-            if len(builds) > 1:
-                print "Job symbols B/Bo yielded {} results, retrying with N symbols.".format(len(builds))
-
-            builds = filter_with_symbols(fetched_builds, ("N"))
-            if len(builds) == 0:
-                print "No jobs found at all, aborting."
-                return []
-            elif len(builds) > 1:
-                print "Job symbols N yielded too many ({}) results, aborting.".format(len(builds))
-                return []
-
-        if self._platform() == "macosx64" and self.repo in MAC_BUILDBOT_REPOSITORIES:
-            # Buildbot builds are now triggered via TaskCluster/BuildbotBridge
-            # * One task represents a Buildbot job (bbb_task_id)
-            # * The Buildbot job uploads artifacts to another task (upload_task_id)
-            bbb_task_id = builds[0]['reason'].replace('Created by BBB for task ', '')
-            url = "https://public-artifacts.taskcluster.net"
-            data = utils.fetch_json("{}/{}/0/public/properties.json".format(url, bbb_task_id))
-
-            # data['packageFilename'] == [u'firefox-55.0.en-US.mac.dmg', u'SetProperty Step']
-            # data['upload_to_task_id'] == [u'ZsXNFXZCRfi67CHWeJDGVA', u'bbb']
-            filename = data['packageFilename'][0]
-            upload_task_id = data['upload_to_task_id'][0]
-            return ["{}/{}/0/public/build/{}".format(url, upload_task_id, filename)]
-
-        url = "https://treeherder.mozilla.org/api/jobdetail/?job_guid=" + str(builds[0]["job_guid"])
-        data = utils.fetch_json(url)
-
-        urls = [item["url"] for item in data["results"] if item["url"]]
-
-        urls = [url for url in urls
-                if 'target.zip' in url or
-                   'target.tar.bz2' in url or
-                   'target.dmg' in url or
-                   ('firefox-' in url and url.endswith(self._platform() + '.zip'))]
-
-        return urls
+        return _urls_from_treeherder_build(_query_treeherder_for_builds())
 
 def get(config, repo, platform=None):
     if "mozilla" in repo:

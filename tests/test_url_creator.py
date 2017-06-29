@@ -5,13 +5,13 @@ sys.path.append("../slave")
 
 import url_creator
 
-platforms = [
+PLATFORMS = [
     "Windows",
     "Linux",
     "Darwin"
 ]
 
-repos = [
+REPOS = [
     "mozilla-inbound",
     "mozilla-central",
     "mozilla-beta",
@@ -47,11 +47,34 @@ def skip(platform, repo, arch):
 
     return False
 
+
+def test_configuration(repo, platform, arch=None, buildtype=None):
+    print("Testing download for ({},{},{},{})".format(repo, platform, arch, buildtype))
+    assert platform in PLATFORMS
+    try:
+        urls = url_creator.get(arch, repo, platform).find(buildtype=buildtype)
+        assert len(urls) > 0
+        print "PASSED\n"
+        return []
+    except:
+        print "FAILED\n"
+        return (repo, platform, arch, buildtype)
+
+
 def main():
     failures = []
 
-    for repo in repos:
-        for platform in platforms:
+    configurations = [
+        ('mozilla-central', 'Windows', '64bit', 'nightly'),
+        ('mozilla-central', 'Windows', '32bit', 'nightly'),
+        ('mozilla-central', 'Darwin',  '64bit', 'nightly'),
+    ]
+
+    for c in configurations:
+        failures += test_configuration(*c)
+
+    for repo in REPOS:
+        for platform in PLATFORMS:
             for arch in archs:
                 if skip(platform, repo, arch):
                     continue
