@@ -60,6 +60,40 @@ class WebKitUrlCreator(UrlCreator):
         url = re.findall("https://builds-nightly.webkit.org/files/trunk/mac/WebKit-SVN-r[0-9]*.dmg", html)
         return url
 
+
+class TaskClusterIndexHelper(object):
+    _index_url = 'https://index.taskcluster.net/v1/task/gecko.v2'
+    _artifacts = 'https://public-artifacts.taskcluster.net'
+
+    @classmethod
+    def _latest_nightly_task_id(cls, repo_name, product, platform):
+        '''Return taskId for the latest nightly task.'''
+        assert product in ('firefox', 'mobile')
+        # Even though it says 'opt' these are PGO nightly builds
+        platform = platform + '-opt'
+        assert platform in ('linux-opt', 'linux64-opt', 'macosx64-opt',
+                            'win32-opt', 'win64-opt')
+        url = '{}.{}.nightly.latest.{}.{}'.format(cls._index_url,
+                                                  repo_name,
+                                                  product,
+                                                  platform)
+        return utils.fetch_json(url)['taskId']
+
+    @classmethod
+    def _properties(cls, task_id):
+        '''Return Buildbot properties for a known Buildbot generated task.'''
+        url = '{}/{}/{}'.format(cls._artifacts,
+                                task_id,
+                                '0/public/build/buildbot_properties.json')
+        return utils.fetch_json(url)['properties']
+
+    @classmethod
+    def latest_nightly_url(cls, repo_name, product, platform):
+        '''Return URL to latest nightly build.'''
+        task_id = cls._latest_nightly_task_id(repo_name, product, platform)
+        return cls._properties(task_id)['packageUrl']
+
+
 class MozillaUrlCreator(UrlCreator):
 
     def __init__(self, config, repo, platform=None):
@@ -144,9 +178,7 @@ class MozillaUrlCreator(UrlCreator):
                 fetched_builds = [i for i in fetched_builds if i["build_system_type"] == "taskcluster"]
 
             builds = _filter_with_symbols(fetched_builds, ("B", "Bo"))
-            if len(builds) == 1:
-                return builds
-            else:
+            if len(builds) != 1:
                 if len(builds) > 1:
                     print "Job symbols B/Bo yielded {} results, retrying with N symbols.".format(len(builds))
                 builds = _filter_with_symbols(fetched_builds, ("N"))
@@ -157,6 +189,8 @@ class MozillaUrlCreator(UrlCreator):
                 elif len(builds) > 1:
                     print "Job symbols N yielded too many ({}) results, aborting.".format(len(builds))
                     return []
+
+            return builds
 
         def _urls_from_treeherder_build(builds):
             if not builds:
@@ -193,6 +227,12 @@ class MozillaUrlCreator(UrlCreator):
             '{} is not a valid buildtype (opt, pgo, nightly).'.format(
                 buildtype
             )
+
+        if buildtype == 'nightly':
+            return [TaskClusterIndexHelper().latest_nightly_url(
+                self.repo,
+                'firefox',
+                self._platform())]
 
         return _urls_from_treeherder_build(_query_treeherder_for_builds())
 
