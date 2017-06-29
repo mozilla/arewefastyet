@@ -111,6 +111,12 @@ class MozillaUrlCreator(UrlCreator):
         return urls
 
     def _url_for_revision(self, cset, buildtype):
+        def _filter_with_symbols(builds, allowed_symbols):
+            return [i for i in builds
+                    if i["job_type_symbol"] in allowed_symbols  # builds
+                    and i["platform_option"] == buildtype  # opt / debug / pgo
+                    and i["platform"] in self.treeherder_platform()]  # platform
+
         assert buildtype in ('opt', 'pgo', 'nightly'), \
             '{} is not a valid buildtype (opt, pgo, nightly).'.format(
                 buildtype
@@ -141,19 +147,12 @@ class MozillaUrlCreator(UrlCreator):
         else:
             fetched_builds = [i for i in fetched_builds if i["build_system_type"] == "taskcluster"]
 
-        def filter_with_symbols(builds, allowed_symbols):
-            filtered = builds
-            filtered = [i for i in filtered if i["job_type_symbol"] in allowed_symbols] # Builds
-            filtered = [i for i in filtered if i["platform_option"] == buildtype] # opt / debug / pgo
-            filtered = [i for i in filtered if i["platform"] in self.treeherder_platform()] # platform
-            return filtered
-
-        builds = filter_with_symbols(fetched_builds, ("B", "Bo"))
+        builds = _filter_with_symbols(fetched_builds, ("B", "Bo"))
         if len(builds) != 1:
             if len(builds) > 1:
                 print "Job symbols B/Bo yielded {} results, retrying with N symbols.".format(len(builds))
 
-            builds = filter_with_symbols(fetched_builds, ("N"))
+            builds = _filter_with_symbols(fetched_builds, ("N"))
             if len(builds) == 0:
                 print "No jobs found at all, aborting."
                 return []
