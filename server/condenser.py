@@ -306,8 +306,8 @@ def condense_suite(cx, machine, suite):
         export(aggregated_file, j)
 
         # Note: only run the subtest condenser when suite was changed.
-        for test_name in suite.tests:
-            test_path = suite.name + '-' + test_name + '-' + str(machine.id)
+        for subtest in suite.tests:
+            test_path = suite.name + '-' + subtest.name + '-' + str(machine.id)
 
             # Condense test
             change = condense(cx, prefix + 'bk-', test_path)

@@ -4,7 +4,8 @@ set_error_handler(function($errno, $errstr) {
     echo $errstr."\n";
     die("Did you set /etc/awfy-server.config ?\n");
 });
-include "../website/internals.php";
+
+include "../website/lib/internals.php";
 restore_error_handler();
 
 mysql_connect($config->mysql_host, $config->mysql_username, $config->mysql_password) or die("ERROR: " . mysql_error());

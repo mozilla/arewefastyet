@@ -6,6 +6,16 @@
 import awfy
 import time
 
+class SubBenchmark(object):
+    def __init__(self, name, direction):
+        self.name = name
+        self.direction = int(direction)
+
+    def export(self):
+        # No need to export more than the name, to not break backwards
+        # compatibility.
+        return self.name
+
 class Benchmark(object):
     def __init__(self, suite_id, name, description, direction, sort_order, visible):
         self.id = suite_id
@@ -18,21 +28,21 @@ class Benchmark(object):
         # Get a list of individual tests
         self.tests = []
         c = awfy.db.cursor()
-        c.execute("SELECT t.name                                                          \
+        c.execute("SELECT t.name, t.better_direction                                      \
                    FROM awfy_suite_test t                                                 \
                    JOIN awfy_suite_version v ON v.id = t.suite_version_id                 \
                    WHERE suite_id = %s                                                    \
                    AND visible = 1                                                        \
-                   GROUP BY t.name", (suite_id,))
+                   GROUP BY t.name, t.better_direction", (suite_id,))
         for row in c.fetchall():
-            self.tests.append(row[0])
+            self.tests.append(SubBenchmark(row[0], row[1]))
 
     def export(self):
         return { "id": self.id,
                  "name": self.name,
                  "description": self.description,
                  "direction": self.direction,
-                 "tests": self.tests,
+                 "tests": [subtest.export() for subtest in self.tests],
                  "sort_order": self.sort_order,
                  "visible": self.visible
                }

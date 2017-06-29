@@ -312,17 +312,17 @@ def update(cx, machine, suite):
     if not new_rows:
         return
 
-    for test_name in suite.tests:
+    for subtest in suite.tests:
         def fetch_test(machine, finish_stamp = (0,"UNIX_TIMESTAMP()"), approx_stamp = (0,"UNIX_TIMESTAMP()")):
-            return fetch_test_scores(machine.id, suite.id, test_name, finish_stamp, approx_stamp)
+            return fetch_test_scores(machine.id, suite.id, subtest.name, finish_stamp, approx_stamp)
 
         prefix = ""
         if suite.visible == 2:
             prefix = "auth-"
 
-        direction = suite.direction
+        direction = suite.direction if subtest.direction == 0 else subtest.direction
 
-        prefix += 'bk-raw-' + suite.name + '-' + test_name + '-' + str(machine.id)
+        prefix += 'bk-raw-' + suite.name + '-' + subtest.name + '-' + str(machine.id)
         perform_update(cx, machine, direction, prefix, fetch_test)
 
 def export_master(cx):
