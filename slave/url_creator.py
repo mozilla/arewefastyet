@@ -66,32 +66,48 @@ class TaskClusterIndexHelper(object):
     _artifacts = 'https://public-artifacts.taskcluster.net'
 
     @classmethod
-    def _latest_nightly_task_id(cls, repo_name, product, platform):
+    def _latest_unsigned_nightly_task_id(cls, repo_name, product, platform):
         '''Return taskId for the latest nightly task.'''
         assert product in ('firefox', 'mobile')
         # Even though it says 'opt' these are PGO nightly builds
         platform = platform + '-opt'
         assert platform in ('linux-opt', 'linux64-opt', 'macosx64-opt',
                             'win32-opt', 'win64-opt')
-        url = '{}.{}.nightly.latest.{}.{}'.format(cls._index_url,
-                                                  repo_name,
-                                                  product,
-                                                  platform)
+
+        url = '{}.{}.nightly.latest.{}.{}'.format(
+            cls._index_url,
+            repo_name,
+            product,
+            platform)
         return utils.fetch_json(url)['taskId']
 
     @classmethod
-    def _properties(cls, task_id):
+    def _artifact_to_filename(cls, platform):
+        platform_to_file = {
+            'linux': 'target.tar.bz2',
+            'linux64': 'target.tar.bz2',
+            'macosx64': 'target.dmg',
+            'win32': 'target.zip',
+            'win64': 'target.zip',
+        }
+        return platform_to_file[platform]
+
+    @classmethod
+    def _artifact_url(cls, task_id, artifact_path, run_id=0):
         '''Return Buildbot properties for a known Buildbot generated task.'''
-        url = '{}/{}/{}'.format(cls._artifacts,
-                                task_id,
-                                '0/public/build/buildbot_properties.json')
-        return utils.fetch_json(url)['properties']
+        return '{}/{}/{}/{}'.format(
+            cls._artifacts,
+            task_id,
+            run_id,
+            artifact_path)
 
     @classmethod
     def latest_nightly_url(cls, repo_name, product, platform):
         '''Return URL to latest nightly build.'''
-        task_id = cls._latest_nightly_task_id(repo_name, product, platform)
-        return cls._properties(task_id)['packageUrl']
+        task_id = cls._latest_unsigned_nightly_task_id(repo_name, product, platform)
+        return cls._artifact_url(
+            task_id,
+            artifact_path='public/build/{}'.format(cls._artifact_to_filename(platform)))
 
 
 class MozillaUrlCreator(UrlCreator):
