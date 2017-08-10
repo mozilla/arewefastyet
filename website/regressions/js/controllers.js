@@ -15,7 +15,7 @@ var isFF = function(name) {
 awfyCtrl.filter('linkify', function($sce, $parse) {
   return function(input) {
     input = input.replace(/#([0-9]+)/, "<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=$1'>#$1</a>");
-    input = input.replace(/@([0-9]+)/, "<a href='http://arewefastyet.com/regressions/#/regression/$1'>@$1</a>");
+    input = input.replace(/@([0-9]+)/, "<a href='https://arewefastyet.com/regressions/#/regression/$1'>@$1</a>");
     return $sce.trustAsHtml(input);
   };
 })

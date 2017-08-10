@@ -16,7 +16,7 @@ if __name__ == "__main__":
     utils.run_realtime(['git', 'pull'])
 
     # Query the next tasks.
-    url = "http://www.arewefastyet.com/task.php?unit="+str(options.machine)
+    url = "https://www.arewefastyet.com/task.php?unit="+str(options.machine)
     data = urllib2.urlopen(url).read()
     data = json.loads(data)
 
@@ -25,6 +25,6 @@ if __name__ == "__main__":
     output = utils.run_realtime(task, shell=True)
 
     # Report the result.
-    url = "http://www.arewefastyet.com/task.php?finish="+str(data["id"])
+    url = "https://www.arewefastyet.com/task.php?finish="+str(data["id"])
     req = urllib2.Request(url=url, data=urllib.urlencode({"output": output}));
     urllib2.urlopen(req)
