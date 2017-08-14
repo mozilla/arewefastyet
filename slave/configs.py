@@ -13,13 +13,13 @@ class Default(object):
     def __init__(self, engine, shell):
         self.args_ = []
         self.env_ = {}
-        self.profile_ = ""
+        self.prefs_ = {}
         self.omit_ = False
 
         if engine == "firefox":
             self.env_["JSGC_DISABLE_POISONING"] = "1"
-            self.profile_ += "user_pref(\"dom.max_script_run_time\", 0);\n"
-            self.profile_ += "user_pref(\"javascript.options.asyncstack\", false);\n"
+            self.prefs_["dom.max_script_run_time"] = 0
+            self.prefs_["javascript.options.asyncstack"] = False
         elif engine == "chrome":
             pass
         elif engine == "webkit":
@@ -42,15 +42,15 @@ class Default(object):
     def env(self):
         return self.env_
 
-    def profile(self):
-        # Currently only for firefox profile js file.
-        return self.profile_
+    def prefs(self):
+        # Currently only for firefox profile.
+        return self.prefs_
 
 class Wasm(Default):
     def __init__(self, engine, shell):
         super(Wasm, self).__init__(engine, shell)
         if engine == "firefox":
-            self.profile_ += "user_pref(\"javascript.options.wasm\", true);\n"
+            self.prefs_["javascript.options.wasm"] = True
         elif engine == "chrome":
             self.args_ += ['--js-flags=--expose_wasm']
 
@@ -58,7 +58,7 @@ class WasmBaseline(Wasm):
     def __init__(self, engine, shell):
         super(WasmBaseline, self).__init__(engine, shell)
         if engine == "firefox":
-            self.profile_ += "user_pref(\"javascript.options.wasm_baselinejit\", true);\n"
+            self.prefs_["javascript.options.wasm_baselinejit"] = True
 
 class UnboxedObjects(Default):
     def __init__(self, engine, shell):
@@ -139,11 +139,11 @@ class NoE10S(Default):
     def __init__(self, engine, shell):
         super(NoE10S, self).__init__(engine, shell)
         if engine == "firefox" and not shell:
-            self.profile_ += "user_pref(\"browser.tabs.remote.autostart\", false);\n"
-            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.1\", false);\n"
-            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.2\", false);\n"
-            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.3\", false);\n"
-            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.4\", false);\n"
+            self.prefs_["browser.tabs.remote.autostart"] = False
+            self.prefs_["browser.tabs.remote.autostart.1"] = False
+            self.prefs_["browser.tabs.remote.autostart.2"] = False
+            self.prefs_["browser.tabs.remote.autostart.3"] = False
+            self.prefs_["browser.tabs.remote.autostart.4"] = False
         else:
             self.omit_ = True
 
@@ -151,11 +151,11 @@ class E10S(Default):
     def __init__(self, engine, shell):
         super(E10S, self).__init__(engine, shell)
         if engine == "firefox" and not shell:
-            self.profile_ += "user_pref(\"browser.tabs.remote.autostart\", true);\n"
-            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.1\", true);\n"
-            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.2\", true);\n"
-            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.3\", true);\n"
-            self.profile_ += "user_pref(\"browser.tabs.remote.autostart.4\", true);\n"
+            self.prefs_["browser.tabs.remote.autostart"] = True
+            self.prefs_["browser.tabs.remote.autostart.1"] = True
+            self.prefs_["browser.tabs.remote.autostart.2"] = True
+            self.prefs_["browser.tabs.remote.autostart.3"] = True
+            self.prefs_["browser.tabs.remote.autostart.4"] = True
         else:
             self.omit_ = True
 
