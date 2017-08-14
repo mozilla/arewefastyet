@@ -20,6 +20,7 @@ class Default(object):
             self.env_["JSGC_DISABLE_POISONING"] = "1"
             self.prefs_["dom.max_script_run_time"] = 0
             self.prefs_["javascript.options.asyncstack"] = False
+            self.prefs_["layout.css.servo.enabled"] = False # Force stylo off.
         elif engine == "chrome":
             pass
         elif engine == "webkit":
