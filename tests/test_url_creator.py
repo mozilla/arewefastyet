@@ -5,6 +5,8 @@ sys.path.append("../slave")
 
 import url_creator
 
+BUILDTYPES = ('debug', 'nightly', 'opt', 'pgo')
+
 PLATFORMS = [
     "Windows",
     "Linux",
@@ -29,12 +31,15 @@ KNOWN_FAILURES = [
     ('Darwin', 'mozilla-release', '64bits') # 403 unauthorized
 ]
 
-def skip(platform, repo, arch):
+def skip(platform, repo, arch, buildtype):
     """
     Returns true if a configuration (triplet of platform/repo/arch) must be
     skipped, false otherwise.
     """
-    if platform == 'Darwin' and arch != '64bits':
+    if (platform == 'Darwin' and arch != '64bits') or \
+       (platform == 'Darwin' and buildtype == 'pgo') or \
+       (platform == 'Windows' and 'release' in repo and buildtype == 'nightly') or \
+       (repo != 'mozilla-central' and buildtype == 'nightly'):
         return True
 
     if repo == 'webkit' and platform != 'Darwin':
@@ -48,73 +53,46 @@ def skip(platform, repo, arch):
     return False
 
 
-def test_configuration(repo, platform, arch=None, buildtype=None):
-    print("Testing download for ({},{},{},{})".format(repo, platform, arch, buildtype))
-    assert platform in PLATFORMS
+def test_configuration(repo, platform, arch=None, buildtype=None, cset='latest'):
+    if skip(platform, repo, arch, buildtype):
+        return []
+
+    print("Testing download for (repo={},platform={},arch={},buildtype={},cset={})".format(
+        repo,
+        platform,
+        arch,
+        buildtype,
+        cset))
     try:
+        assert platform in PLATFORMS
         urls = url_creator.get(arch, repo, platform).find(buildtype=buildtype)
         assert len(urls) > 0
         print "PASSED\n"
         return []
     except:
         print "FAILED\n"
-        return (repo, platform, arch, buildtype)
+        return [(repo, platform, arch, buildtype, cset)]
 
 
 def main():
     failures = []
 
-    configurations = [
-        ('mozilla-central', 'Windows', '64bit', 'nightly'),
-        ('mozilla-central', 'Windows', '32bit', 'nightly'),
-        ('mozilla-central', 'Darwin',  '64bit', 'nightly'),
-    ]
-
-    for c in configurations:
-        failures += test_configuration(*c)
-
     for repo in REPOS:
         for platform in PLATFORMS:
             for arch in archs:
-                if skip(platform, repo, arch):
-                    continue
+                for bt in BUILDTYPES:
+                    failures += test_configuration(repo, platform, arch, bt)
 
-                print "Testing opt download for {} on {} {}.".format(repo, platform, arch)
-                try:
-                    urls = url_creator.get(arch, repo, platform).find(buildtype='opt')
-                    assert urls
-                    assert len(urls) > 0
-                    print "PASSED\n"
-                except:
-                    print "FAILED\n"
-                    failures.append(('opt', platform, repo, arch))
-
-    for arch in archs:
-        print "Testing pgo download for mozilla-central on Windows {}.".format(arch)
-        try:
-            urls = url_creator.get(arch, "mozilla-central", 'Windows').find(buildtype='pgo')
-            assert urls
-            assert len(urls) > 0
-            print "PASSED\n"
-        except:
-            print "FAILED\n"
-            failures.append(('pgo', 'Windows', 'mozilla-central', arch))
-
-    print "Testing downloading a specific revision on mozilla-inbound."
-    try:
-        creator = url_creator.get("64-bits", "mozilla-inbound")
-        urls = creator.find("dc98dc9e0725", buildtype='opt')
-        assert urls
-        assert len(urls) > 0
-        print "PASSED\n"
-    except:
-        print "FAILED\n"
-        failures.append(('specific', creator.platform, 'mozilla-inbound', creator.arch))
+    # The artifacts of this revision will expire after 2018-08-18
+    cset = "952c576fdcd6cc3e0b0b452ac247b0aeaf097646"
+    for p in PLATFORMS:
+       for arch in archs:
+           failures += test_configuration('mozilla-inbound', p, arch, 'pgo', cset)
 
     if len(failures) > 0:
         print "FAILURES:"
-        for test, platform, repo, arch in failures:
-            print "{} {} - {} {}".format(repo, test, platform, arch)
+        for f in failures:
+            print f
         exit(1)
     else:
         exit(0)

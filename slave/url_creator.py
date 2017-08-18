@@ -64,21 +64,53 @@ class WebKitUrlCreator(UrlCreator):
 class TaskClusterIndexHelper(object):
     _index_url = 'https://index.taskcluster.net/v1/task/gecko.v2'
     _artifacts = 'https://public-artifacts.taskcluster.net'
+    _task_inspector = 'https://tools.taskcluster.net/tasks'
+
+    BUILDTYPES = ('debug', 'nightly', 'opt', 'pgo')
+    PRODUCTS = ('firefox', 'mobile')
+    PLATFORMS = ('linux', 'linux64', 'macosx64', 'win32', 'win64')
 
     @classmethod
-    def _latest_unsigned_nightly_task_id(cls, repo_name, product, platform):
-        '''Return taskId for the latest nightly task.'''
-        assert product in ('firefox', 'mobile')
-        # Even though it says 'opt' these are PGO nightly builds
-        platform = platform + '-opt'
-        assert platform in ('linux-opt', 'linux64-opt', 'macosx64-opt',
-                            'win32-opt', 'win64-opt')
+    def build_url(cls, repo_name, product, platform, buildtype, revision=None):
+        task_id = cls._task_id(repo_name, product, platform, buildtype, revision)
+        print 'TASK: %s/%s' % (cls._task_inspector, task_id)
+        return cls._artifact_url(
+            task_id,
+            artifact_path='public/build/{}'.format(cls._artifact_to_filename(platform)))
 
-        url = '{}.{}.nightly.latest.{}.{}'.format(
-            cls._index_url,
-            repo_name,
-            product,
-            platform)
+    @classmethod
+    def _task_id(cls, repo_name, product, platform, buildtype, revision=None):
+        '''Return taskId for specific configuration.'''
+        assert buildtype in cls.BUILDTYPES
+        assert platform in cls.PLATFORMS
+        assert product in cls.PRODUCTS
+
+        if revision:
+            url = '{}.{}.revision.{}.{}.{}-{}'.format(
+                cls._index_url,
+                repo_name,
+                revision,
+                product,
+                platform,
+                buildtype)
+        else:
+            if buildtype == 'nightly':
+                # I believe this is required to point to unsigned nightly builds
+                platform = platform + '-opt'
+                url = '{}.{}.{}.latest.{}.{}'.format(
+                    cls._index_url,
+                    repo_name,
+                    buildtype,
+                    product,
+                    platform)
+            else:
+                url = '{}.{}.latest.{}.{}-{}'.format(
+                    cls._index_url,
+                    repo_name,
+                    product,
+                    platform,
+                    buildtype)
+
         return utils.fetch_json(url)['taskId']
 
     @classmethod
@@ -95,19 +127,13 @@ class TaskClusterIndexHelper(object):
     @classmethod
     def _artifact_url(cls, task_id, artifact_path, run_id=0):
         '''Return Buildbot properties for a known Buildbot generated task.'''
-        return '{}/{}/{}/{}'.format(
+        url = '{}/{}/{}/{}'.format(
             cls._artifacts,
             task_id,
             run_id,
             artifact_path)
-
-    @classmethod
-    def latest_nightly_url(cls, repo_name, product, platform):
-        '''Return URL to latest nightly build.'''
-        task_id = cls._latest_unsigned_nightly_task_id(repo_name, product, platform)
-        return cls._artifact_url(
-            task_id,
-            artifact_path='public/build/{}'.format(cls._artifact_to_filename(platform)))
+        print 'URL: %s' % url
+        return url
 
 
 class MozillaUrlCreator(UrlCreator):
@@ -144,16 +170,13 @@ class MozillaUrlCreator(UrlCreator):
             return ["osx-10-7", "osx-10-10"]
 
     def latest(self, buildtype):
-        url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/resultset/?count=10"
-        data = utils.fetch_json(url)
-
-        revisions = [i["revision"] for i in data["results"]]
-        for revision in revisions:
-            urls = self._url_for_revision(revision, buildtype)
-            if len(urls) == 1:
-                return [urls[0]]
-
-        return []
+        return [
+            TaskClusterIndexHelper().build_url(
+                repo_name=self.repo,
+                product='firefox',
+                platform=self._platform(),
+                buildtype=buildtype)
+        ]
 
     def url_for_revision(self, cset, buildtype):
         urls = self._url_for_revision(cset, buildtype)
@@ -161,96 +184,14 @@ class MozillaUrlCreator(UrlCreator):
         return urls
 
     def _url_for_revision(self, cset, buildtype):
-        def _filter_with_symbols(builds, allowed_symbols):
-            return [i for i in builds
-                    if i["job_type_symbol"] in allowed_symbols  # builds
-                    and i["platform_option"] == buildtype  # opt / debug / pgo
-                    and i["platform"] in self.treeherder_platform()]  # platform
-
-        def _query_treeherder_for_builds():
-            # here we use a detour using treeherder to find the build_id,
-            # corresponding to a revision.
-            url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/resultset/?full=false&revision=" + cset
-            data = utils.fetch_json(url)
-
-            # No corresponding build found given revision
-            if len(data["results"]) != 1:
-                return []
-
-            # The revision is not pushed separately. It is not the top commit
-            # of a list of pushes that were done at the same time.
-            if not data["results"][0]["revision"].startswith(cset):
-                return []
-
-            id = str(data["results"][0]["id"])
-
-            url = "https://treeherder.mozilla.org/api/project/" + self.repo + "/jobs/?count=2000&result_set_id=" + str(id)
-            data = utils.fetch_json(url)
-            fetched_builds = data["results"]
-
-            if self._platform() == "macosx64" and self.repo in MAC_BUILDBOT_REPOSITORIES:
-                fetched_builds = [i for i in fetched_builds if i["build_system_type"] == "buildbot"]
-            else:
-                fetched_builds = [i for i in fetched_builds if i["build_system_type"] == "taskcluster"]
-
-            builds = _filter_with_symbols(fetched_builds, ("B", "Bo"))
-            if len(builds) != 1:
-                if len(builds) > 1:
-                    print "Job symbols B/Bo yielded {} results, retrying with N symbols.".format(len(builds))
-                builds = _filter_with_symbols(fetched_builds, ("N"))
-
-                if len(builds) == 0:
-                    print "No jobs found at all, aborting."
-                    return []
-                elif len(builds) > 1:
-                    print "Job symbols N yielded too many ({}) results, aborting.".format(len(builds))
-                    return []
-
-            return builds
-
-        def _urls_from_treeherder_build(builds):
-            if not builds:
-                return []
-
-            if self._platform() == "macosx64" and self.repo in MAC_BUILDBOT_REPOSITORIES:
-                # Buildbot builds are now triggered via TaskCluster/BuildbotBridge
-                # * One task represents a Buildbot job (bbb_task_id)
-                # * The Buildbot job uploads artifacts to another task (upload_task_id)
-                bbb_task_id = builds[0]['reason'].replace('Created by BBB for task ', '')
-                url = "https://public-artifacts.taskcluster.net"
-                data = utils.fetch_json("{}/{}/0/public/properties.json".format(url, bbb_task_id))
-
-                # data['packageFilename'] == [u'firefox-55.0.en-US.mac.dmg', u'SetProperty Step']
-                # data['upload_to_task_id'] == [u'ZsXNFXZCRfi67CHWeJDGVA', u'bbb']
-                filename = data['packageFilename'][0]
-                upload_task_id = data['upload_to_task_id'][0]
-                return ["{}/{}/0/public/build/{}".format(url, upload_task_id, filename)]
-
-            url = "https://treeherder.mozilla.org/api/jobdetail/?job_guid=" + str(builds[0]["job_guid"])
-            data = utils.fetch_json(url)
-
-            urls = [item["url"] for item in data["results"] if item["url"]]
-
-            urls = [url for url in urls
-                    if 'target.zip' in url or
-                       'target.tar.bz2' in url or
-                       'target.dmg' in url or
-                       ('firefox-' in url and url.endswith(self._platform() + '.zip'))]
-
-            return urls
-
-        assert buildtype in ('opt', 'pgo', 'nightly'), \
-            '{} is not a valid buildtype (opt, pgo, nightly).'.format(
-                buildtype
-            )
-
-        if buildtype == 'nightly':
-            return [TaskClusterIndexHelper().latest_nightly_url(
-                self.repo,
-                'firefox',
-                self._platform())]
-
-        return _urls_from_treeherder_build(_query_treeherder_for_builds())
+        return [
+            TaskClusterIndexHelper().build_url(
+                repo_name=self.repo,
+                revision=cset,
+                product='firefox',
+                platform=self._platform(),
+                buildtype=buildtype)
+        ]
 
 def get(config, repo, platform=None):
     if "mozilla" in repo:
