@@ -65,7 +65,7 @@ def test_configuration(repo, platform, arch=None, buildtype=None, cset='latest')
         cset))
     try:
         assert platform in PLATFORMS
-        urls = url_creator.get(arch, repo, platform).find(buildtype=buildtype)
+        urls = url_creator.get(arch, repo, platform).find(cset, buildtype=buildtype)
         assert len(urls) > 0
         print "PASSED\n"
         return []
