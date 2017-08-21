@@ -95,7 +95,7 @@ class TaskClusterIndexHelper(object):
                 buildtype)
         else:
             if buildtype == 'nightly':
-                # I believe this is required to point to unsigned nightly builds
+                # Unsigned nightly builds use '-opt' in their name
                 platform = platform + '-opt'
                 url = '{}.{}.{}.latest.{}.{}'.format(
                     cls._index_url,
