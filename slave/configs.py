@@ -60,6 +60,7 @@ class WasmBaseline(Wasm):
         super(WasmBaseline, self).__init__(engine, shell)
         if engine == "firefox":
             self.prefs_["javascript.options.wasm_baselinejit"] = True
+            self.prefs_["javascript.options.wasm_ionjit"] = False
 
 class UnboxedObjects(Default):
     def __init__(self, engine, shell):
