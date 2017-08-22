@@ -272,7 +272,7 @@ class Speedometer2(Benchmark):
 
     @staticmethod
     def inject_data(path, data):
-        if path == "/" or path == "/index.html":
+        if path == "/arewefastyet-speedometer/2.0/" or path == "/arewefastyet-speedometer/2.0/index.html":
             # Inject the script that will auto-click the start button.
             data = data.replace('</body>', """</body>
 <script>
@@ -281,14 +281,14 @@ class Speedometer2(Benchmark):
     }, 3000);
 </script>""")
 
-        elif path == "/resources/main.js":
+        elif path == "/arewefastyet-speedometer/2.0/resources/main.js":
             # When the index.html benchmark is done, continue to InteractiveRunner.html.
             data = data.replace("var arithmeticMean = sum / values.length;", """
 var arithmeticMean = sum / values.length;
 location.href = "http://speedometer-misc.local:8000/InteractiveRunner.html?score=" + encodeURIComponent(arithmeticMean);
 """)
 
-        elif path.startswith("/InteractiveRunner.html"):
+        elif path.startswith("/arewefastyet-speedometer/2.0/InteractiveRunner.html"):
             # Automatically start the interactive runner.
             data = data.replace("if (parseQueryString['startAutomatically'] !== undefined)", "if (true)")
 
@@ -303,7 +303,9 @@ location.href = "http://speedometer-misc.local:8000/InteractiveRunner.html?score
 
     @staticmethod
     def translate_path(path):
-        return "http", "speedometer2.benj.me", path
+        if path == "" or path == "/":
+            path = "/arewefastyet-speedometer/2.0/"
+        return "http", "mozilla.github.io", path
 
     @staticmethod
     def static_version():
