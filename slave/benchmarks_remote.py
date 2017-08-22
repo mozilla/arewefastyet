@@ -285,7 +285,7 @@ class Speedometer2(Benchmark):
             # When the index.html benchmark is done, continue to InteractiveRunner.html.
             data = data.replace("var arithmeticMean = sum / values.length;", """
 var arithmeticMean = sum / values.length;
-location.href = "http://speedometer-misc.local:8000/InteractiveRunner.html?score=" + encodeURIComponent(arithmeticMean);
+location.href = "http://speedometer-misc.local:8000/arewefastyet-speedometer/2.0/InteractiveRunner.html?score=" + encodeURIComponent(arithmeticMean);
 """)
 
         elif path.startswith("/arewefastyet-speedometer/2.0/InteractiveRunner.html"):
@@ -309,7 +309,7 @@ location.href = "http://speedometer-misc.local:8000/InteractiveRunner.html?score
 
     @staticmethod
     def static_version():
-        return "2.0"
+        return "2.0-6049c7c"
 
     @staticmethod
     def name():
