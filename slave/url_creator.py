@@ -4,9 +4,6 @@ import re
 
 import utils
 
-MAC_BUILDBOT_REPOSITORIES = ('mozilla-beta', 'mozilla-release', 'mozilla-esr52')
-
-
 class UrlCreator(object):
     def __init__(self, config, repo, other_platform=None):
         self.repo = repo
@@ -141,6 +138,8 @@ class MozillaUrlCreator(UrlCreator):
     def __init__(self, config, repo, platform=None):
         if repo == "mozilla-try":
             repo = "try";
+        if repo == "mozilla-autoland":
+            repo = "autoland"
         UrlCreator.__init__(self, config, repo, platform)
 
     def _platform(self):

@@ -15,6 +15,7 @@ PLATFORMS = [
 
 REPOS = [
     "mozilla-inbound",
+    "mozilla-autoland",
     "mozilla-central",
     "mozilla-beta",
     "mozilla-release",
