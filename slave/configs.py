@@ -62,6 +62,13 @@ class WasmBaseline(Wasm):
             self.prefs_["javascript.options.wasm_baselinejit"] = True
             self.prefs_["javascript.options.wasm_ionjit"] = False
 
+class WasmTiering(Wasm):
+    def __init__(self, engine, shell):
+        super(WasmTiering, self).__init__(engine, shell)
+        if engine == "firefox":
+            self.prefs_["javascript.options.wasm_baselinejit"] = True
+            self.prefs_["javascript.options.wasm_ionjit"] = True
+
 class UnboxedObjects(Default):
     def __init__(self, engine, shell):
         super(UnboxedObjects, self).__init__(engine, shell)
@@ -176,6 +183,8 @@ def getConfig(name, info):
         return Wasm(info["engine_type"], info["shell"])
     if name == "wasm-baseline":
         return WasmBaseline(info["engine_type"], info["shell"])
+    if name == "wasm-tiering":
+        return WasmTiering(info["engine_type"], info["shell"])
     if name == "unboxedobjects":
         return UnboxedObjects(info["engine_type"], info["shell"])
     if name == "testbedregalloc":
