@@ -8,7 +8,7 @@ import os
 import requests
 import socket
 import time
-from urlparse import urljoin, urlparse
+from urlparse import urljoin
 import uuid
 
 try:
@@ -148,9 +148,9 @@ class Submission(object):
             logger.info('Pretending to submit job')
             return
 
-        url = urlparse(self.url)
-        client = TreeherderClient(protocol=url.scheme, host=url.hostname,
-                                  client_id=self.client_id, secret=self.secret)
+        client = TreeherderClient(server_url=self.url,
+                                  client_id=self.client_id,
+                                  secret=self.secret)
         client.post_collection(self.repository, job_collection)
 
         logger.info('Results are available to view at: {}'.format(
