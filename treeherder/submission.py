@@ -5,7 +5,6 @@
 import json
 import logging
 import os
-import requests
 import socket
 import time
 from urlparse import urljoin
@@ -17,11 +16,6 @@ except:
     print "run 'sudo pip install treeherder-client' to install the needed libraries"
     exit()
 
-DEFAULT_REQUEST_HEADERS = {
-    'Accept': 'application/json',
-    'User-Agent': 'arewefastyet',
-}
-RESULTSET_FRAGMENT = 'api/project/{repository}/resultset/?revision={revision}'
 JOB_FRAGMENT = '/#/jobs?repo={repository}&revision={revision}'
 BUILD_STATES = ['running', 'completed']
 
@@ -77,7 +71,7 @@ class Submission(object):
             job.add_product_name('firefox')
 
             job.add_project(self.repository)
-            job.add_revision_hash(self.retrieve_revision_hash())
+            job.add_revision(self.revision)
 
             # Add platform and build information
             job.add_machine(socket.getfqdn())
@@ -102,31 +96,6 @@ class Submission(object):
             job.add_end_timestamp(0)
 
         return job
-
-    def retrieve_revision_hash(self):
-        """Retrieves the unique hash for the current revision."""
-        if not self.url:
-            raise ValueError('URL for Treeherder is missing.')
-
-        lookup_url = urljoin(self.url,
-                             RESULTSET_FRAGMENT.format(repository=self.repository,
-                                                       revision=self.revision))
-
-        if self.url == "mock":
-            logger.info('Pretend to get revision hash from: {}'.format(lookup_url))
-            return None
-
-        logger.info('Getting revision hash from: {}'.format(lookup_url))
-
-        response = requests.get(lookup_url, headers=DEFAULT_REQUEST_HEADERS)
-        response.raise_for_status()
-
-        if not response.json():
-            raise ValueError('Unable to determine revision hash for {}. '
-                             'Perhaps it has not been ingested by '
-                             'Treeherder?'.format(self.revision))
-
-        return response.json()['results'][0]['revision_hash']
 
     def submit(self, job):
         """Submit the job to treeherder.
