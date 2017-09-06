@@ -309,7 +309,7 @@ location.href = "http://speedometer-misc.local:8000/arewefastyet-speedometer/2.0
 
     @staticmethod
     def static_version():
-        return "2.0-f524369"
+        return "2.0-r221659"
 
     @staticmethod
     def name():
