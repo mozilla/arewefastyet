@@ -47,23 +47,23 @@ class Builder(object):
 
         if platform.system() == "Darwin":
             self.installClang()
-            self.env.add("CC", os.path.abspath("clang-3.8.0/bin/clang"))
-            self.env.add("CXX", os.path.abspath("clang-3.8.0/bin/clang++"))
-            self.env.add("LINK", os.path.abspath("clang-3.8.0/bin/clang++"))
+            self.env.add("CC", os.path.abspath("clang-3.9.0/bin/clang"))
+            self.env.add("CXX", os.path.abspath("clang-3.9.0/bin/clang++"))
+            self.env.add("LINK", os.path.abspath("clang-3.9.0/bin/clang++"))
 
     def installClang(self):
         # The standard clang version on mac is outdated.
         # Retrieve a better one.
 
-        if os.path.exists("clang-3.8.0"):
+        if os.path.exists("clang-3.9.0"):
             return
 
-        urllib.urlretrieve("http://llvm.org/releases/3.8.0/clang+llvm-3.8.0-x86_64-apple-darwin.tar.xz", "./clang-3.8.0.tar.xz")
-        utils.run_realtime(["tar", "xf", "clang-3.8.0.tar.xz"])
+        urllib.urlretrieve("http://releases.llvm.org/3.9.0/clang+llvm-3.9.0-x86_64-apple-darwin.tar.xz", "./clang-3.9.0.tar.xz")
+        utils.run_realtime(["tar", "xf", "clang-3.9.0.tar.xz"])
 
-        shutil.move("clang+llvm-3.8.0-x86_64-apple-darwin", "clang-3.8.0")
+        shutil.move("clang+llvm-3.9.0-x86_64-apple-darwin", "clang-3.9.0")
 
-        os.unlink("clang-3.8.0.tar.xz")
+        os.unlink("clang-3.9.0.tar.xz")
 
     def installNdk(self):
         # Retrieve the ndk needed to build an android app.
