@@ -30,6 +30,7 @@ AWFYMaster.modes["27"].hidden = true
 AWFYMaster.modes["29"].hidden = true
 AWFYMaster.modes["22"].hidden = true
 AWFYMaster.modes["63"].hidden = true
+AWFYMaster.modes["64"].hidden = true
 
 AWFY.request = function (files, callback) {
     var url = window.location.protocol + '//' +
