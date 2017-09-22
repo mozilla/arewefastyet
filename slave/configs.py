@@ -23,6 +23,7 @@ class Default(object):
             self.prefs_["javascript.options.asyncstack"] = False
             self.prefs_["datareporting.policy.firstRunURL"] = ""
             self.prefs_["datareporting.policy.dataSubmissionPolicyBypassNotification"] = True
+            self.prefs_["datareporting.policy.dataSubmissionEnabled"] = False
         elif engine == "chrome":
             pass
         elif engine == "webkit":
