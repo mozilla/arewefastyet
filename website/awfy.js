@@ -1067,7 +1067,10 @@ AWFY.startup = function () {
     var menu = $('#machinelist');
     this.updateMachineList(this.machineId);
 
-    // Hide it by default.
+    // Make sure it's visible by default.
+    menu.show();
+
+    // On click, toggle it.
     $('#machinedrop').click((function (event) {
         if (!menu.is(':visible') && !$('#about').is(':visible')) {
             menu.show();
@@ -1076,13 +1079,15 @@ AWFY.startup = function () {
         }
         return false;
     }).bind(this));
-    menu.hide();
 
-    // Add suite information to menu
+    // Add suite information to menu.
     var breakdown = $('#breakdownlist');
     this.updateSuiteList(this.machineId);
 
-    // Hide it by default.
+    // Make sure it's visible by default.
+    breakdown.show();
+
+    // On click, toggle it.
     $('#bkdrop').click((function (event) {
         if (!breakdown.is(':visible') && !$('#about').is(':visible')) {
             breakdown.show();
@@ -1091,7 +1096,6 @@ AWFY.startup = function () {
         }
         return false;
     }).bind(this));
-    breakdown.hide();
 
     var about = $('#aboutdrop');
     about.click((function (event) {
