@@ -233,20 +233,20 @@ AWFY.drawLegend = function () {
             link.addClass('inactive');
         } else {
             link.removeClass('inactive');
-		}
-		if (mode.runtime_hidden) 
-			link.css('color', '#cccccc');
+        }
+        if (mode.runtime_hidden)
+            link.css('color', '#cccccc');
 
         link.appendTo(item);
         item.appendTo(legend);
     }
 
-	var view = $("<div><a href='#' class='show'>[Show obsolete modes]</a><a href='#' class='hide'>[Hide obsolete modes]</a></div>");
-	view.click(function() {
-		legend.toggleClass("all");
-		return false;
-	});
-	legend.append(view);
+    var view = $("<div><a href='#' class='show'>[Show obsolete modes]</a><a href='#' class='hide'>[Hide obsolete modes]</a></div>");
+    view.click(function() {
+        legend.toggleClass("all");
+        return false;
+    });
+    legend.append(view);
 
     this.hasLegend = true;
 }
@@ -433,7 +433,7 @@ AWFY.condense = function (graph, max) {
             var score = average ? average : null;
             id = count == 1 ? id : null
             newline.data.push([timelist.length, score]);
-			newinfo.data.push([average, first, last, suite_version, id])
+            newinfo.data.push([average, first, last, suite_version, id])
         }
 
         timelist.push(graph.timelist[start]);
@@ -533,8 +533,8 @@ AWFY.requestZoom = function (display, kind, start_t, end_t) {
         for (var month = firstMonth; month <= lastMonth; month++) {
             var name = display.prefix +
                        kind + '-' +
-					   display.id + '-' +
-					   this.machineId + '-' +
+                       display.id + '-' +
+                       this.machineId + '-' +
                        year + '-' +
                        month;
             files.push(name);
@@ -597,36 +597,36 @@ AWFY.showBreakdown = function (name) {
 
     var total = 0;
 
-	// Create a div showing the full benchmark score.
-	var id = name;
-	var prefix = "";
-	var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
-	var title = $('<div id="' + domid + '-title"></div>').html('<b>' + id + '</b>').appendTo(breakdown);
-	title.hide();
-	var div = $('<div id="' + domid + '-graph" class="graph"></div>');
-	div.appendTo(breakdown);
-	div.hide();
-	$('<br><br>').appendTo(breakdown);
+    // Create a div showing the full benchmark score.
+    var id = name;
+    var prefix = "";
+    var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
+    var title = $('<div id="' + domid + '-title"></div>').html('<b>' + id + '</b>').appendTo(breakdown);
+    title.hide();
+    var div = $('<div id="' + domid + '-graph" class="graph"></div>');
+    div.appendTo(breakdown);
+    div.hide();
+    $('<br><br>').appendTo(breakdown);
 
-	this.panes.push(div);
+    this.panes.push(div);
 
-	var callback = (function (prefix, id, domid) {
-			return (function (received) {
-				if (received[0])
-					this.computeBreakdown(received[0], prefix, id, domid);
-				this.drawLegend();
-				}).bind(this);
-			}).bind(this)(prefix, id, domid);
+    var callback = (function (prefix, id, domid) {
+            return (function (received) {
+                if (received[0])
+                    this.computeBreakdown(received[0], prefix, id, domid);
+                this.drawLegend();
+                }).bind(this);
+            }).bind(this)(prefix, id, domid);
 
-	var file = prefix + 'aggregate-' + id + '-' + this.machineId;
-	this.request([file], callback);
+    var file = prefix + 'aggregate-' + id + '-' + this.machineId;
+    this.request([file], callback);
 
     // Create a div for each sub-test.
     var suite = AWFYMaster.suites[name];
     for (var i = 0; i < suite.tests.length; i++) {
         var test = suite.tests[i];
         var id = name + '-' + test;
-		var prefix = "bk-";
+        var prefix = "bk-";
         var domid = id.replace(/ /g,'-').replace(/\./g, '-');
         ( function (name, test) {
             var title = $('<div id="' + domid + '-title"></div>').click(
@@ -690,10 +690,10 @@ AWFY.showSingle = function (name, subtest, start, end) {
 
     if (found) {
         var id = name + '-' + test;
-		var prefix = "bk-";
+        var prefix = "bk-";
         var domid = id.replace(/ /g,'-').replace(/\./g, '-');
         var title = $('<div id="' + domid + '-title"></div>').html('<b>' + id + '</b>').appendTo(breakdown);
-		title.hide();
+        title.hide();
         var div = $('<div id="' + domid + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
         div.hide();
@@ -713,10 +713,10 @@ AWFY.showSingle = function (name, subtest, start, end) {
         this.request([file], callback);
     } else {
         var id = name;
-		var prefix = "";
+        var prefix = "";
         var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
         var title = $('<div id="' + domid + '-title"></div>').html('<b>' + id + '</b>').appendTo(breakdown);
-		title.hide();
+        title.hide();
         var div = $('<div id="' + domid + '-graph" class="graph"></div>');
         div.appendTo(breakdown);
         div.hide();
@@ -740,17 +740,17 @@ AWFY.showSingle = function (name, subtest, start, end) {
 }
 
 AWFY.isSubtest = function() {
-	if (this.view == 'overview')
-		return false;
-	if (this.view == 'breakdown')
-		return true;
-	if (this.view == 'single') {
-		if (this.subtest)
-			return true; 
-		else
-			return false;
-	}
-	throw new Exception();
+    if (this.view == 'overview')
+        return false;
+    if (this.view == 'breakdown')
+        return true;
+    if (this.view == 'single') {
+        if (this.subtest)
+            return true;
+        else
+            return false;
+    }
+    throw new Exception();
 }
 
 AWFY.requestRedraw = function () {
@@ -762,8 +762,8 @@ AWFY.requestRedraw = function () {
         var total = 0;
         for (var i = 0; i < suite.tests.length; i++) {
             var id = this.suiteName + '-' + suite.tests[i];
-			var prefix = "bk-";
-			var domid = id.replace(/ /g,'-').replace(/\./g, '-');
+            var prefix = "bk-";
+            var domid = id.replace(/ /g,'-').replace(/\./g, '-');
             var callback = (function (prefix, id, domid) {
                     return (function (received) {
                         if (received[0])
@@ -777,7 +777,7 @@ AWFY.requestRedraw = function () {
         }
     } else if (this.view == 'single') {
         var suite = AWFYMaster.suites[this.suiteName];
-        var found = false;    
+        var found = false;
         for (var i = 0; i < suite.tests.length; i++) {
             if (suite.tests[i] == this.subtest) {
                 found = true;
@@ -786,8 +786,8 @@ AWFY.requestRedraw = function () {
         }
         if (found) {
             var id = this.suiteName + '-' + this.subtest;
-			var prefix = "bk-";
-			var domid = id.replace(/ /g,'-').replace(/\./g, '-');
+            var prefix = "bk-";
+            var domid = id.replace(/ /g,'-').replace(/\./g, '-');
             var callback = (function (prefix, id, domid) {
                     return (function (received) {
                         if (received[0])
@@ -799,8 +799,8 @@ AWFY.requestRedraw = function () {
             this.request([file], callback);
         } else {
             var id = this.suiteName;
-			var prefix = "";
-			var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
+            var prefix = "";
+            var domid = id.replace(/ /g,'-').replace(/\./g, '-') + "-single";
             var callback = (function (prefix, id, domid) {
                     return (function (received) {
                         if (received[0])
@@ -884,17 +884,17 @@ AWFY.parseURL = function () {
     if (view == 'breakdown' || view == 'single') {
         var suiteName = this.queryParams['suite'];
         if (!suiteName || !AWFYMaster.suites[suiteName]) {
-			window.location.hash = "#machine=" + machineId;
-			return false;
-		}
+            window.location.hash = "#machine=" + machineId;
+            return false;
+        }
     }
-	if (view == 'breakdown') {
-		// Speedometer has no subscores. Show total score.
-		if (AWFYMaster.suites[suiteName].tests.length == 0) {
-			window.location.hash = "#machine=" + machineId + "&view=single&suite=" + suiteName;
-			return false;
-		}
-	}
+    if (view == 'breakdown') {
+        // Speedometer has no subscores. Show total score.
+        if (AWFYMaster.suites[suiteName].tests.length == 0) {
+            window.location.hash = "#machine=" + machineId + "&view=single&suite=" + suiteName;
+            return false;
+        }
+    }
     var start = null;
     var end = null;
     if (view == 'single') {
@@ -909,8 +909,8 @@ AWFY.parseURL = function () {
             break;
         }
         if (subtest && !found) {
-			window.location.hash = "#machine=" + machineId + "&view=breakdown&suite=" + suiteName;
-			return false;
+            window.location.hash = "#machine=" + machineId + "&view=breakdown&suite=" + suiteName;
+            return false;
         } else {
             start = (this.queryParams['start'])?parseInt(this.queryParams['start']):null;
             end = (this.queryParams['end'])?parseInt(this.queryParams['end']):null;
@@ -939,7 +939,7 @@ AWFY.parseURL = function () {
             return true;
         } else if (view == 'breakdown' || view == 'single') {
             if (suiteName == this.suiteName) {
-                if (machineId != this.machineId) 
+                if (machineId != this.machineId)
                     this.changeMachine(machineId);
                 this.lastHash = window.location.hash;
                 return true;
@@ -958,7 +958,7 @@ AWFY.parseURL = function () {
         this.showSingle(suiteName, subtest, start, end);
 
     this.lastHash = window.location.hash;
-	return true;
+    return true;
 }
 
 AWFY.updateMachineList = function (machineId) {
@@ -968,14 +968,14 @@ AWFY.updateMachineList = function (machineId) {
     if (!AWFYMaster.machines[machineId].frontpage)
         showAll = true;
 
-	var machines_ids = []
+    var machines_ids = []
     for (var id in AWFYMaster.machines) {
-		machines_ids.push(id);
-	}
+        machines_ids.push(id);
+    }
     machines_ids.sort(function(a,b) {return AWFYMaster.machines[a].description > AWFYMaster.machines[b].description});
 
-	for (var i = 0; i < machines_ids.length; i++) {
-		var id = machines_ids[i];
+    for (var i = 0; i < machines_ids.length; i++) {
+        var id = machines_ids[i];
         var machine = AWFYMaster.machines[id];
         if (!showAll && !machine.frontpage)
             continue;
@@ -999,17 +999,17 @@ AWFY.updateMachineList = function (machineId) {
         li.appendTo(menu);
     }
     var view = $("<div><a href='#' class='show'>[Show hidden machines]</a><a href='#' class='hide'>[Hide hidden machines]</a></div>");
-	view.click(function() {
-		menu.toggleClass("all");
-		return false;
-	});
-	menu.append(view);
+    view.click(function() {
+        menu.toggleClass("all");
+        return false;
+    });
+    menu.append(view);
     $('#message').html(AWFYMaster.machines[machineId].message+"<br />&nbsp;");
 }
 
 AWFY.updateSuiteList = function (machineId) {
     var breakdown = $('#breakdownlist');
-    breakdown.empty(); 
+    breakdown.empty();
 
     var home = $('<a href="#" id="suite-overview"></a>').click(
         (function (event) {
@@ -1044,7 +1044,7 @@ AWFY.updateSuiteList = function (machineId) {
             return (function(event) {
                 $('#breakdownlist .clicked').removeClass('clicked');
                 $(event.target).addClass('clicked');
-			    window.location.hash = "#machine=" + this.machineId + "&view=breakdown&suite=" + name;
+                window.location.hash = "#machine=" + this.machineId + "&view=breakdown&suite=" + name;
                 return false;
             }).bind(this);
         }).bind(this)(name));
