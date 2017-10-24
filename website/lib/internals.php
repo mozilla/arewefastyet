@@ -65,11 +65,15 @@ function has_permissions()
 
     $split = explode("@", $_SESSION['persona'], 2);
 
-    if ($split[0] == 'hv1989' && split[1] == "gmail.com") {
+    if ($split[0] == 'hv1989' && $split[1] == "gmail.com") {
         return true;
     }
 
     if ($split[0] == "evilpies" && $split[1] == "googlemail.com") {
+        return true;
+    }
+
+    if ($split[0] == 'arai.unmht' && $split[1] == "gmail.com") {
         return true;
     }
 
