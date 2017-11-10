@@ -301,6 +301,40 @@ class Ares6(Benchmark):
         return tests
 
 
+class WebToolingBenchmark(Benchmark):
+    def __init__(self):
+        super(WebToolingBenchmark, self).__init__('web-tooling-benchmark/')
+
+    @staticmethod
+    def name():
+        return "web-tooling-benchmark"
+
+    def getCommand(self, shell, args):
+        full_args = [shell]
+        if args:
+            full_args.extend(args)
+        full_args.append('cli.js')
+
+        return full_args
+
+    def process_results(self, output):
+        tests = []
+        lines = output.splitlines()
+
+        for x in lines:
+            m = re.search(" +([a-zA-Z].+): +([.0-9]+) +runs/sec", x)
+            if not m:
+                continue
+            name = m.group(1)
+            score = m.group(2)
+            if name == "Geometric mean":
+                name = "__total__"
+            tests.append({'name': name, 'time': score})
+            print(score + '    - ' + name)
+
+        return tests
+
+
 Known = [
     Octane,
     SunSpider,
@@ -310,5 +344,6 @@ Known = [
     AsmJSMicro,
     Dart,
     SixSpeed,
-    Ares6
+    Ares6,
+    WebToolingBenchmark
 ]
