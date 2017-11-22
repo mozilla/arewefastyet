@@ -327,7 +327,7 @@ class WebToolingBenchmark(Benchmark):
                 continue
             name = m.group(1)
             score = m.group(2)
-            if name == "Geometric mean":
+            if name == "mean":
                 name = "__total__"
             tests.append({'name': name, 'time': score})
             print(score + '    - ' + name)
