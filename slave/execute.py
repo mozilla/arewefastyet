@@ -66,13 +66,18 @@ if options.mode_rules is None:
         "firefox,branchpruning:branchpruning",
         "firefox,e10s:e10s",
         "firefox,noe10s:noe10s",
+        "firefox,wasm:jmim",
+        "firefox,wasm-baseline:wasmbaseline",
+        "firefox,wasm-tiering:wasmtiering",
         "chrome,default:v8",
         "chrome,turbofan:v8-turbofan",
         "chrome,ignition:v8-ignition",
         "chrome,turboignition:v8-turbo-ignition",
+        "chrome,wasm:v8",
+        "chrome,wasm-baseline:v8-liftoff",
         "webkit,default:jsc",
         "native,default:clang",
-        "servo,default:servo"
+        "servo,default:servo",
     ]
 
 #TODO:remove

@@ -34,8 +34,7 @@ class Submitter(object):
         name = engine_type + "," + config
         if name in self.rules:
             return self.rules[name]
-        else:
-            return name
+        return name
 
     def assert_machine(self):
         if not hasattr(self, "machine"):

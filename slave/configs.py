@@ -52,27 +52,25 @@ class Default(object):
         # Currently only for firefox profile.
         return self.prefs_
 
-class Wasm(Default):
-    def __init__(self, engine, shell):
-        super(Wasm, self).__init__(engine, shell)
-        if engine == "firefox":
-            self.prefs_["javascript.options.wasm"] = True
-        elif engine == "chrome":
-            self.args_ += ['--js-flags=--expose_wasm']
-
-class WasmBaseline(Wasm):
+class WasmBaseline(Default):
     def __init__(self, engine, shell):
         super(WasmBaseline, self).__init__(engine, shell)
         if engine == "firefox":
             self.prefs_["javascript.options.wasm_baselinejit"] = True
             self.prefs_["javascript.options.wasm_ionjit"] = False
+        elif engine == "chrome":
+            self.args_ += ['--js-flags=--liftoff']
+        else:
+            self.omit_ = True
 
-class WasmTiering(Wasm):
+class WasmTiering(Default):
     def __init__(self, engine, shell):
         super(WasmTiering, self).__init__(engine, shell)
         if engine == "firefox":
             self.prefs_["javascript.options.wasm_baselinejit"] = True
             self.prefs_["javascript.options.wasm_ionjit"] = True
+        else:
+            self.omit_ = True
 
 class UnboxedObjects(Default):
     def __init__(self, engine, shell):
@@ -194,8 +192,6 @@ class StyloDisabled(Default):
 def getConfig(name, info):
     if name == "default":
         return Default(info["engine_type"], info["shell"])
-    if name == "wasm":
-        return Wasm(info["engine_type"], info["shell"])
     if name == "wasm-baseline":
         return WasmBaseline(info["engine_type"], info["shell"])
     if name == "wasm-tiering":
