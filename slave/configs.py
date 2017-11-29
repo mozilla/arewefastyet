@@ -24,6 +24,8 @@ class Default(object):
             self.prefs_["datareporting.policy.firstRunURL"] = ""
             self.prefs_["datareporting.policy.dataSubmissionPolicyBypassNotification"] = True
             self.prefs_["datareporting.policy.dataSubmissionEnabled"] = False
+            # temporary change https://bugzilla.mozilla.org/show_bug.cgi?id=1421650
+            self.prefs_["network.http.rcwn.enable"] = False
         elif engine == "chrome":
             pass
         elif engine == "webkit":
