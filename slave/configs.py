@@ -56,8 +56,8 @@ class WasmBaseline(Default):
         if engine == "firefox":
             self.prefs_["javascript.options.wasm_baselinejit"] = True
             self.prefs_["javascript.options.wasm_ionjit"] = False
-        elif engine == "chrome":
-            self.args_ += ['--js-flags=--liftoff']
+        #elif engine == "chrome": # TODO disabled (see bug 1421236)
+            #self.args_ += ['--js-flags=--liftoff']
         else:
             self.omit_ = True
 
