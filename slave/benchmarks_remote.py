@@ -511,6 +511,72 @@ class WasmMisc(Benchmark):
     def name():
         return "wasm"
 
+class MotionMark(Benchmark):
+    def __init__(self):
+        Benchmark.__init__(self, timeout=10)
+
+    @staticmethod
+    def translate_path(path):
+        if not path.startswith('/MotionMark'):
+            prefix = '/MotionMark'
+            if path != '/':
+                prefix += '/'
+            path = prefix + path
+
+        return "http", "browserbench.org", path
+
+    def process_results(self, results):
+        return [{ 'name': key, 'time': value } for key, value in results.items()]
+
+    @staticmethod
+    def inject_data(path, data):
+        if path == '/MotionMark/':
+            data = data.replace('</body>', '''<script>
+                var interval = setInterval(function() {
+                    if (typeof benchmarkController === 'undefined' ||
+                        typeof BenchmarkRunner === 'undefined')
+                    {
+                        return;
+                    }
+                    clearInterval(interval);
+                    setTimeout(function() {
+                        benchmarkController.startBenchmark();
+                    }, 0);
+                }, 100);
+            </script></body>''')
+
+        elif path == '/MotionMark/resources/runner/animometer.js':
+            data = data.replace(
+'''
+    showResults: function()
+''', '''
+    showResults: function() {
+        var results = benchmarkRunnerClient.results;
+
+        var scores = {};
+        scores['__total__'] = results.score;
+
+        var subtests = results._results.iterationsResults[0].testsResults.Animometer;
+        for (var name in subtests) {
+            scores[name] = subtests[name].score;
+        }
+
+        scores = encodeURIComponent(JSON.stringify(scores));
+        location.href = 'http://localhost:8000/submit?results=' + scores;
+    },
+
+    __unusedShowResults: function()''')
+
+        return data
+
+    @staticmethod
+    def static_version():
+        return "0.1"
+
+    @staticmethod
+    def name():
+        return "motionmark"
+
 
 Known = [
     Octane,
@@ -524,4 +590,5 @@ Known = [
     Browsermark,
     WasmMisc,
     EmberPerf,
+    MotionMark,
 ]
