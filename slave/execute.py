@@ -69,6 +69,7 @@ if options.mode_rules is None:
         "firefox,wasm:jmim",
         "firefox,wasm-baseline:wasmbaseline",
         "firefox,wasm-tiering:wasmtiering",
+        "firefox,webrender:webrender",
         "chrome,default:v8",
         "chrome,turbofan:v8-turbofan",
         "chrome,ignition:v8-ignition",

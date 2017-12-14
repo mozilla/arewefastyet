@@ -187,6 +187,18 @@ class StyloDisabled(Default):
         else:
             self.omit_ = True
 
+class WebRender(Default):
+    def __init__(self, engine, shell):
+        super(WebRender, self).__init__(engine, shell)
+        if engine == "firefox" and not shell:
+            self.prefs_["gfx.webrender.enabled"] = True
+            self.prefs_["gfx.webrender.blob-images"] = True
+            self.prefs_["image.mem.shared"] = True
+            # This last one is for Linux, and a no-op on other platforms.
+            self.prefs_["layers.acceleration.force-enabled"] = True
+        else:
+            self.omit_ = True
+
 def getConfig(name, info):
     if name == "default":
         return Default(info["engine_type"], info["shell"])
@@ -220,4 +232,6 @@ def getConfig(name, info):
         return Stylo(info["engine_type"], info["shell"])
     if name == "stylo_disabled":
         return StyloDisabled(info["engine_type"], info["shell"])
+    if name == "webrender":
+        return WebRender(info["engine_type"], info["shell"])
     raise Exception("Unknown config")
