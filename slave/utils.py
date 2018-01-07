@@ -3,19 +3,21 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import os
-import sys
-import commands
-import subprocess
-import signal
 import ConfigParser
+import commands
 import json
+import logging
+import os
+import signal
+import stat
+import subprocess
+import sys
+import tarfile
 import urllib
 import urllib2
-import tarfile
 import zipfile
 import zlib
-import stat
+
 
 class ConfigState:
     def __init__(self):
@@ -92,30 +94,33 @@ def diff_env(env):
     return { k: env[k] for k in env if k not in env_copy or env_copy[k] != env[k] }
 
 def Run(vec, env = os.environ.copy(), shell=False, silent=False):
+    logger = logging.getLogger('Run')
     print_cmd = vec if shell else ' '.join(vec)
-    print(">> Executing in " + os.getcwd() + ': ' + print_cmd)
+    log_info(logger, ">> Executing in " + os.getcwd() + ': ' + print_cmd)
 
     print_env = diff_env(env)
     if len(print_env):
-        print("with: " + str(print_env))
+        log_info(logger, "with: " + str(print_env))
 
+    log_flush()
     try:
         o = subprocess.check_output(vec, stderr=subprocess.STDOUT, env=env, shell=shell)
     except subprocess.CalledProcessError as e:
-        print 'output was: ' + e.output
-        print e
+        log_exception(logger, 'output was: ' + e.output)
         raise e
     o = o.decode("utf-8")
 
     if not silent:
-        print(o)
+        log_info(logger, o)
 
     return o
 
 def Shell(string):
-    print(string)
+    logger = logging.getLogger('Shell')
+    log_info(logger, "{}".format(string))
+    log_flush()
     status, output = commands.getstatusoutput(string)
-    print(output)
+    log_info(logger, "status: {}, output: {}".format(status, output))
     return output
 
 class TimeException(Exception):
@@ -138,8 +143,10 @@ def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenar
     if timeout is None:
         timeout = config.Timeout
 
-    print('Running: "'+ '" "'.join(args) + '" with timeout: ' + str(timeout)+'s')
-    print("with: " + str(env))
+    logger = logging.getLogger('RunTimedCheckOutput')
+    log_info(logger, 'Running: "'+ '" "'.join(args) + '" with timeout: ' + str(timeout)+'s')
+    log_info(logger, "with: " + str(env))
+    log_flush()
     p = subprocess.Popen(args, env = env, stdout=subprocess.PIPE, **popenargs)
     with Handler(signal.SIGALRM, timeout_handler):
         try:
@@ -148,21 +155,23 @@ def RunTimedCheckOutput(args, env = os.environ.copy(), timeout = None, **popenar
             # if we get an alarm right here, nothing too bad should happen
             signal.alarm(0)
             if p.returncode:
-                print "ERROR: returned" + str(p.returncode)
+                log_error(logger, "ERROR: returned" + str(p.returncode))
         except TimeException:
             # make sure it is no longer running
             p.kill()
             # in case someone looks at the logs...
-            print ("WARNING: Timed Out")
+            logger.warning(logger, "WARNING: Timed Out")
             # try to get any partial output
             output = p.communicate()[0]
-    print (output)
+    log_info(logger, output)
     return output
 
 def run_realtime(cmd, shell=False, env=None):
     """from http://blog.kagesenshi.org/2008/02/teeing-python-subprocesspopen-output.html
     """
-    print cmd
+    logger = logging.getLogger('run_realtime')
+    log_info(logger, cmd)
+    log_flush()
     p = subprocess.Popen(cmd, shell=shell, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout = []
     while True:
@@ -172,36 +181,40 @@ def run_realtime(cmd, shell=False, env=None):
                 line = p.stdout.readline()
                 signal.alarm(0)
                 stdout.append(line)
-                print line,
+                log_info(logger, line)
             except TimeException:
                 line = ''
         if line == '' and p.poll() != None:
             p.stdout.close()
             return_code = p.wait()
             if return_code:
+                log_exception(logger, "Exception in run_realtime")
                 raise subprocess.CalledProcessError(return_code, cmd)
             break
     return ''.join(stdout)
 
 def unzip(directory, name):
+    logger = logging.getLogger('unzip')
     if "tar.bz2" in name:
-        print "Running: untar " + name
+        log_info(logger, "Running: untar " + name)
         tar = tarfile.open(directory + "/" + name)
         tar.extractall(directory + "/")
         tar.close()
     else:
-        print "Running: unzip " + name
+        log_info(logger, "Running: unzip " + name)
         zip = zipfile.ZipFile(directory + "/" + name)
         zip.extractall(directory + "/")
         zip.close()
 
 def chmodx(file):
-    print "Running: chmodx" + file
+    logger = logging.getLogger('chmodx')
+    log_info(logger, "Running: chmodx" + file)
     st = os.stat(file)
     os.chmod(file, st.st_mode | stat.S_IEXEC)
 
 def fetch_json(url):
-    print "Fetching JSON at " + url
+    logger = logging.getLogger('fetch_json')
+    log_info(logger, "Fetching JSON at " + url)
 
     # TODO: Replace urllib2 with requests.
     headers = {
@@ -221,6 +234,7 @@ def fetch_json(url):
     return json.loads(read)
 
 def getOrDownload(directory, prefix, revision, file, output):
+    logger = logging.getLogger('getOrDownload')
     rev_file = directory + "/" + prefix + "-revision"
     old_revision = ""
     if os.path.isfile(rev_file):
@@ -229,7 +243,7 @@ def getOrDownload(directory, prefix, revision, file, output):
         fp.close()
 
     if revision != old_revision:
-        print "Retrieving", file
+        log_info(logger, "Retrieving {}".format(file))
         urllib.urlretrieve(file, output)
 
         fp = open(rev_file, 'w')
@@ -240,13 +254,71 @@ def log_banner(text):
     line = "*******************************************************************************\n"
     line += (" " * ((len(line) - 1 - len(text)) / 2)) + text + '\n'
     line += "*******************************************************************************"
-    print line
+    log_info(logging.getLogger(), line)
 
 def make_log(name):
     def log(*args):
-        print "{} -- ".format(name) + ' '.join(args)
+        log_info(logging.getLogger(), "{} -- ".format(name) + ' '.join(args))
     return log
 
 def flush():
     sys.stdout.flush()
     sys.stderr.flush()
+    log_flush()
+
+def create_logger(maxBytes=0, backupCount=0, rollover=False):
+    """Create a rotating file logger which will be used to log messages
+    both to stdout via print as well as to ~/AWFY.log. This will allow
+    us to keep the currently expected print output to stdout while at
+    the same time capturing these printed log messages to a log file
+    for diagnosis.
+
+
+    Use a rotating file handler which will keep the most recent copies
+    of the log file.
+
+    In the main process running task.py, backupCount is set to 3 to
+    keep 3 copies and maxBytes is set to the maximum integer so that
+    the log will not be automatically rolled over. Instead the log
+    will only be rolled over in the main task.py process. Subprocesses
+    which are created will use the same file name but with maxBytes
+    and backupCount set to 0 so they will not roll over at all.
+    """
+    from logging.handlers import RotatingFileHandler
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    file_handler = RotatingFileHandler(
+        os.path.join(os.environ['HOME'], 'AWFY.log'),
+        maxBytes=sys.maxint,
+        backupCount=3)
+    file_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    if rollover and maxBytes > 0 and backupCount > 0:
+        file_handler.doRollover()
+    return logger
+
+def log_info(logger, msg):
+    print msg
+    logger.info(msg)
+
+def log_warning(logger, msg):
+    print msg
+    logger.warning(msg)
+
+def log_error(logger, msg):
+    print msg
+    logger.error(msg)
+
+def log_exception(logger, msg):
+    print msg
+    logger.exception(msg)
+
+def log_flush():
+    """Flush root logger handlers which have flush methods"""
+    logger = logging.getLogger()
+    for h in logger.handlers:
+        if hasattr(h, 'flush'):
+            h.flush()

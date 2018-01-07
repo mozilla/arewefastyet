@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import json
+import logging
 import os
 import platform
 import re
@@ -20,7 +21,8 @@ import url_creator
 import utils
 
 def download_from_url(url):
-    print "Downloading from URL {}".format(url)
+    logger = logging.getLogger('download_from_url')
+    utils.log_info(logger, "Downloading from URL {}".format(url))
     if (url.startswith("http://archive.mozilla.org") or
         url.startswith("https://archive.mozilla.org") or
         url.startswith("http://ftp.mozilla.org") or
@@ -45,12 +47,13 @@ def download_from_url(url):
     raise Exception("Unknown retriever")
 
 def download_for_repo(config, repo, cset="latest", buildtype='opt'):
-    print "Downloading for repository {}".format(repo, cset)
+    logger = logging.getLogger('download_for_repo')
+    utils.log_info(logger, "Downloading for repository {}".format(repo, cset))
     creator = url_creator.get(config, repo)
 
     urls = creator.find(cset, buildtype=buildtype)
     for url in urls:
-        print "trying: " + url
+        utils.log_info(logger, "trying: " + url)
         downloader = download_from_url(url)
         if downloader.valid():
             return downloader
@@ -60,6 +63,7 @@ def download_for_repo(config, repo, cset="latest", buildtype='opt'):
 class Downloader(object):
 
     def __init__(self, url):
+        self.logger = logging.getLogger(self.__class__.__name__)
         if not url.endswith("/"):
             url += "/"
 
@@ -93,7 +97,7 @@ class Downloader(object):
         os.makedirs(self.folder)
 
     def retrieve(self, filename):
-        print "Retrieving", self.url + filename
+        utils.log_info(self.logger, "Retrieving", self.url + filename)
         urllib.urlretrieve(self.url + filename, self.folder + filename)
 
     def extract(self, filename):
@@ -320,7 +324,7 @@ class BuildsWebkitDownloader(Downloader):
         return self.file
 
     def retrieve_info(self):
-        print self.file
+        utils.log_info(self.logger, self.file)
         cset = re.findall('-r([a-z0-9]*)\.dmg', self.file)[0]
 
         info = {}
@@ -333,6 +337,8 @@ class BuildsWebkitDownloader(Downloader):
         return info
 
 if __name__ == "__main__":
+    logger = utils.create_logger()
+
     utils.log_banner('DOWNLOAD')
 
     parser = OptionParser(usage="usage: %prog [options]")
@@ -357,7 +363,7 @@ if __name__ == "__main__":
         exit("python version need to be >= 2.7.10")
 
     if options.config not in ["auto", "32bit", "64bit"]:
-        print "Please provide a valid config"
+        utils.log_error(logger, "Please provide a valid config")
         exit()
 
     if options.config == "auto":
@@ -366,7 +372,7 @@ if __name__ == "__main__":
     # Using platform.machine() gives you the architecture of the host rather
     # than the build type of the Python binary
     if options.config == "64bit" and '32' in platform.machine():
-        print "Cannot download a 64bit binary on 32bit architecture"
+        utils.log_error(logger, "Cannot download a 64bit binary on 32bit architecture")
         exit()
 
     if os.path.exists(os.path.join(options.output, "info.json")):
@@ -382,6 +388,6 @@ if __name__ == "__main__":
 
     downloader.set_output_folder(options.output)
 
-    print("Starting download...")
+    utils.log_info(logger, "Starting download...")
     downloader.download()
-    print("Download finished, exiting download.py!")
+    utils.log_info(logger, "Download finished, exiting download.py!")

@@ -129,6 +129,8 @@ class AutoSpawnServer:
             self.server = None
 
 if __name__ == '__main__':
+    logger = utils.create_logger()
+
     utils.log_banner("EXECUTE")
     log = utils.make_log('EXECUTE')
 
@@ -160,6 +162,7 @@ if __name__ == '__main__':
                         log('Exception: ' +  repr(e))
                         import traceback
                         traceback.print_exc()
+                        utils.log_exception(logger, 'Exception')
                         continue
 
                     mode = submitter.mode(info["engine_type"], config_name)

@@ -3,18 +3,20 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import contextlib
+import json
+import logging
 import os
 import re
 import urllib
 import urllib2
-import json
-import contextlib
 
 import utils
 
 class Submitter(object):
 
     def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.urls = utils.config.get('main', 'updateURL').split(",")
         self.runIds = []
         for i in range(len(self.urls)):
@@ -38,7 +40,7 @@ class Submitter(object):
 
     def assert_machine(self):
         if not hasattr(self, "machine"):
-            print "please provide the machine number for submitting (--submitter-machine)"
+            utils.log_error(self.logger, "please provide the machine number for submitting (--submitter-machine)")
             exit()
 
     def set_machine(self, machine):
@@ -173,9 +175,11 @@ class RemoteSubmitter(Submitter):
 
 class PrintSubmitter(Submitter):
     def __init__(self):
+        super(Submitter, self).__init__()
         self.msg = ''
 
     def log(self, msg):
+        utils.log_info(self.logger, msg)
         self.msg += msg + '\n'
         print msg
 
@@ -198,8 +202,8 @@ class PrintSubmitter(Submitter):
         self.log("%s (%s -- %s): %s" % (name, suiteversion, mode, str(time)))
 
     def finish(self, status = 1):
-        print "\n*******************************************\nSummary: "
-        print self.msg
+        utils.log_info(self.logger, "\n*******************************************\nSummary: ")
+        utils.log_info(self.logger, self.msg)
         self.msg = ''
 
 def get_submitter(name):
@@ -211,6 +215,8 @@ def get_submitter(name):
         raise Exception('unknown submitter!')
 
 if __name__ == "__main__":
+    logger = utils.create_logger()
+
     from optparse import OptionParser
     parser = OptionParser(usage="usage: %prog [options]")
 

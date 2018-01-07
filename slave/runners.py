@@ -1,8 +1,10 @@
-import subprocess
-import shutil
-import time
+import logging
 import os
+import shutil
 import stat
+import subprocess
+import time
+
 import utils
 
 """
@@ -37,18 +39,19 @@ Runner functions:
 """
 class Runner(object):
     def __init__(self, info):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.info = info
 
     def rm(self, path):
         if not os.path.exists(path):
-            print "rm", path, "(non-existing)"
+            utils.log_info(self.logger, "rm {} (non-existing)".format(path))
             return
 
-        print "rm", path
+        utils.log_info(self.logger, "rm {}".format(path))
         shutil.rmtree(path)
 
     def kill(self, process):
-        print "kill", process.pid
+        utils.log_info(self.logger, "kill {}".format(process.pid))
         process.terminate()
 
         for i in range(100):
@@ -63,13 +66,13 @@ class Runner(object):
             pass
 
     def write(self, path, content):
-        print "write", path, content
+        utils.log_info(self.logger, "write {} {}".format(path, content))
         fp = open(path, 'w')
         fp.write(content);
         fp.close()
 
     def mkdir(self, path):
-        print "mkdir", path
+        utils.log_info(self.logger, "mkdir {}".format(path))
         os.mkdir(path)
 
     def getdir(self, path):
@@ -88,15 +91,15 @@ class Runner(object):
         return path
 
     def execute(self, command, env, path="."):
-        print " ".join(command)
-        print os.getcwd()
-        print path
+        utils.log_info(self.logger, " ".join(command))
+        utils.log_info(self.logger, os.getcwd())
+        utils.log_info(self.logger, path)
         with utils.chdir(path):
             return utils.run_realtime(command, env=env)
 
 class LinuxRunner(Runner):
     def killall(self, name):
-        print "killall", name
+        utils.log_info(self.logger, "killall {}".format(name))
         process = subprocess.Popen(["pkill", name])
         # Wait for killall to finish
         while process.poll() is None:
@@ -104,11 +107,11 @@ class LinuxRunner(Runner):
         time.sleep(1)
 
     def killAllInstances(self):
-        print "killallinstances"
+        utils.log_info(self.logger, "killallinstances")
         self.killall(self.info["linux_processname"])
 
     def start(self, exe, args = [], env = {}):
-        print "start", exe, args, utils.diff_env(env)
+        utils.log_info(self.logger, "start {} {} {}".format(exe, args, utils.diff_env(env)))
         return subprocess.Popen([exe] + args, env=env)
 
     def install(self, exe):
@@ -116,7 +119,7 @@ class LinuxRunner(Runner):
         paths = subprocess.check_output(["find", path])
         paths = [path.rstrip() for path in paths.splitlines()]
 
-        print "Setting executable bit for {} and children.".format(path)
+        utils.log_info(self.logger, "Setting executable bit for {} and children.".format(path))
         for path in paths:
             self.set_exec_bit(path)
 
@@ -126,11 +129,11 @@ class WindowsRunner(LinuxRunner):
     """ we assume cygwin, e.g. similar to the linux runner """
 
     def killAllInstances(self):
-        print "killallinstances"
+        utils.log_info(self.logger, "killallinstances")
         self.killall(self.info["windows_processname"])
 
     def killall(self, name):
-        print "killall", name
+        utils.log_info(self.logger, "killall {}".format(name))
         try:
             subprocess.check_output("kill $(ps aux | grep '"+name+"$' | awk '{print $2}')", shell=True)
         except:
@@ -141,7 +144,7 @@ class WindowsRunner(LinuxRunner):
         paths = subprocess.check_output(["find", path])
         paths = [path.rstrip() for path in paths.splitlines()]
 
-        print "Setting executable bit for {} and children.".format(path)
+        utils.log_info(self.logger, "Setting executable bit for {} and children.".format(path))
         for path in paths:
             self.set_exec_bit(path)
 
@@ -149,7 +152,7 @@ class WindowsRunner(LinuxRunner):
 
 class OSXRunner(Runner):
     def killall(self, name):
-        print "killall", name
+        utils.log_info(self.logger, "killall {}".format(name))
         process = subprocess.Popen(["killall", name])
         # Wait for killall to finish
         while process.poll() is None:
@@ -162,7 +165,7 @@ class OSXRunner(Runner):
                 self.killall(self.info["osx_processname"])
             return
 
-        print "killallinstances"
+        utils.log_info(self.logger, "killallinstances")
         try:
             subprocess.check_output("kill $(ps aux | grep '"+self.info["osx_mount_point"]+"[^[]' | awk '{print $2}')", shell=True)
         except:
@@ -173,12 +176,12 @@ class OSXRunner(Runner):
             pass
 
     def start(self, exe, args = [], env = {}):
-        print "start", exe, args, utils.diff_env(env)
+        utils.log_info(self.logger, "start {} {} {}".format(exe, args, utils.diff_env(env)))
         return subprocess.Popen([exe] + args, env=env)
 
     def install(self, exe):
         if exe.endswith(".dmg"):
-            print "install", exe
+            utils.log_info(self.logger, "install {}".format(exe))
             subprocess.check_output(["hdiutil", "attach", exe])
             return self.info["osx_binary"]
         else:
@@ -186,16 +189,13 @@ class OSXRunner(Runner):
             paths = subprocess.check_output(["find", path])
             paths = [path.rstrip() for path in paths.splitlines()]
 
-            print "Setting executable bit for {} and children.".format(path)
+            utils.log_info(self.logger, "Setting executable bit for {} and children.".format(path))
             for path in paths:
                 self.set_exec_bit(path)
 
             return exe
 
 class AndroidRunner(Runner):
-    def __init__(self, info):
-        self.info = info
-
     def killall(self, name):
         pass
 
@@ -221,14 +221,14 @@ class AndroidRunner(Runner):
         subprocess.check_output(["adb", "shell", "echo '" + content + "' > " + self.getdir(path)])
 
     def mkdir(self, path):
-        print "adb", "shell", "mkdir", self.getdir(path)
+        utils.log_info(self.logger, "adb shell mkdir {}".format(self.getdir(path)))
         subprocess.check_output(["adb", "shell", "mkdir " + self.getdir(path)])
 
     def getdir(self, path):
         return "/data/local/tmp/" + path
 
     def put(self, path, recursive=True):
-        print "put", path, "on device"
+        utils.log_info(self.logger, "put {} on device".format(path))
         name = os.path.basename(path)
         if os.path.isdir(path):
             hash1 = subprocess.check_output(["adb", "shell", "cat /data/local/tmp/"+name+"/123hash"]).splitlines()[0]
@@ -241,21 +241,21 @@ class AndroidRunner(Runner):
                 else:
                     adbSync = os.path.join(syncDir, "adb-sync")
                 assert os.path.isfile(adbSync)
-                print adbSync, path, self.getdir("")
+                utils.log_info(self.logger, "{} {} {}".format(adbSync, path, self.getdir("")))
                 subprocess.check_output([adbSync, path, self.getdir("")])
 
                 self.write(os.path.join(name, "123hash"), hash2)
         else:
-            print "adb", "push", path, self.getdir(name)
+            utils.log_info(self.logger, "adb push {} {}".format(path, self.getdir(name)))
             subprocess.check_output(["adb", "push", path, self.getdir(name)])
         return self.getdir(name)
 
     def set_exec_bit(self, path):
-        print "set_exec_bit not yet supported on AndroidRunner"
+        utils.log_error(self.logger, "set_exec_bit not yet supported on AndroidRunner")
         assert False
 
     def find(self, path):
-        print "find not yet supported on AndroidRunner"
+        utils.log_error(self.logger, "find not yet supported on AndroidRunner")
         assert False
 
     def execute(self, command, env, path="."):
@@ -277,8 +277,8 @@ class AndroidRunner(Runner):
         for i in env:
             env_flags += i+"="+env[i]+" "
 
-        print "ENV: " + utils.diff_env(env)
-        print "adb shell ... " + " ".join(command) + " ..."
+        utils.log_info(self.logger, "ENV: " + utils.diff_env(env))
+        utils.log_info(self.logger, "adb shell ... " + " ".join(command) + " ...")
         return utils.run_realtime(["adb", "shell", "cd "+path+";"+env_flags+" " + " ".join(command) + "; exit"])
 
 def getRunner(platform, info = {}):
