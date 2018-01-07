@@ -155,7 +155,6 @@ class V8GIT(GIT):
         with chdir(self.path()):
             Run(['git', 'pull', 'origin', 'master'])
 
-        env = os.environ.copy()
         with chdir(self.path()):
             Run(['gclient', 'sync'], self.make_env())
 

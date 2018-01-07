@@ -1,14 +1,9 @@
-import json
 import logging
 import os
 import re
-import socket
-import subprocess
 import sys
-import time
 
 sys.path.insert(1, '../driver')
-import submitter
 import utils
 
 class Benchmark(object):

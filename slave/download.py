@@ -11,7 +11,6 @@ import sys
 import tarfile
 import urllib
 import urllib2
-import zipfile
 
 from optparse import OptionParser
 

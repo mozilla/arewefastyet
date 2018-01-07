@@ -1,9 +1,7 @@
 import json
 import logging
 import os
-import socket
 import subprocess
-import sys
 import time
 
 import utils
@@ -110,7 +108,6 @@ class WebAudio(Benchmark):
 
     def process_results(self, results):
         ret = []
-        total = 0
         for item in results:
             if item['name'] == "Geometric Mean":
                 item['name'] = "__total__"
@@ -131,7 +128,6 @@ class UnityWebGL(Benchmark):
 
     def process_results(self, results):
         ret = []
-        total = 0
         for item in results:
             if item['benchmark'] == "Geometric Mean":
                 item['benchmark'] = "__total__"

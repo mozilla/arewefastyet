@@ -1,6 +1,5 @@
 import logging
 import sys
-import time
 
 sys.path.insert(1, '../driver')
 

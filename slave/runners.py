@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import signal
 import stat
 import subprocess
 import time
@@ -84,8 +85,8 @@ class Runner(object):
 
     def find(self, path, file):
         paths = subprocess.check_output(["find", path])
-        paths = [path.rstrip() for path in paths.splitlines()]
-        return [path for path in paths if path.endswith(file)]
+        paths = [p.rstrip() for p in paths.splitlines()]
+        return [p for p in paths if p.endswith(file)]
 
     def put(self, path, recursive=True):
         return path
@@ -117,7 +118,7 @@ class LinuxRunner(Runner):
     def install(self, exe):
         path = os.path.dirname(exe)
         paths = subprocess.check_output(["find", path])
-        paths = [path.rstrip() for path in paths.splitlines()]
+        paths = [p.rstrip() for p in paths.splitlines()]
 
         utils.log_info(self.logger, "Setting executable bit for {} and children.".format(path))
         for path in paths:
@@ -142,7 +143,7 @@ class WindowsRunner(LinuxRunner):
     def install(self, exe):
         path = os.path.dirname(exe)
         paths = subprocess.check_output(["find", path])
-        paths = [path.rstrip() for path in paths.splitlines()]
+        paths = [p.rstrip() for p in paths.splitlines()]
 
         utils.log_info(self.logger, "Setting executable bit for {} and children.".format(path))
         for path in paths:
@@ -187,7 +188,7 @@ class OSXRunner(Runner):
         else:
             path = os.path.dirname(exe)
             paths = subprocess.check_output(["find", path])
-            paths = [path.rstrip() for path in paths.splitlines()]
+            paths = [p.rstrip() for p in paths.splitlines()]
 
             utils.log_info(self.logger, "Setting executable bit for {} and children.".format(path))
             for path in paths:

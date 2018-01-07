@@ -6,7 +6,6 @@ import os
 import platform
 import shutil
 import socket
-import sys
 import urllib
 
 import utils
