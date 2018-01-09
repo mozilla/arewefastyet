@@ -513,7 +513,7 @@ class WasmMisc(Benchmark):
 
 class MotionMark(Benchmark):
     def __init__(self):
-        Benchmark.__init__(self, timeout=10)
+        Benchmark.__init__(self, timeout=12)
 
     @staticmethod
     def translate_path(path):
@@ -551,14 +551,14 @@ class MotionMark(Benchmark):
     showResults: function()
 ''', '''
     showResults: function() {
-        var results = benchmarkRunnerClient.results;
+        var dashboard = benchmarkRunnerClient.results;
 
         var scores = {};
-        scores['__total__'] = results.score;
+        scores['__total__'] = dashboard.score;
 
-        var subtests = results._results.iterationsResults[0].testsResults.Animometer;
+        var subtests = dashboard.results[0].testResults.Animometer;
         for (var name in subtests) {
-            scores[name] = subtests[name].score;
+            scores[name] = Math.round(subtests[name].average * 100) / 100;
         }
 
         scores = encodeURIComponent(JSON.stringify(scores));
