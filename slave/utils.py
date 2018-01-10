@@ -302,19 +302,19 @@ def create_logger(maxBytes=0, backupCount=0, rollover=False):
 
 def log_info(logger, msg):
     print msg
-    logger.info(msg)
+    logger.info(msg.rstrip())
 
 def log_warning(logger, msg):
     print msg
-    logger.warning(msg)
+    logger.warning(msg.rstrip())
 
 def log_error(logger, msg):
     print msg
-    logger.error(msg)
+    logger.error(msg.rstrip())
 
 def log_exception(logger, msg):
     print msg
-    logger.exception(msg)
+    logger.exception(msg.rstrip())
 
 def log_flush():
     """Flush root logger handlers which have flush methods"""
