@@ -96,7 +96,7 @@ class Downloader(object):
         os.makedirs(self.folder)
 
     def retrieve(self, filename):
-        utils.log_info(self.logger, "Retrieving", self.url + filename)
+        utils.log_info(self.logger, "Retrieving " + self.url + filename)
         urllib.urlretrieve(self.url + filename, self.folder + filename)
 
     def extract(self, filename):
