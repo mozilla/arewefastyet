@@ -28,7 +28,7 @@ if [[ -z "$CONTROL_UNIT_ID" ]]; then
     exit 1
 fi
 
-if pgrep -f run-task.sh; then
+if pgrep -f run-task.sh | grep -v $$; then
     echo "run-task.sh is already running."
     exit 2
 fi
