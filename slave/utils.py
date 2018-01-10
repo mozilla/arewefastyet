@@ -300,21 +300,31 @@ def create_logger(maxBytes=0, backupCount=0, rollover=False):
         file_handler.doRollover()
     return logger
 
+def prepare_log_msg(msg):
+    """Convert the log message to a string if necessary and remove
+    trailing newlines."""
+    if isinstance(msg, list):
+        msg = ' '.join(msg)
+    elif not isinstance(msg, str):
+        msg = str(msg)
+    msg = msg.rstrip()
+    return msg
+
 def log_info(logger, msg):
     print msg
-    logger.info(msg.rstrip())
+    logger.info(prepare_log_msg(msg))
 
 def log_warning(logger, msg):
     print msg
-    logger.warning(msg.rstrip())
+    logger.warning(prepare_log_msg(msg))
 
 def log_error(logger, msg):
     print msg
-    logger.error(msg.rstrip())
+    logger.error(prepare_log_msg(msg))
 
 def log_exception(logger, msg):
     print msg
-    logger.exception(msg.rstrip())
+    logger.exception(prepare_log_msg(msg))
 
 def log_flush():
     """Flush root logger handlers which have flush methods"""
