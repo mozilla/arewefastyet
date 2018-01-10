@@ -8,6 +8,8 @@ import urlparse
 
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
+import benchmarks_remote as benchmarks
+
 import utils
 utils.config.init("awfy.config")
 translates = utils.config.benchmarkTranslates()
