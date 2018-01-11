@@ -65,6 +65,8 @@ class SVN(Puller):
         Run(['svn', 'co', self.repo, self.folder])
 
     def sameRepo(self):
+        if not os.path.exists(self.path()):
+            return False
         with chdir(self.path()):
             try:
                 output = Run(['svn', 'info'])
