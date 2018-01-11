@@ -279,6 +279,9 @@ class V8Builder(Builder):
 
         objdir = os.path.realpath(self.objdir())
         if not os.path.isdir(objdir):
+            out_dir = os.path.join(self.folder, 'v8', 'out')
+            if not os.path.isdir(out_dir):
+                os.mkdir(out_dir)
             os.mkdir(objdir)
 
         with utils.chdir(os.path.join(self.folder, 'v8')):
