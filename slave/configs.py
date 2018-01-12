@@ -189,11 +189,7 @@ class WebRender(Default):
     def __init__(self, engine, shell):
         super(WebRender, self).__init__(engine, shell)
         if engine == "firefox" and not shell:
-            self.prefs_["gfx.webrender.enabled"] = True
-            self.prefs_["gfx.webrender.blob-images"] = True
-            self.prefs_["image.mem.shared"] = True
-            # This last one is for Linux, and a no-op on other platforms.
-            self.prefs_["layers.acceleration.force-enabled"] = True
+            self.prefs_["gfx.webrender.all"] = True
         else:
             self.omit_ = True
 
