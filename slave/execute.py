@@ -11,8 +11,9 @@ import benchmarks
 import configs
 import engineInfo
 import executors
-import submitter
 import utils
+
+from submitter import get_submitter
 
 parser = OptionParser(usage="usage: %prog url [options]")
 
@@ -84,7 +85,7 @@ if options.mode_rules is None:
 #TODO:remove
 utils.config.init("awfy.config")
 
-submitter = submitter.get_submitter(options.submitter)
+submitter = get_submitter(options.submitter)
 submitter.set_mode_rules(options.mode_rules)
 
 if options.session:
