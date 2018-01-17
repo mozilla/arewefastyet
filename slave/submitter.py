@@ -175,7 +175,7 @@ class RemoteSubmitter(Submitter):
 
 class PrintSubmitter(Submitter):
     def __init__(self):
-        super(Submitter, self).__init__()
+        super(PrintSubmitter, self).__init__()
         self.msg = ''
 
     def log(self, msg):
