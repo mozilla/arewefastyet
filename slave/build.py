@@ -350,7 +350,7 @@ def getBuilder(config, path):
     raise Exception("Unknown builder")
 
 if __name__ == "__main__":
-    logger = utils.create_logger()
+    logger = utils.create_logger('build')
 
     utils.log_banner("BUILD")
 

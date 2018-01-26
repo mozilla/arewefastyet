@@ -1,5 +1,4 @@
 import json
-import sys
 import urllib
 import urllib2
 
@@ -8,9 +7,7 @@ from optparse import OptionParser
 import utils
 
 if __name__ == "__main__":
-    logger = utils.create_logger(maxBytes=sys.maxint,
-                                 backupCount=3,
-                                 rollover=True)
+    logger = utils.create_logger('task')
 
     parser = OptionParser(usage="usage: %prog [options]")
 

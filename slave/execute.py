@@ -130,7 +130,7 @@ class AutoSpawnServer:
             self.server = None
 
 if __name__ == '__main__':
-    logger = utils.create_logger()
+    logger = utils.create_logger('execute')
 
     utils.log_banner("EXECUTE")
     log = utils.make_log('EXECUTE')

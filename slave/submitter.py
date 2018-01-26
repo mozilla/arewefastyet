@@ -215,7 +215,7 @@ def get_submitter(name):
         raise Exception('unknown submitter!')
 
 if __name__ == "__main__":
-    logger = utils.create_logger()
+    logger = utils.create_logger('submitter')
 
     from optparse import OptionParser
     parser = OptionParser(usage="usage: %prog [options]")

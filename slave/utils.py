@@ -266,38 +266,35 @@ def flush():
     sys.stderr.flush()
     log_flush()
 
-def create_logger(maxBytes=0, backupCount=0, rollover=False):
+def create_logger(name):
     """Create a rotating file logger which will be used to log messages
-    both to stdout via print as well as to ~/AWFY.log. This will allow
+    both to stdout via print as well as to ~/AWFY-{name}.log. This will allow
     us to keep the currently expected print output to stdout while at
     the same time capturing these printed log messages to a log file
     for diagnosis.
 
-
-    Use a rotating file handler which will keep the most recent copies
-    of the log file.
-
-    In the main process running task.py, backupCount is set to 3 to
-    keep 3 copies and maxBytes is set to the maximum integer so that
-    the log will not be automatically rolled over. Instead the log
-    will only be rolled over in the main task.py process. Subprocesses
-    which are created will use the same file name but with maxBytes
-    and backupCount set to 0 so they will not roll over at all.
+    The number of copies of the log which will be kept is controlled
+    via the environment variable BACKUP_COUNT. If it is missing, it will
+    default to 10.
     """
     from logging.handlers import RotatingFileHandler
+
+    try:
+        backupCount = int(os.environ['BACKUP_COUNT'])
+    except:
+        backupCount = 10
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     file_handler = RotatingFileHandler(
-        os.path.join(os.environ['HOME'], 'AWFY.log'),
+        os.path.join(os.environ['HOME'], 'AWFY-{}.log'.format(name)),
         maxBytes=sys.maxint,
-        backupCount=3)
+        backupCount=backupCount)
     file_handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
-    if rollover and maxBytes > 0 and backupCount > 0:
-        file_handler.doRollover()
+    file_handler.doRollover()
     return logger
 
 def prepare_log_msg(msg):

@@ -336,7 +336,7 @@ class BuildsWebkitDownloader(Downloader):
         return info
 
 if __name__ == "__main__":
-    logger = utils.create_logger()
+    logger = utils.create_logger('download')
 
     utils.log_banner('DOWNLOAD')
 
