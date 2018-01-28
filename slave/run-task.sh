@@ -28,8 +28,6 @@ if [[ -z "$CONTROL_UNIT_ID" ]]; then
     exit 1
 fi
 
-export DISPLAY=:0
-
 cd ~/arewefastyet/slave
 
 while true; do
