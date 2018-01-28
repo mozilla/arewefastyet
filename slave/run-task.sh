@@ -28,25 +28,6 @@ if [[ -z "$CONTROL_UNIT_ID" ]]; then
     exit 1
 fi
 
-if pgrep -f run-task.sh | grep -v $$; then
-    echo "run-task.sh is already running."
-    exit 2
-fi
-
-control_c()
-{
-    local answer
-    read -e -i Y -p "Kill running task?: Y/N" answer
-    if [[ "$answer" == "Y" ]]; then
-        pkill -9 -f task.py
-    fi
-    echo "Exiting...."
-    exit 2
-}
-
-# trap keyboard interrupt (control-c)
-trap control_c SIGINT
-
 export DISPLAY=:0
 
 cd ~/arewefastyet/slave
