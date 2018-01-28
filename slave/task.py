@@ -1,14 +1,12 @@
-import json
-import urllib
+import os
 import urllib2
-
+import urllib
 from optparse import OptionParser
-
+import json
 import utils
 
 if __name__ == "__main__":
-    logger = utils.create_logger('task')
-
+    from optparse import OptionParser
     parser = OptionParser(usage="usage: %prog [options]")
 
     parser.add_option("-r", "--run", dest="machine", type="int", help="Get and run the task of a given (control) machine.")

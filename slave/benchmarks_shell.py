@@ -1,14 +1,17 @@
-import logging
+import subprocess
+import socket
 import os
-import re
+import time
+import json
 import sys
+import re
 
 sys.path.insert(1, '../driver')
+import submitter
 import utils
 
 class Benchmark(object):
     def __init__(self, folder, suite=None):
-        self.logger = logging.getLogger(self.__class__.__name__)
         if folder.endswith("/"):
             folder = folder[:-1]
 
@@ -58,7 +61,7 @@ class Octane(Benchmark):
             if name[0:5] == "Score":
                 name = "__total__"
             tests.append({ 'name': name, 'time': score})
-            utils.log_info(self.logger, score + '    - ' + name)
+            print(score + '    - ' + name)
 
         return tests
 
@@ -87,15 +90,15 @@ class SunSpiderBased(Benchmark):
             if x[0:5] == "Total":
                 m = re.search(":\s+(\d+\.\d+)ms", x)
                 tests.append({ 'name': '__total__', 'time': m.group(1)})
-                utils.log_info(self.logger, m.group(1) + '    - __total__')
+                print(m.group(1) + '    - __total__')
             elif found == True and x[0:4] == "    ":
                 m = re.search("    (.+):\s+(\d+\.\d+)ms", x)
                 if m != None:
                     tests.append({ 'name': m.group(1), 'time': m.group(2)})
-                    utils.log_info(self.logger, m.group(2) + '    - ' + m.group(1))
+                    print(m.group(2) + '    - ' + m.group(1))
 
         if found == False:
-            utils.log_info(self.logger, output)
+            print(output)
             raise Exception("output marker not found")
 
         return tests
@@ -191,7 +194,7 @@ class Dart(Benchmark):
             score = float(m.group(2))/1000
             total += score
             tests.append({ 'name': name, 'time': score})
-            utils.log_info(self.logger, str(score) + '    - ' + name)
+            print(str(score) + '    - ' + name)
         tests.append({ 'name': '__total__', 'time': total })
 
         return tests
@@ -225,9 +228,9 @@ class SixSpeed(Benchmark):
             score = m.group(2)
             total += int(score)
             tests.append({ 'name': name, 'time': score})
-            utils.log_info(self.logger, score + '    - ' + name)
+            print(score + '    - ' + name)
         tests.append({ 'name': '__total__', 'time': total})
-        utils.log_info(self.logger, str(total) + '    - __total__')
+        print(str(total) + '    - __total__')
 
         return tests
 
@@ -327,7 +330,7 @@ class WebToolingBenchmark(Benchmark):
             if name == "mean":
                 name = "__total__"
             tests.append({'name': name, 'time': score})
-            utils.log_info(self.logger, score + '    - ' + name)
+            print(score + '    - ' + name)
 
         return tests
 

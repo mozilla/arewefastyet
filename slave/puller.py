@@ -1,14 +1,11 @@
-import logging
-import os
 import re
+import os
 import shutil
 
-import utils
 from utils import Run, chdir
 
 class Puller(object):
     def __init__(self, repo, folder):
-        self.logger = logging.getLogger(self.__class__.__name__)
         self.repo = repo
         self.folder = folder
 
@@ -58,9 +55,6 @@ class HG(Puller):
 
 class SVN(Puller):
 
-    def __init__(self, repo, folder):
-        super(SVN, self).__init__(repo, folder)
-
     def clone(self):
         Run(['svn', 'co', self.repo, self.folder])
 
@@ -72,8 +66,8 @@ class SVN(Puller):
                 output = Run(['svn', 'info'])
             except:
                 return False
-            utils.log_info(self.logger, self.repo)
-            utils.log_info(self.logger, output)
+            print self.repo
+            print output
             if "URL: "+self.repo in output:
                 return True
             exit()
@@ -157,6 +151,7 @@ class V8GIT(GIT):
         with chdir(self.path()):
             Run(['git', 'pull', 'origin', 'master'])
 
+        env = os.environ.copy()
         with chdir(self.path()):
             Run(['gclient', 'sync'], self.make_env())
 

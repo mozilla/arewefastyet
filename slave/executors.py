@@ -1,6 +1,6 @@
 import json
-import logging
 import os
+import sys
 import time
 
 from mozprofile.profile import FirefoxProfile
@@ -10,7 +10,6 @@ import runners
 
 class ShellExecutor(object):
     def __init__(self, engineInfo):
-        self.logger = logging.getLogger(self.__class__.__name__)
         self.engineInfo = engineInfo
 
     def run(self, benchmark, config):
@@ -44,7 +43,6 @@ class ShellExecutor(object):
 
 class BrowserExecutor(object):
     def __init__(self, engineInfo):
-        self.logger = logging.getLogger(self.__class__.__name__)
         self.engineInfo = engineInfo
         self.benchmark = None
 
@@ -86,7 +84,7 @@ class BrowserExecutor(object):
                 suite = " when running {}".format(self.benchmark.suite)
             except:
                 pass
-            utils.log_error(self.logger, "TIMEOUT (executor) {}".format(suite))
+            print "TIMEOUT (executor){}".format(suite)
 
 class EdgeExecutor(BrowserExecutor):
     def execute(self, benchmark, env, args, prefs):
@@ -95,7 +93,7 @@ class EdgeExecutor(BrowserExecutor):
         })
 
         # kill browser
-        utils.log_info(self.logger, "Killing Edge (before)...")
+        print "Killing Edge (before)..."
         process = runner.start("cmd.exe", ["/C", "taskkill", "/IM", "MicrosoftEdge.exe", "/F"], env)
         process.wait()
 
@@ -112,7 +110,7 @@ class EdgeExecutor(BrowserExecutor):
         self.wait_for_results(benchmark.timeout)
 
         # kill browser
-        utils.log_info(self.logger, "Killing Edge (after)...")
+        print "Killing Edge (after)..."
         runner.start("cmd.exe", ["/C", "taskkill", "/IM", "MicrosoftEdge.exe", "/F"], env)
 
 class FirefoxExecutor(BrowserExecutor):
@@ -126,7 +124,7 @@ class FirefoxExecutor(BrowserExecutor):
         })
 
         # kill all possible running instances.
-        utils.log_info(self.logger, "Killing Firefox (before)...")
+        print "Killing Firefox (before)..."
         runner.killAllInstances()
         runner.killall("plugin-container")
 
@@ -148,7 +146,7 @@ class FirefoxExecutor(BrowserExecutor):
         self.wait_for_results(benchmark.timeout)
 
         # kill browser
-        utils.log_info(self.logger, "Killing Firefox (after)...")
+        print "Killing Firefox (after)..."
         runner.kill(process)
         runner.killAllInstances()
         runner.killall("plugin-container")
@@ -165,7 +163,7 @@ class ChromeExecutor(BrowserExecutor):
         })
 
         # kill all possible running instances.
-        utils.log_info(self.logger, "Killing Chrome (before)...")
+        print "Killing Chrome (before)..."
         runner.killAllInstances()
 
         # if needed install the executable
@@ -198,7 +196,7 @@ class ChromeExecutor(BrowserExecutor):
         self.wait_for_results(benchmark.timeout)
 
         # kill browser
-        utils.log_info(self.logger, "Killing Chrome (after)...")
+        print "Killing Chrome (after)..."
         runner.kill(process)
         runner.killAllInstances()
 
@@ -212,7 +210,7 @@ class WebKitExecutor(BrowserExecutor):
         })
 
         # kill all possible running instances.
-        utils.log_info(self.logger, "Killing Webkit (before)...")
+        print "Killing Webkit (before)..."
         runner.killAllInstances()
 
         # remove the saved tabs.
@@ -230,7 +228,7 @@ class WebKitExecutor(BrowserExecutor):
         self.wait_for_results(benchmark.timeout)
 
         # kill browser
-        utils.log_info(self.logger, "Killing Webkit (after)...")
+        print "Killing Webkit (after)..."
         runner.kill(process)
         runner.killAllInstances()
 
@@ -239,7 +237,7 @@ class ServoExecutor(BrowserExecutor):
         runner = runners.getRunner(self.engineInfo["platform"], {})
 
         # kill all possible running instances.
-        utils.log_info(self.logger, "Killing Servo (before)...")
+        print "Killing Servo (before)..."
         runner.killall("servo")
 
         self.reset_results()
@@ -251,7 +249,7 @@ class ServoExecutor(BrowserExecutor):
         self.wait_for_results(benchmark.timeout)
 
         # kill browser
-        utils.log_info(self.logger, "Killing Servo (after)...")
+        print "Killing Servo (after)..."
         runner.kill(process)
 
 def make_executor(engineInfo):

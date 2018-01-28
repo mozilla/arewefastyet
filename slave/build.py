@@ -1,12 +1,11 @@
 #!/usr/bin/env python2
 
 import json
-import logging
+import urllib
 import os
-import platform
 import shutil
 import socket
-import urllib
+import platform
 
 import utils
 from utils import Run
@@ -42,7 +41,6 @@ class Environment(object):
 class Builder(object):
 
     def __init__(self, config, folder):
-        self.logger = logging.getLogger(self.__class__.__name__)
         self.env = Environment()
         self.config = config
         self.folder = folder
@@ -75,10 +73,10 @@ class Builder(object):
 
         with utils.chdir(self.folder):
             if os.path.exists("android-ndk-r12"):
-                utils.log_info(self.logger, "already installed: {}".format(os.path.join(self.folder, "android-ndk-r12")))
+                print "already installed: ", os.path.join(self.folder, "android-ndk-r12")
                 return
 
-            utils.log_info(self.logger, "installing")
+            print "installing"
             urllib.urlretrieve("https://dl.google.com/android/repository/android-ndk-r12-linux-x86_64.zip", "./android-ndk.zip")
             Run(["unzip", "android-ndk.zip"], silent=True)
 
@@ -125,7 +123,7 @@ class Builder(object):
         json.dump(info, fp)
         fp.close()
 
-        utils.log_info(self.logger, "Build done!")
+        print "Build done!"
 
 class MozillaBuilder(Builder):
     def __init__(self, config, folder):
@@ -350,8 +348,6 @@ def getBuilder(config, path):
     raise Exception("Unknown builder")
 
 if __name__ == "__main__":
-    logger = utils.create_logger('build')
-
     utils.log_banner("BUILD")
 
     from optparse import OptionParser
@@ -375,21 +371,21 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     if options.repo is None:
-        utils.log_error(logger, "Please provide the source repository to pull")
+        print "Please provide the source repository to pull"
         exit()
 
     if not options.output.endswith("/"):
         options.output += "/"
 
     if options.config not in ["auto", "32bit", "64bit", "android", "android64"]:
-        utils.log_error(logger, "Please provide a valid config")
+        print "Please provide a valid config"
         exit()
 
     if options.config == "auto":
         options.config, _ = platform.architecture()
 
     if options.config == "64bit" and platform.architecture()[0] == "32bit":
-        utils.log_error(logger, "Cannot compile a 64bit binary on 32bit architecture")
+        print "Cannot compile a 64bit binary on 32bit architecture"
         exit()
 
     puller = puller.getPuller(options.repo, options.output)

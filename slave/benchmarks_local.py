@@ -1,7 +1,8 @@
 import json
-import logging
 import os
+import socket
 import subprocess
+import sys
 import time
 
 import utils
@@ -9,7 +10,6 @@ import utils
 class Benchmark:
     """ timeout is in minutes """
     def __init__(self, folder, page, timeout=2):
-        self.logger = logging.getLogger(self.__class__.__name__)
         if folder.endswith("/"):
             folder = folder[:-1]
 
@@ -45,7 +45,7 @@ class Benchmark:
             engine.kill()
 
             if timeout <= 0:
-                utils.log_error(self.logger, "Running benchmark timed out")
+                print "Running benchmark timed out"
                 continue
 
             fp = open("results", "r")
@@ -70,7 +70,7 @@ class AssortedDOM(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "misc-desktop/", "hosted/assorted/driver.html", 1)
         with utils.chdir(os.path.join(utils.config.BenchmarkPath, "misc-desktop")):
-            utils.log_info(self.logger, subprocess.check_output(["python", "make-hosted.py"]))
+            print subprocess.check_output(["python", "make-hosted.py"])
 
     @staticmethod
     def name():
@@ -108,6 +108,7 @@ class WebAudio(Benchmark):
 
     def process_results(self, results):
         ret = []
+        total = 0
         for item in results:
             if item['name'] == "Geometric Mean":
                 item['name'] = "__total__"
@@ -128,6 +129,7 @@ class UnityWebGL(Benchmark):
 
     def process_results(self, results):
         ret = []
+        total = 0
         for item in results:
             if item['benchmark'] == "Geometric Mean":
                 item['benchmark'] = "__total__"

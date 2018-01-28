@@ -1,4 +1,3 @@
-import logging
 import platform
 import urllib2
 import re
@@ -63,7 +62,6 @@ class TaskClusterIndexHelper(object):
     _index_url = 'https://index.taskcluster.net/v1/task/gecko.v2'
     _artifacts = 'https://public-artifacts.taskcluster.net'
     _task_inspector = 'https://tools.taskcluster.net/tasks'
-    _logger = logging.getLogger('TaskClusterIndexHelper')
 
     BUILDTYPES = ('debug', 'nightly', 'opt', 'pgo')
     PRODUCTS = ('firefox', 'mobile')
@@ -72,7 +70,7 @@ class TaskClusterIndexHelper(object):
     @classmethod
     def build_url(cls, repo_name, product, platform, buildtype, revision=None):
         task_id = cls._task_id(repo_name, product, platform, buildtype, revision)
-        utils.log_info(cls._logger, 'TASK: %s/%s' % (cls._task_inspector, task_id))
+        print 'TASK: %s/%s' % (cls._task_inspector, task_id)
         return cls._artifact_url(
             task_id,
             artifact_path='public/build/{}'.format(cls._artifact_to_filename(platform)))
@@ -131,7 +129,7 @@ class TaskClusterIndexHelper(object):
             task_id,
             run_id,
             artifact_path)
-        utils.log_info(cls._logger, 'URL: %s' % url)
+        print 'URL: %s' % url
         return url
 
 

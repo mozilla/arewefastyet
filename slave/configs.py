@@ -1,6 +1,8 @@
+import os
 import sys
 
 sys.path.insert(1, '../driver')
+import utils
 
 #TODO: move into builder
 #with utils.chdir(os.path.join(utils.config.RepoPath, self.source)):

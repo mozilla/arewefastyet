@@ -1,13 +1,17 @@
-import logging
+import json
+import os
+import socket
+import subprocess
 import sys
+import time
 
 sys.path.insert(1, '../driver')
 
+import utils
 
 class Benchmark:
     """ timeout is in minutes """
     def __init__(self, timeout=2, suite=None):
-        self.logger = logging.getLogger(self.__class__.__name__)
         self.suite = suite if suite is not None else self.name()
         self.version = self.suite + " " + self.static_version()
         self.url = 'http://' + self.suite + ".localhost:8000"
@@ -57,6 +61,7 @@ class Octane(Benchmark):
 
     @staticmethod
     def inject_data(path, data):
+        print "inject"
         if path == "/octane/index.html":
             return data.replace("</body>",
                                 "<script>"

@@ -11,9 +11,8 @@ import benchmarks
 import configs
 import engineInfo
 import executors
+import submitter
 import utils
-
-from submitter import get_submitter
 
 parser = OptionParser(usage="usage: %prog url [options]")
 
@@ -85,7 +84,7 @@ if options.mode_rules is None:
 #TODO:remove
 utils.config.init("awfy.config")
 
-submitter = get_submitter(options.submitter)
+submitter = submitter.get_submitter(options.submitter)
 submitter.set_mode_rules(options.mode_rules)
 
 if options.session:
@@ -130,8 +129,6 @@ class AutoSpawnServer:
             self.server = None
 
 if __name__ == '__main__':
-    logger = utils.create_logger('execute')
-
     utils.log_banner("EXECUTE")
     log = utils.make_log('EXECUTE')
 
@@ -163,7 +160,6 @@ if __name__ == '__main__':
                         log('Exception: ' +  repr(e))
                         import traceback
                         traceback.print_exc()
-                        utils.log_exception(logger, 'Exception')
                         continue
 
                     mode = submitter.mode(info["engine_type"], config_name)
