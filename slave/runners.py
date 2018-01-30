@@ -168,6 +168,10 @@ class OSXRunner(Runner):
         except:
             pass
         try:
+            subprocess.check_output(["hdiutil", "unmount", "-force", self.info["osx_mount_point"]])
+        except:
+            pass
+        try:
             subprocess.check_output(["hdiutil", "detach", "-force", self.info["osx_mount_point"]])
         except:
             pass
