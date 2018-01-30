@@ -183,18 +183,18 @@ class OSXRunner(Runner):
     def install(self, exe):
         if exe.endswith(".dmg"):
             print "install", exe
-            subprocess.check_output(["hdiutil", "attach", exe])
+            subprocess.check_output(["hdiutil", "attach", exe, "-mountpoint", self.info["osx_mount_point"]])
+            self.info["osx_binary"] = subprocess.check_output(["find", self.info["osx_mount_point"],  "-name", "firefox"]).rstrip()
             return self.info["osx_binary"]
-        else:
-            path = os.path.dirname(exe)
-            paths = subprocess.check_output(["find", path])
-            paths = [path.rstrip() for path in paths.splitlines()]
+        path = os.path.dirname(exe)
+        paths = subprocess.check_output(["find", path])
+        paths = [path.rstrip() for path in paths.splitlines()]
 
-            print "Setting executable bit for {} and children.".format(path)
-            for path in paths:
-                self.set_exec_bit(path)
+        print "Setting executable bit for {} and children.".format(path)
+        for path in paths:
+            self.set_exec_bit(path)
 
-            return exe
+        return exe
 
 class AndroidRunner(Runner):
     def __init__(self, info):
