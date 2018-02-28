@@ -351,7 +351,6 @@ INSERT INTO `awfy_suite` (`id`, `name`, `description`, `better_direction`, `sort
 (6, 'octane', 'Octane', 1, 50, 1, 1),
 (7, 'asmjs-ubench', 'asm.js µbench', -1, 60, 1, 1),
 (8, 'asmjs-apps', 'asm.js apps', -1, 70, 1, 1),
-(9, 'webglsamples', 'webglsamples', -1, 80, 1, 1),
 (10, 'dromaeo', 'Dromaeo', 1, 90, 1, 1),
 (11, 'massive', 'Massive', 1, 100, 1, 1),
 (12, 'jetstream', 'JetStream', 1, 110, 1, 1),

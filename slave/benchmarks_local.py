@@ -94,14 +94,6 @@ class AssortedDOM(Benchmark):
         ret.append({'name': "__total__", 'time': total })
         return ret
 
-class WebGLSamples(Benchmark):
-    def __init__(self):
-        Benchmark.__init__(self, "webglsamples/", "test.html", 1)
-
-    @staticmethod
-    def name():
-        return "webglsamples"
-
 class WebAudio(Benchmark):
     def __init__(self):
         Benchmark.__init__(self, "webaudio/", "index.html", 2)
@@ -138,7 +130,6 @@ class UnityWebGL(Benchmark):
 
 Known = [
     AssortedDOM,
-    WebGLSamples,
     WebAudio,
     UnityWebGL,
 ]
