@@ -20,6 +20,7 @@ class Default(object):
             self.env_["JSGC_DISABLE_POISONING"] = "1"
             self.env_["STYLO_FORCE_ENABLED"] = '1'
             self.prefs_["dom.max_script_run_time"] = 0
+            self.prefs_["privacy.reduceTimerPrecision"] = False
             self.prefs_["javascript.options.asyncstack"] = False
             self.prefs_["datareporting.policy.firstRunURL"] = ""
             self.prefs_["datareporting.policy.dataSubmissionPolicyBypassNotification"] = True
