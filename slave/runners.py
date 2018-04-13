@@ -161,19 +161,22 @@ class OSXRunner(Runner):
         if "osx_mount_point" not in self.info or not os.path.exists(self.info["osx_mount_point"]):
             if "osx_processname" in self.info:
                 self.killall(self.info["osx_processname"])
-            return
 
         print "killallinstances"
         try:
-            subprocess.check_output("kill $(ps aux | grep '"+self.info["osx_mount_point"]+"[^[]' | awk '{print $2}')", shell=True)
+            print subprocess.check_output("kill $(ps aux | grep '"+self.info["osx_mount_point"]+"[^[]' | awk '{print $2}')",
+                                          stderr=subprocess.STDOUT,
+                                          shell=True)
         except:
             pass
         try:
-            subprocess.check_output(["hdiutil", "unmount", "-force", self.info["osx_mount_point"]])
+            print subprocess.check_output(["hdiutil", "unmount", "-force", self.info["osx_mount_point"]],
+                                          stderr=subprocess.STDOUT)
         except:
             pass
         try:
-            subprocess.check_output(["hdiutil", "detach", "-force", self.info["osx_mount_point"]])
+            print subprocess.check_output(["hdiutil", "detach", "-force", self.info["osx_mount_point"]],
+                                          stderr=subprocess.STDOUT)
         except:
             pass
 
@@ -184,7 +187,8 @@ class OSXRunner(Runner):
     def install(self, exe):
         if exe.endswith(".dmg"):
             print "install", exe
-            subprocess.check_output(["hdiutil", "attach", exe, "-mountpoint", self.info["osx_mount_point"]])
+            print subprocess.check_output(["hdiutil", "attach", exe, "-mountpoint", self.info["osx_mount_point"]],
+                                          stderr=subprocess.STDOUT)
             self.info["osx_binary"] = subprocess.check_output(["find", self.info["osx_mount_point"],  "-name", "firefox"]).rstrip()
             return self.info["osx_binary"]
         path = os.path.dirname(exe)
