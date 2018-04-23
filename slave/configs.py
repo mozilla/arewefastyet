@@ -122,14 +122,6 @@ class NoAsmjs(Default):
         else:
             self.omit_ = True
 
-class FlowAA(Default):
-    def __init__(self, engine, shell):
-        super(FlowAA, self).__init__(engine, shell)
-        if engine == "firefox" and shell:
-            self.args_.append("--ion-aa=flow-sensitive");
-        else:
-            self.omit_ = True
-
 class BranchPruning(Default):
     def __init__(self, engine, shell):
         super(BranchPruning, self).__init__(engine, shell)
@@ -221,8 +213,6 @@ def getConfig(name, info):
         return NoE10S(info["engine_type"], info["shell"])
     if name == "e10s":
         return E10S(info["engine_type"], info["shell"])
-    if name == "flowaa":
-        return FlowAA(info["engine_type"], info["shell"])
     if name == "branchpruning":
         return BranchPruning(info["engine_type"], info["shell"])
     if name == "stylo":
