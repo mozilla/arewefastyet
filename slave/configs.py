@@ -18,7 +18,6 @@ class Default(object):
 
         if engine == "firefox":
             self.env_["JSGC_DISABLE_POISONING"] = "1"
-            self.env_["STYLO_FORCE_ENABLED"] = '1'
             self.prefs_["dom.max_script_run_time"] = 0
             self.prefs_["privacy.reduceTimerPrecision"] = False
             self.prefs_["javascript.options.asyncstack"] = False
@@ -170,16 +169,6 @@ class Stylo(Default):
         else:
             self.omit_ = True
 
-class StyloDisabled(Default):
-    def __init__(self, engine, shell):
-        super(StyloDisabled, self).__init__(engine, shell)
-        if engine == "firefox" and not shell:
-            self.env_["STYLO_FORCE_DISABLED"] = '1'
-            if "STYLO_FORCE_ENABLED" in self.env_:
-                del self.env_["STYLO_FORCE_ENABLED"]
-        else:
-            self.omit_ = True
-
 class WebRender(Default):
     def __init__(self, engine, shell):
         super(WebRender, self).__init__(engine, shell)
@@ -217,8 +206,6 @@ def getConfig(name, info):
         return BranchPruning(info["engine_type"], info["shell"])
     if name == "stylo":
         return Stylo(info["engine_type"], info["shell"])
-    if name == "stylo_disabled":
-        return StyloDisabled(info["engine_type"], info["shell"])
     if name == "webrender":
         return WebRender(info["engine_type"], info["shell"])
     raise Exception("Unknown config")
