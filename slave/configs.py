@@ -161,14 +161,6 @@ class E10S(Default):
         else:
             self.omit_ = True
 
-class Stylo(Default):
-    def __init__(self, engine, shell):
-        super(Stylo, self).__init__(engine, shell)
-        if engine == "firefox" and not shell:
-            self.env_["STYLO_FORCE_ENABLED"] = '1'
-        else:
-            self.omit_ = True
-
 class WebRender(Default):
     def __init__(self, engine, shell):
         super(WebRender, self).__init__(engine, shell)
@@ -204,8 +196,6 @@ def getConfig(name, info):
         return E10S(info["engine_type"], info["shell"])
     if name == "branchpruning":
         return BranchPruning(info["engine_type"], info["shell"])
-    if name == "stylo":
-        return Stylo(info["engine_type"], info["shell"])
     if name == "webrender":
         return WebRender(info["engine_type"], info["shell"])
     raise Exception("Unknown config")
